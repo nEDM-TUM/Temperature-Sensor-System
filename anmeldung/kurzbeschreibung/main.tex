@@ -54,14 +54,38 @@ Wichtigkeit ist, um die Anforderungen an das Messsystem genau abschätzen zu
 können (Genauigkeit, Störungen, Zuverlässigkeit, etc.).
 \section*{Unser Projekt}
 \subsection*{Überblick}
-- Anforderungsanalyse
-- Recherche nach passender Hardware
-- Aufbau der Hardware
-- Implementieren einer Software lösung
-- Installation des Sensornetzwerks im Experimentaufbau
+Das Ziel des Projekts ist Aufbau eines Temperatur- und Luftfeuchtigkeit-
+Sensornetzwerks innerhalb des Spulenkäfigs. Die gemessene Temperatur- und 
+Luftfeuchtigkeits-Daten sollen im JSON Format per Ethernet geschickt, um 
+die Klimaanlagen zu regeln, und in einer 
+Datenbank gespeichert werden, zur späteren Korrektur der nEDM Messungen. 
+Die gewünschte Datengenauigkeiten sind gelistet in Tabelle \ref{tab:genauigkeit}.
+Dazu besteht die folgenden Aufgaben:
+\begin{itemize}
+\item Recherche nach passender Sensoren 
+\item Bewertung der Sensor-Daten
+\item Formatierung der Messwert 
+\item Datenübertragung per Ethernet
+\item Installation des Sensornetzwerks im Experimentaufbau
+\item Dokumentieren
+\end{itemize}
+\begin{table}
+  \centering
+  \begin{tabular}{|l|c|}
+    \hline
+    Temperatur-Genauigkeit & 0.1 
+    \\ \hline
+    Luftfeuchtigkeit-Genauigkeit & 0.1
+    \\ \hline
+    Daten-Geschwindigkeit & 1s
+    \\ \hline
+  \end{tabular}
+  \caption{Die gewünschte Datengenauigkeiten}
+  \label{tab:genauigkeit}
+\end{table}
 \subsection*{Meilensteine}
 Der vorgesehene Zeitplan und Aufgabenaufteilung sind folgendes:
 \begin{center}
-\includegraphics[]{plan.pdf}
+\includegraphics[width=\textwidth]{plan.pdf}
 \end{center}
 \end{document}
