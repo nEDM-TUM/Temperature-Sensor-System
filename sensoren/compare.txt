@@ -18,6 +18,7 @@ SHT71, SHT7
   - Full calibrated
 
 HIH8120-021-001
+HIH8000 Serie
   - 2%
   - 0 - 100%
   - I2C or SPI
