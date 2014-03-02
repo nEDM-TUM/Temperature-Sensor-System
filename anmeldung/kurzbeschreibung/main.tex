@@ -1,5 +1,5 @@
 % Cover letter using letter.cls
-\documentclass{article} % Uses 10pt
+\documentclass[a4paper]{article} % Uses 10pt
 %\usepackage{helvetica} % uses helvetica postscript font (download helvetica.sty)
 %\usepackage{newcent}   % uses new century schoolbook postscript font 
 \usepackage[utf8]{inputenc}       % allow Latin1 characters
@@ -42,7 +42,7 @@ Um sicher zu stellen, dass bei dem Experiment konstante Bedingungen herrschen
 ist neben der exakt definierten magnetischen Umgebung auch die 
 Umgebungstemperatur, sowie der Luftfeuchtigkeit innerhalb des äußeren
 Spulenkäfigs von großer Wichtigkeit. Diese wird von einer Klimaanlage
-kontrolliert. Zur Steuerung dieser Anlage muss jedoch die Temperatur an
+kontrolliert. Zur Steuer\-ung dieser Anlage muss jedoch die Tempera\-tur an
 verschiedenen Positionen im Spulenkäfig gemessen werden.
 \section*{Die Vorlesung ``Particle Physics with Neutrons''}
 Die Vorlesung behandelt Grundlagen der Neutronenphysik. Sie gibt insbesondere
@@ -56,11 +56,11 @@ können (Genauigkeit, Störungen, Zuverlässigkeit, etc.).
 \subsection*{Überblick}
 Das Ziel des Projekts ist Aufbau eines Temperatur- und Luftfeuchtigkeit-
 Sensornetzwerks innerhalb des Spulenkäfigs. Die gemessene Temperatur- und 
-Luftfeuchtigkeits-Daten sollen im JSON Format per Ethernet geschickt, um 
+Luft\-feuchtig\-keits-Daten sollen im JSON Format per Ethernet geschickt, um 
 die Klimaanlagen zu regeln, und in einer 
 Datenbank gespeichert werden, zur späteren Korrektur der nEDM Messungen. 
-Die gewünschte Datengenauigkeiten sind gelistet in Tabelle \ref{tab:genauigkeit}.
-Dazu besteht die folgenden Aufgaben:
+Die voraus\-sichtlich gewünschten Genauig\-keiten sind in Tabelle \ref{tab:genauigkeit} gelistet.
+Unser Projekt unterteilt sich in folgende Teilaufgaben:
 \begin{itemize}
 \item Recherche nach passender Sensoren 
 \item Bewertung der Sensor-Daten
@@ -69,22 +69,22 @@ Dazu besteht die folgenden Aufgaben:
 \item Installation des Sensornetzwerks im Experimentaufbau
 \item Dokumentieren
 \end{itemize}
-\begin{table}
+\begin{table}[h]
   \centering
   \begin{tabular}{|l|c|}
     \hline
-    Temperatur-Genauigkeit & 0.1 
+    Temperatur-Genauigkeit & $\pm0.1 K$
     \\ \hline
-    Luftfeuchtigkeit-Genauigkeit & 0.1
+    Luftfeuchtigkeit-Genauigkeit & $\pm 1\%$
     \\ \hline
-    Daten-Geschwindigkeit & 1s
+    Daten Übertragungsfrequenz & $\approx 1Hz$
     \\ \hline
   \end{tabular}
-  \caption{Die gewünschte Datengenauigkeiten}
+  \caption{Voraussichtliche Genauigkeiten}
   \label{tab:genauigkeit}
 \end{table}
 \subsection*{Meilensteine}
-Der vorgesehene Zeitplan und Aufgabenaufteilung sind folgendes:
+Der vorgesehene Zeitplan und Aufgabenaufteilung ist in folgender Grafik dargestellt:
 \begin{center}
 \includegraphics[width=\textwidth]{plan.pdf}
 \end{center}
