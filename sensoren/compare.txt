@@ -5,6 +5,7 @@ HYT-271
   - Response time 5s
   - Temperature compensated (0.2K -40 - 125 C)
   - 27 Euro
+  - Precisely calibrated
 
 SHT71, SHT7
   - 3%
@@ -14,3 +15,12 @@ SHT71, SHT7
   - 40 Euro
   - CRC-8 Checksum
   - Two wire
+  - Full calibrated
+
+HIH8120-021-001
+  - 2%
+  - 0 - 100%
+  - I2C or SPI
+  - Response time 6 s
+  - Temperature (0.8K -40 - 125 C)
+  - 16 Euro
