@@ -34,13 +34,13 @@ Neutrons gewonnen werden.
 \centering
 \includegraphics[width=0.7\linewidth]{img/frm3d.png}
 \caption{Experiment Umgebung. 1: Spulenkäfig zur magnetischen Feldkompensation,
-2: Äußere magnetisches Schild, 3: Inneres magnetisches Schild, 4: Klimaanlage}
+2: Äußeres magnetisches Schild, 3: Inneres magnetisches Schild, 4: Klimaanlage}
 \label{fig:exp}
 \end{figure}
 \subsection*{Notwendigkeit der Umgebungsmessung}
 Um sicher zu stellen, dass bei dem Experiment konstante Bedingungen herrschen
 ist neben der exakt definierten magnetischen Umgebung auch die 
-Umgebungstemperatur, sowie der Luftfeuchtigkeit innerhalb des äußeren
+Umgebungstemperatur, sowie die Luftfeuchtigkeit innerhalb des äußeren
 Spulenkäfigs von großer Wichtigkeit. Diese wird von einer Klimaanlage
 kontrolliert. Zur Steuer\-ung dieser Anlage muss jedoch die Tempera\-tur an
 verschiedenen Positionen im Spulenkäfig gemessen werden.
@@ -56,18 +56,18 @@ können (Genauigkeit, Störungen, Zuverlässigkeit, etc.).
 \subsection*{Überblick}
 Das Ziel des Projekts ist Aufbau eines Temperatur- und Luftfeuchtigkeit-
 Sensornetzwerks innerhalb des Spulenkäfigs. Die gemessene Temperatur- und 
-Luft\-feuchtig\-keits-Daten sollen im JSON Format per Ethernet geschickt, um 
-die Klimaanlagen zu regeln, und in einer 
+Luft\-feuchtig\-keits-Daten sollen im JSON Format per Ethernet geschickt werden, um 
+die Klimaanlagen zu regeln, und zudem in einer 
 Datenbank gespeichert werden, zur späteren Korrektur der nEDM Messungen. 
 Die voraus\-sichtlich gewünschten Genauig\-keiten sind in Tabelle \ref{tab:genauigkeit} gelistet.
 Unser Projekt unterteilt sich in folgende Teilaufgaben:
 \begin{itemize}
-\item Recherche nach passender Sensoren 
-\item Bewertung der Sensor-Daten
-\item Formatierung der Messwert 
+\item Recherche nach passenden Sensoren 
+\item Auslesen der Sensor-Daten
+\item Formatierung der Messwerte
 \item Datenübertragung per Ethernet
 \item Installation des Sensornetzwerks im Experimentaufbau
-\item Dokumentieren
+\item Schreiben einer Dokumentation
 \end{itemize}
 \begin{table}[h]
   \centering
@@ -75,7 +75,7 @@ Unser Projekt unterteilt sich in folgende Teilaufgaben:
     \hline
     Temperatur-Genauigkeit & $\pm0.1 K$
     \\ \hline
-    Luftfeuchtigkeit-Genauigkeit & $\pm 1\%$
+    Luftfeuchtigkeits-Genauigkeit & $\pm 2\%RH$
     \\ \hline
     Daten Übertragungsfrequenz & $\approx 1Hz$
     \\ \hline
