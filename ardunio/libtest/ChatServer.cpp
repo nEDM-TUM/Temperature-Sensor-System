@@ -17,8 +17,8 @@
  
  */
 
-#include <SPI.h>
-#include <Ethernet.h>
+#include "SPI.h"
+#include "Ethernet.h"
 
 // Enter a MAC address and IP address for your controller below.
 // The IP address will be dependent on your local network.
@@ -34,7 +34,7 @@ IPAddress subnet(255, 255, 0, 0);
 EthernetServer server(23);
 boolean alreadyConnected = false; // whether or not the client was connected previously
 
-void setup() {
+int main() {
   // initialize the ethernet device
   Ethernet.begin(mac, ip, gateway, subnet);
   // start listening for clients
@@ -48,6 +48,10 @@ void setup() {
 
   Serial.print("Chat server address:");
   Serial.println(Ethernet.localIP());
+
+  while (1){
+    loop();
+  }
 }
 
 void loop() {
