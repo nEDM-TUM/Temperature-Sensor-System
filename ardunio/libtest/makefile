@@ -1,124 +1,47 @@
-#
-# generic AVR makefile
-#
-# (c)  July 2011 - Manuel Odendahl - wesen@ruinwesen.com
-#
+MCU = atmega328
 
-# include this into your main Makefile, after having defined TARGET and TARGET_OBJS
+ARDUINO_PATH = /home/rainer/Arduino-master
 
-all: $(TARGET).hex
+BOARD_TYPE = ethernet
 
-CURDIR := $(dir $(lastword $(MAKEFILE_LIST)))
-include $(CURDIR)MidiCtrl.mk
+BUILD_DIR = ./build
 
-CC             = avr-gcc
-CXX            = avr-g++
-OBJCOPY        = avr-objcopy
-AVR_ARCH       ?= atmega64
-LDAVR_ARCH     ?= avrmega64
-FLASH_PROTOCOL = jtag2
+ARDUINO_CORE_PATH = $(ARDUINO_PATH)/hardware/arduino/cores/arduino
 
-CFLAGS   += -Os -ffunction-sections -DAVR -I. -mmcu=$(AVR_ARCH) -mcall-prologues -fshort-enums -fpack-struct -Wall -Werror
-CFLAGS   += -Wall -DLITTLE_ENDIAN -g -flto
+ARDUINO_VARIANT_PATH = $(ARDUINO_PATH)/hardware/arduino/variants/$(BOARD_TYPE)
 
-CFLAGS += no-tree-loop-optimize -ffreestanding -morder1 -funsigned-char -funsigned-bitfields -fshort-enums -fpack-struct
-CFLAGS += -fdata-sections -fno-split-wide-types -fno-inline-small-functions -mcall-prologues
+ARDUINO_LIBRARIES_PATH = $(ARDUINO_PATH)/libraries
 
-CLDFLAGS += -Wl,--relax,--gc-sections -ffunction-sections
-CLDFLAGS += -mmcu=$(AVR_ARCH)
-LDFLAGS  = -m $(LDAVR_ARCH) -M
+ETHERNET_LIBRARY_PATH = $(ARDUINO_LIBRARIES_PATH)/Ethernet
+ETHERNET_OBJS = Dhcp.o Dns.o EthernetClient.o Ethernet.o EthernetServer.o EthernetUdp.o  
+ETHERNET_UTIL_LIBRARY_PATH = $(ARDUINO_LIBRARIES_PATH)/Ethernet/utility
+ETHERNET_UTIL_OBJS = socket.o w5100.o
 
-# generate list
-# CFLAGS += -Wa,-adhlns=$@.lst
+SPI_LIBRARY_PATH = $(ARDUINO_LIBRARIES_PATH)/SPI
+SPI_OBJS = SPI.o
 
-%.o: %.cpp
-        $(CXX) $(CXXFLAGS) -c $< -o $@
+INCLUDE_FLAGS = -I$(ARDUINO_CORE_PATH)
+INCLUDE_FLAGS += -I$(ARDUINO_VARIANT_PATH)
+INCLUDE_FLAGS += -I$(ETHERNET_LIBRARY_PATH)
+INCLUDE_FLAGS += -I$(ETHERNET_UTIL_LIBRARY_PATH)
+INCLUDE_FLAGS += -I$(SPI_LIBRARY_PATH)
 
-%.o: %.c
-        $(CC) $(CFLAGS) -c $< -o $@
+CPP_FLAGS = -mmcu=$(MCU) $(INCLUDE_FLAGS)
 
-%.o: %.s
-        $(CC) $(CFLAGS) -c $< -o $@
 
-%.s: %.c
-        $(CC) -S $(CFLAGS) -fverbose-asm $< -o $@
+CC=avr-gcc
+CPP=avr-g++
+AR=avr-ar
 
-%.o: %.S
-        $(CC) $(CFLAGS) -c $< -o $@
+ethernet: $(ETHERNET_OBJS) $(ETHERNET_UTIL_OBJS)
 
-%.syx: %.hex
-        ihex2sysex $< $@
+spi: $(SPI_OBJS)
 
-%.srec: %.elf
-        $(OBJCOPY) -j .text -j .data -O srec $< $@
+$(SPI_OBJS): %.o:
+	$(CPP) -c $(CPP_FLAGS) $(SPI_LIBRARY_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
 
-%.hex: %.elf
-        $(OBJCOPY) -j .text -j .data -O ihex $< $@
+$(ETHERNET_OBJS): %.o:
+	$(CPP) -c $(CPP_FLAGS) $(ETHERNET_LIBRARY_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
+$(ETHERNET_UTIL_OBJS): %.o:
+	$(CPP) -c $(CPP_FLAGS) $(ETHERNET_UTIL_LIBRARY_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
 
-%.ee_srec: %.elf
-        $(OBJCOPY) -j .eeprom --change-section-lma .eeprom=0 -O srec $< $@
-
-AVR_BASE_DIR  ?= $(abspath $(CURDIR)..)
-AVR_LIB_DIR   ?= $(AVR_BASE_DIR)/hardware/libraries
-
-AVR_LIBS       += CommonTools Midi
-AVR_LIB_DIRS   += $(foreach lib,$(AVR_LIBS),$(AVR_LIB_DIR)/$(lib))
-AVR_INC_FLAGS  += $(foreach dir,$(AVR_LIB_DIRS),-I$(dir))
-AVR_OBJS       += $(foreach dir,$(AVR_LIB_DIRS),$(foreach file,$(wildcard $(dir)/*.cpp),$(subst .cpp,.o,$(file))))
-AVR_OBJS       += $(foreach dir,$(AVR_LIB_DIRS),$(foreach file,$(filter-out $(AVR_HOST_EXCLUDE),$(wildcard $(dir)/*.c)),$(subst .c,.o,$(file))))
-AVR_DEPS       += $(subst .o,.d,$(AVR_OBJS))
-
-# AVR_HOST_EXCLUDE can be used to exclude specific files later on
-
-CXXFLAGS += $(AVR_INC_FLAGS)
-CFLAGS += $(AVR_INC_FLAGS)
-
-CXXFlags += -Werror -Wall
-CFLAGS += -Werror -Wall
-
-default: all
-
-%.d:%.c
-        set -e; $(CC) -MM $(CFLAGS) $< \
-        | sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' > $@ ; \
-        [ -s $@ ] || rm -f $@
-
-%.d:%.cpp
-        set -e; $(CXX) -MM $(CXXFLAGS) $< \
-        | sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' > $@ ; \
-        [ -s $@ ] || rm -f $@
-
-%.host.d:%.c
-        set -e; $(CC) -MM $(CFLAGS) $< \
-        | sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' > $@ ; \
-        [ -s $@ ] || rm -f $@
-
-%.host.d:%.cpp
-        set -e; $(CXX) -MM $(CXXFLAGS) $< \
-        | sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' > $@ ; \
-        [ -s $@ ] || rm -f $@
-
-printlibs:
-        echo $(AVR_LIBS)
-
-$(TARGET).elf: $(TARGET).o $(TARGET_OBJS) $(AVR_OBJS)
-        $(CXX) $(CLDFLAGS) -g -o $@ $^
-
-_clean:
-        - rm *.elf *.hex *.o .midictrl.flags
-
-libclean:
-        rm -rf $(TARGET_OBJS) $(OBJS)
-
-# concrete settings for development environment
-
-UNAME=$(shell uname)
-ISWIN=$(findstring CYGWIN,$(UNAME))
-ISMAC=$(findstring Darwin,$(UNAME))
-
-CC = avr-gcc
-CXX = avr-g++
-OBJCOPY = avr-objcopy
-AVR_ARCH = atmega64
-F_CPU = 16000000L
-CORE = minicommand2
