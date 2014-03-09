@@ -40,14 +40,8 @@ int main() {
   // start listening for clients
   server.begin();
  // Open serial communications and wait for port to open:
-  Serial.begin(9600);
-   while (!Serial) {
-    ; // wait for serial port to connect. Needed for Leonardo only
-  }
 
 
-  Serial.print("Chat server address:");
-  Serial.println(Ethernet.localIP());
 
   while (1){
     loop();
@@ -63,7 +57,6 @@ void loop() {
     if (!alreadyConnected) {
       // clead out the input buffer:
       client.flush();    
-      Serial.println("We have a new client");
       client.println("Hello, client!"); 
       alreadyConnected = true;
     } 
@@ -74,7 +67,6 @@ void loop() {
       // echo the bytes back to the client:
       server.write(thisChar);
       // echo the bytes to the server as well:
-      Serial.write(thisChar);
     }
   }
 }

@@ -7,7 +7,13 @@ BOARD_TYPE = ethernet
 
 BUILD_DIR = ./
 
+#----------------------------------------------------------
+
 LDFLAGS = -Wl,-Map=all.map,--cref
+LDFLAGS += -Wl,--gc-sections
+
+PROJECT_PATH = ./
+PROJECT_OBJS = ChatServer.o
 
 ARDUINO_CORE_PATH = $(ARDUINO_PATH)/hardware/arduino/cores/arduino
 ARDUINO_CORE_OBJS = IPAddress.o Print.o WString.o WMath.o 
@@ -37,6 +43,7 @@ INCLUDE_FLAGS += -I$(ETHERNET_UTIL_LIBRARY_PATH)
 INCLUDE_FLAGS += -I$(SPI_LIBRARY_PATH)
 
 CPP_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
+CPP_FLAGS += -ffunction-sections -fdata-sections
 C_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
 
 SPI_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(SPI_OBJS))
@@ -44,13 +51,14 @@ ARDUINO_CORE_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ARDUINO_CORE_OBJS))
 ARDUINO_CORE_C_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ARDUINO_CORE_C_OBJS))
 ETHERNET_UTIL_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ETHERNET_UTIL_OBJS))
 ETHERNET_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ETHERNET_OBJS))
+PROJECT_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(PROJECT_OBJS))
 
 CC=avr-gcc
 CPP=avr-g++
 AR=avr-ar
 
-all: core ethernet spi
-	$(CPP) $(SPI_OBJS_FIN) $(ARDUINO_CORE_C_OBJS_FIN) $(ARDUINO_CORE_OBJS_FIN) $(ETHERNET_OBJS_FIN) $(ETHERNET_UTIL_OBJS_FIN) -o all.elf $(LDFLAGS)
+all: core ethernet spi project
+	$(CPP) $(CPP_FLAGS) $(SPI_OBJS_FIN) $(ARDUINO_CORE_C_OBJS_FIN) $(ARDUINO_CORE_OBJS_FIN) $(ETHERNET_OBJS_FIN) $(ETHERNET_UTIL_OBJS_FIN) $(PROJECT_OBJS_FIN) -o all.elf $(LDFLAGS)
 
 test: $(TEST_OBJS)
 
@@ -62,6 +70,8 @@ core: $(ARDUINO_CORE_OBJS) $(ARDUINO_CORE_C_OBJS)
 
 $(TEST_OBJS): %.o:
 	$(CPP) -c ./ChatServer.cpp $(CPP_FLAGS) -o $(BUILD_DIR)/$*.o
+
+project: $(PROJECT_OBJS)
 
 $(ARDUINO_CORE_OBJS): %.o:
 	$(CPP) -c $(CPP_FLAGS) $(ARDUINO_CORE_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
@@ -77,3 +87,6 @@ $(ETHERNET_OBJS): %.o:
 $(ETHERNET_UTIL_OBJS): %.o:
 	$(CPP) $(ETHERNET_UTIL_LIBRARY_PATH)/$*.cpp -c $(CPP_FLAGS) -o $(BUILD_DIR)/$*.o
 
+
+$(PROJECT_OBJS): %.o:
+	$(CPP) -c $(CPP_FLAGS) $(PROJECT_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
