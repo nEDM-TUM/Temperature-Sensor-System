@@ -102,9 +102,13 @@ size:
 elf: $(TARGET).elf
 hex: $(TARGET).hex
 
+# link everything together:
 $(TARGET).elf: core ethernet spi project
 	$(CPP) $(CPP_FLAGS) $(SPI_OBJS_FIN) $(ARDUINO_CORE_C_OBJS_FIN) $(ARDUINO_CORE_OBJS_FIN) $(ETHERNET_OBJS_FIN) $(ETHERNET_UTIL_OBJS_FIN) $(PROJECT_OBJS_FIN) -o $(TARGET).elf $(LDFLAGS)
 
+# convert elf to hex file for programmer:
+# exclude eeprom section, in case it exists
+# as we do not want to write this to flash
 $(TARGET).hex: $(TARGET).elf
 	$(OBJCOPY) -O $(FORMAT) -R .eeprom $< $@
 
@@ -122,20 +126,22 @@ core: $(ARDUINO_CORE_OBJS) $(ARDUINO_CORE_C_OBJS)
 
 project: $(PROJECT_OBJS)
 
+# build arduino core
 $(ARDUINO_CORE_OBJS): %.o: 
 	$(CPP) -c $(CPP_FLAGS) $(ARDUINO_CORE_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
-
 $(ARDUINO_CORE_C_OBJS): %.o:
 	$(CC) -c $(C_FLAGS) $(ARDUINO_CORE_PATH)/$*.c -o $(BUILD_DIR)/$*.o
 
+# build SPI
 $(SPI_OBJS): %.o:
 	$(CPP) -c $(CPP_FLAGS) $(SPI_LIBRARY_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
 
+# build Ethernet library
 $(ETHERNET_OBJS): %.o:
 	$(CPP) -c $(CPP_FLAGS) $(ETHERNET_LIBRARY_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
 $(ETHERNET_UTIL_OBJS): %.o:
 	$(CPP) -c $(CPP_FLAGS) $(ETHERNET_UTIL_LIBRARY_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
 
-
+# build Project files
 $(PROJECT_OBJS): %.o:
 	$(CPP) -c $(CPP_FLAGS) $(PROJECT_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
