@@ -7,40 +7,55 @@ BOARD_TYPE = ethernet
 
 BUILD_DIR = ./build
 
+# Project files
+PROJECT_PATH = ./
+PROJECT_OBJS = ChatServer.o
 #----------------------------------------------------------
 
 LDFLAGS = -Wl,-Map=all.map,--cref
+# -Wl and --gc-sections are needed to avoid __cxa_pure_virtual() reference errors
+#  which are caused by arduino c++ virtual functions
 LDFLAGS += -Wl,--gc-sections
 
-PROJECT_PATH = ./
-PROJECT_OBJS = ChatServer.o
-
+# this specifies which part of the Arduino Core library to compile:
+# Arduino core library consists of C++ AND C sources
+# => handle them separately here
 ARDUINO_CORE_PATH = $(ARDUINO_PATH)/hardware/arduino/cores/arduino
 ARDUINO_CORE_OBJS = IPAddress.o Print.o WString.o WMath.o 
 ARDUINO_CORE_C_OBJS = wiring_digital.o wiring.o
 
+# this is for board specific headers
 ARDUINO_VARIANT_PATH = $(ARDUINO_PATH)/hardware/arduino/variants/$(BOARD_TYPE)
 
 ARDUINO_LIBRARIES_PATH = $(ARDUINO_PATH)/libraries
 
+# Ethernet library:
 ETHERNET_LIBRARY_PATH = $(ARDUINO_LIBRARIES_PATH)/Ethernet
 ETHERNET_OBJS = Dhcp.o Dns.o EthernetClient.o Ethernet.o EthernetServer.o EthernetUdp.o  
 ETHERNET_UTIL_LIBRARY_PATH = $(ARDUINO_LIBRARIES_PATH)/Ethernet/utility
 ETHERNET_UTIL_OBJS = socket.o w5100.o
 
+# SPI Library (required by Ethernet Library)
 SPI_LIBRARY_PATH = $(ARDUINO_LIBRARIES_PATH)/SPI
 SPI_OBJS = SPI.o
 
+# Accumulate all paths to header files
 INCLUDE_FLAGS = -I$(ARDUINO_CORE_PATH)
 INCLUDE_FLAGS += -I$(ARDUINO_VARIANT_PATH)
 INCLUDE_FLAGS += -I$(ETHERNET_LIBRARY_PATH)
 INCLUDE_FLAGS += -I$(ETHERNET_UTIL_LIBRARY_PATH)
 INCLUDE_FLAGS += -I$(SPI_LIBRARY_PATH)
 
+# -mmcu selects the AVR chip type -> specifies instructionset etc.
+# -DF_CPU defines the F_CPU preprocessor makro
 CPP_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
+# -ffunction-sections -fdata-sections are needed to avoid
+#  __cxa_pure_virtual() reference errors which are caused by
+#  arduino c++ virtual functions
 CPP_FLAGS += -ffunction-sections -fdata-sections
 C_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
 
+# generate lists of output files (in build dir)
 SPI_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(SPI_OBJS))
 ARDUINO_CORE_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ARDUINO_CORE_OBJS))
 ARDUINO_CORE_C_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ARDUINO_CORE_C_OBJS))
@@ -48,9 +63,13 @@ ETHERNET_UTIL_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ETHERNET_UTIL_OBJS))
 ETHERNET_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ETHERNET_OBJS))
 PROJECT_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(PROJECT_OBJS))
 
+# compiler suite
 CC=avr-gcc
 CPP=avr-g++
-AR=avr-ar
+# AR=avr-ar # we currently do not package the libraries in .a files, so this is not needed
+
+#--------------------------------------------------------------
+# rules:
 
 all: core ethernet spi project
 	$(CPP) $(CPP_FLAGS) $(SPI_OBJS_FIN) $(ARDUINO_CORE_C_OBJS_FIN) $(ARDUINO_CORE_OBJS_FIN) $(ETHERNET_OBJS_FIN) $(ETHERNET_UTIL_OBJS_FIN) $(PROJECT_OBJS_FIN) -o all.elf $(LDFLAGS)
