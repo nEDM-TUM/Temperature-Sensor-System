@@ -123,18 +123,18 @@ core: $(ARDUINO_CORE_OBJS) $(ARDUINO_CORE_C_OBJS)
 project: $(PROJECT_OBJS)
 
 $(ARDUINO_CORE_OBJS): %.o: 
-	$(CPP) $(CPP_FLAGS) -c $(ARDUINO_CORE_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
+	$(CPP) -c $(CPP_FLAGS) $(ARDUINO_CORE_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
 
 $(ARDUINO_CORE_C_OBJS): %.o:
-	$(CC) $(C_FLAGS) -c $(ARDUINO_CORE_PATH)/$*.c -o $(BUILD_DIR)/$*.o
+	$(CC) -c $(C_FLAGS) $(ARDUINO_CORE_PATH)/$*.c -o $(BUILD_DIR)/$*.o
 
 $(SPI_OBJS): %.o:
-	$(CPP) $(SPI_LIBRARY_PATH)/$*.cpp -c $(CPP_FLAGS) -o $(BUILD_DIR)/$*.o
+	$(CPP) -c $(SPI_LIBRARY_PATH)/$*.cpp $(CPP_FLAGS) -o $(BUILD_DIR)/$*.o
 
 $(ETHERNET_OBJS): %.o:
-	$(CPP) $(ETHERNET_LIBRARY_PATH)/$*.cpp -c $(CPP_FLAGS) -o $(BUILD_DIR)/$*.o
+	$(CPP) -c $(ETHERNET_LIBRARY_PATH)/$*.cpp $(CPP_FLAGS) -o $(BUILD_DIR)/$*.o
 $(ETHERNET_UTIL_OBJS): %.o:
-	$(CPP) $(ETHERNET_UTIL_LIBRARY_PATH)/$*.cpp -c $(CPP_FLAGS) -o $(BUILD_DIR)/$*.o
+	$(CPP) -c $(ETHERNET_UTIL_LIBRARY_PATH)/$*.cpp $(CPP_FLAGS) -o $(BUILD_DIR)/$*.o
 
 $(PROJECT_OBJS): %.o:
-	$(CPP) $(CPP_FLAGS) -c $(PROJECT_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
+	$(CPP) -c $(CPP_FLAGS) $(PROJECT_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
