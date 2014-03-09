@@ -1,13 +1,21 @@
+#----------------------------------------------------------
+# environment settings
+# This is the path to a cloned Arduino GIT repository (which
+# contains the arduino libraries)
+# For multi user development it is recommended to comment out
+# this line and specify ARDUINO_PATH in an Environment Variable
+# individually per user system.
+#ARDUINO_PATH = /usr/share/Arduino-master
+#----------------------------------------------------------
+# Project settings
 MCU = atmega328
 F_CPU = 8000000UL
-
-ARDUINO_PATH = /home/wenwen/uni/s56/idp/Arduino-master
 
 BOARD_TYPE = ethernet
 
 BUILD_DIR = build
 
-TARGET = main
+TARGET = $(BUILD_DIR)/main
 
 FORMAT = ihex
 
@@ -15,6 +23,7 @@ FORMAT = ihex
 PROJECT_PATH = ./
 PROJECT_OBJS = ChatServer.o
 #----------------------------------------------------------
+# Programmer settings
 AVRDUDE_PROGRAMMER = stk500v1
 AVRDUDE_PORT = /dev/ttyACM0
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
@@ -26,12 +35,32 @@ AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
 #  the device identifier. Hence the device ID check
 #  always will fail.
 AVRDUDE_FLAGS += -F
-
+#----------------------------------------------------------
+# compiler suite
+CC=avr-gcc
+CPP=avr-g++
+# AR=avr-ar # we currently do not package the libraries in .a files, so this is not needed
+OBJCOPY = avr-objcopy
+SIZE = avr-size
+AVRDUDE = avrdude
+#----------------------------------------------------------
+# Linker settings
 LDFLAGS = -Wl,-Map=$(TARGET).map,--cref
 # -Wl and --gc-sections are needed to avoid __cxa_pure_virtual() reference errors
 #  which are caused by arduino c++ virtual functions
 LDFLAGS += -Wl,--gc-sections
-
+#----------------------------------------------------------
+# Compiler settings
+# -mmcu selects the AVR chip type -> specifies instructionset etc.
+# -DF_CPU defines the F_CPU preprocessor makro
+CPP_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
+# -ffunction-sections -fdata-sections are needed to avoid
+#  __cxa_pure_virtual() reference errors which are caused by
+#  arduino c++ virtual functions
+CPP_FLAGS += -ffunction-sections -fdata-sections
+C_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
+#----------------------------------------------------------
+# Arduino library settings:
 # this specifies which part of the Arduino Core library to compile:
 # Arduino core library consists of C++ AND C sources
 # => handle them separately here
@@ -60,15 +89,7 @@ INCLUDE_FLAGS += -I$(ARDUINO_VARIANT_PATH)
 INCLUDE_FLAGS += -I$(ETHERNET_LIBRARY_PATH)
 INCLUDE_FLAGS += -I$(ETHERNET_UTIL_LIBRARY_PATH)
 INCLUDE_FLAGS += -I$(SPI_LIBRARY_PATH)
-
-# -mmcu selects the AVR chip type -> specifies instructionset etc.
-# -DF_CPU defines the F_CPU preprocessor makro
-CPP_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
-# -ffunction-sections -fdata-sections are needed to avoid
-#  __cxa_pure_virtual() reference errors which are caused by
-#  arduino c++ virtual functions
-CPP_FLAGS += -ffunction-sections -fdata-sections
-C_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
+#----------------------------------------------------------
 
 # generate lists of output files (in build dir)
 SPI_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(SPI_OBJS))
@@ -77,14 +98,6 @@ ARDUINO_CORE_C_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ARDUINO_CORE_C_OBJS))
 ETHERNET_UTIL_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ETHERNET_UTIL_OBJS))
 ETHERNET_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ETHERNET_OBJS))
 PROJECT_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(PROJECT_OBJS))
-
-# compiler suite
-CC=avr-gcc
-CPP=avr-g++
-# AR=avr-ar # we currently do not package the libraries in .a files, so this is not needed
-OBJCOPY = avr-objcopy
-SIZE = avr-size
-AVRDUDE = avrdude
 
 #--------------------------------------------------------------
 # rules:
