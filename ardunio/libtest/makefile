@@ -15,6 +15,17 @@ FORMAT = ihex
 PROJECT_PATH = ./
 PROJECT_OBJS = ChatServer.o
 #----------------------------------------------------------
+AVRDUDE_PROGRAMMER = stk500v1
+AVRDUDE_PORT = /dev/ttyACM0
+AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
+AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
+# -F forces programming without checking device
+#  identifier.
+#  This is, because the arduino bootloader does
+#  not conform to the stk500v1 standard when sending
+#  the device identifier. Hence the device ID check
+#  always will fail.
+AVRDUDE_FLAGS += -F
 
 LDFLAGS = -Wl,-Map=$(TARGET).map,--cref
 # -Wl and --gc-sections are needed to avoid __cxa_pure_virtual() reference errors
@@ -82,7 +93,7 @@ build: elf hex
 
 # upload the program to the microcontroller flash:
 upload:
-	$(AVRDUDE) 
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH)
 
 # analyze compiled program size:
 size:
