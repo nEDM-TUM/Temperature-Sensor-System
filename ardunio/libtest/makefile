@@ -5,7 +5,7 @@ ARDUINO_PATH = /home/wenwen/uni/s56/idp/Arduino-master
 
 BOARD_TYPE = ethernet
 
-BUILD_DIR = ./
+BUILD_DIR = ./build/
 
 TARGET = main
 
