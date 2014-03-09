@@ -7,7 +7,10 @@ BOARD_TYPE = ethernet
 
 BUILD_DIR = ./build
 
-LDFLAGS = -Wl,-Map=all.map,--cref -Wl,--gc-sections
+#----------------------------------------------------------
+
+LDFLAGS = -Wl,-Map=all.map,--cref
+LDFLAGS += -Wl,--gc-sections
 
 PROJECT_PATH = ./
 PROJECT_OBJS = ChatServer.o
@@ -34,7 +37,8 @@ INCLUDE_FLAGS += -I$(ETHERNET_LIBRARY_PATH)
 INCLUDE_FLAGS += -I$(ETHERNET_UTIL_LIBRARY_PATH)
 INCLUDE_FLAGS += -I$(SPI_LIBRARY_PATH)
 
-CPP_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os -ffunction-sections -fdata-sections
+CPP_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
+CPP_FLAGS += -ffunction-sections -fdata-sections
 C_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
 
 SPI_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(SPI_OBJS))
