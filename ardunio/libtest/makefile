@@ -5,7 +5,7 @@ ARDUINO_PATH = /home/wenwen/uni/s56/idp/Arduino-master
 
 BOARD_TYPE = ethernet
 
-BUILD_DIR = ./build/
+BUILD_DIR = build
 
 TARGET = main
 
@@ -92,7 +92,7 @@ all: build size
 build: elf hex
 
 # upload the program to the microcontroller flash:
-upload:
+upload: build
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH)
 
 # analyze compiled program size:
@@ -118,30 +118,30 @@ clean:
 	rm -v $(TARGET).hex
 	rm -v $(TARGET).map
 
-ethernet: $(ETHERNET_OBJS) $(ETHERNET_UTIL_OBJS)
+ethernet: $(ETHERNET_OBJS_FIN) $(ETHERNET_UTIL_OBJS_FIN)
 
-spi: $(SPI_OBJS)
+spi: $(SPI_OBJS_FIN)
 
-core: $(ARDUINO_CORE_OBJS) $(ARDUINO_CORE_C_OBJS)
+core: $(ARDUINO_CORE_OBJS_FIN) $(ARDUINO_CORE_C_OBJS_FIN)
 
-project: $(PROJECT_OBJS)
+project: $(PROJECT_OBJS_FIN)
 
 # build arduino core
-$(ARDUINO_CORE_OBJS): %.o: 
-	$(CPP) -c $(CPP_FLAGS) $(ARDUINO_CORE_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
-$(ARDUINO_CORE_C_OBJS): %.o:
-	$(CC) -c $(C_FLAGS) $(ARDUINO_CORE_PATH)/$*.c -o $(BUILD_DIR)/$*.o
+$(ARDUINO_CORE_OBJS_FIN): %.o: 
+	$(CPP) -c $(CPP_FLAGS) $(ARDUINO_CORE_PATH)/$(subst $(BUILD_DIR)/,,$*).cpp -o $*.o
+$(ARDUINO_CORE_C_OBJS_FIN): %.o:
+	$(CC) -c $(C_FLAGS) $(ARDUINO_CORE_PATH)/$(subst $(BUILD_DIR)/,,$*).c -o $*.o
 
 # build SPI
-$(SPI_OBJS): %.o:
-	$(CPP) -c $(SPI_LIBRARY_PATH)/$*.cpp $(CPP_FLAGS) -o $(BUILD_DIR)/$*.o
+$(SPI_OBJS_FIN): %.o:
+	$(CPP) -c $(CPP_FLAGS) $(SPI_LIBRARY_PATH)/$(subst $(BUILD_DIR)/,,$*).cpp -o $*.o
 
 # build Ethernet library
-$(ETHERNET_OBJS): %.o:
-	$(CPP) -c $(ETHERNET_LIBRARY_PATH)/$*.cpp $(CPP_FLAGS) -o $(BUILD_DIR)/$*.o
-$(ETHERNET_UTIL_OBJS): %.o:
-	$(CPP) -c $(CPP_FLAGS) $(ETHERNET_UTIL_LIBRARY_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
+$(ETHERNET_OBJS_FIN): %.o:
+	$(CPP) -c $(CPP_FLAGS) $(ETHERNET_LIBRARY_PATH)/$(subst $(BUILD_DIR)/,,$*).cpp -o $*.o
+$(ETHERNET_UTIL_OBJS_FIN): %.o:
+	$(CPP) -c $(CPP_FLAGS) $(ETHERNET_UTIL_LIBRARY_PATH)/$(subst $(BUILD_DIR)/,,$*).cpp -o $*.o
 
 # build Project files
-$(PROJECT_OBJS): %.o:
-	$(CPP) -c $(CPP_FLAGS) $(PROJECT_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
+$(PROJECT_OBJS_FIN): %.o: $(patsubst %.o,%.cpp,$(PROJECT_OBJS))
+	$(CPP) -c $(CPP_FLAGS) $(PROJECT_PATH)/$(subst $(BUILD_DIR)/,,$*).cpp -o $*.o
