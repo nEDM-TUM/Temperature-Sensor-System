@@ -1,124 +1,160 @@
-#
-# generic AVR makefile
-#
-# (c)  July 2011 - Manuel Odendahl - wesen@ruinwesen.com
-#
+#----------------------------------------------------------
+# environment settings
+# This is the path to a cloned Arduino GIT repository (which
+# contains the arduino libraries)
+# For multi user development it is recommended to comment out
+# this line and specify ARDUINO_PATH in an Environment Variable
+# individually per user system.
+#ARDUINO_PATH = /usr/share/Arduino-master
+#----------------------------------------------------------
+# Project settings
+MCU = atmega328
+F_CPU = 8000000UL
 
-# include this into your main Makefile, after having defined TARGET and TARGET_OBJS
+BOARD_TYPE = ethernet
 
-all: $(TARGET).hex
+BUILD_DIR = build
 
-CURDIR := $(dir $(lastword $(MAKEFILE_LIST)))
-include $(CURDIR)MidiCtrl.mk
+TARGET = $(BUILD_DIR)/main
 
-CC             = avr-gcc
-CXX            = avr-g++
-OBJCOPY        = avr-objcopy
-AVR_ARCH       ?= atmega64
-LDAVR_ARCH     ?= avrmega64
-FLASH_PROTOCOL = jtag2
+FORMAT = ihex
 
-CFLAGS   += -Os -ffunction-sections -DAVR -I. -mmcu=$(AVR_ARCH) -mcall-prologues -fshort-enums -fpack-struct -Wall -Werror
-CFLAGS   += -Wall -DLITTLE_ENDIAN -g -flto
-
-CFLAGS += no-tree-loop-optimize -ffreestanding -morder1 -funsigned-char -funsigned-bitfields -fshort-enums -fpack-struct
-CFLAGS += -fdata-sections -fno-split-wide-types -fno-inline-small-functions -mcall-prologues
-
-CLDFLAGS += -Wl,--relax,--gc-sections -ffunction-sections
-CLDFLAGS += -mmcu=$(AVR_ARCH)
-LDFLAGS  = -m $(LDAVR_ARCH) -M
-
-# generate list
-# CFLAGS += -Wa,-adhlns=$@.lst
-
-%.o: %.cpp
-        $(CXX) $(CXXFLAGS) -c $< -o $@
-
-%.o: %.c
-        $(CC) $(CFLAGS) -c $< -o $@
-
-%.o: %.s
-        $(CC) $(CFLAGS) -c $< -o $@
-
-%.s: %.c
-        $(CC) -S $(CFLAGS) -fverbose-asm $< -o $@
-
-%.o: %.S
-        $(CC) $(CFLAGS) -c $< -o $@
-
-%.syx: %.hex
-        ihex2sysex $< $@
-
-%.srec: %.elf
-        $(OBJCOPY) -j .text -j .data -O srec $< $@
-
-%.hex: %.elf
-        $(OBJCOPY) -j .text -j .data -O ihex $< $@
-
-%.ee_srec: %.elf
-        $(OBJCOPY) -j .eeprom --change-section-lma .eeprom=0 -O srec $< $@
-
-AVR_BASE_DIR  ?= $(abspath $(CURDIR)..)
-AVR_LIB_DIR   ?= $(AVR_BASE_DIR)/hardware/libraries
-
-AVR_LIBS       += CommonTools Midi
-AVR_LIB_DIRS   += $(foreach lib,$(AVR_LIBS),$(AVR_LIB_DIR)/$(lib))
-AVR_INC_FLAGS  += $(foreach dir,$(AVR_LIB_DIRS),-I$(dir))
-AVR_OBJS       += $(foreach dir,$(AVR_LIB_DIRS),$(foreach file,$(wildcard $(dir)/*.cpp),$(subst .cpp,.o,$(file))))
-AVR_OBJS       += $(foreach dir,$(AVR_LIB_DIRS),$(foreach file,$(filter-out $(AVR_HOST_EXCLUDE),$(wildcard $(dir)/*.c)),$(subst .c,.o,$(file))))
-AVR_DEPS       += $(subst .o,.d,$(AVR_OBJS))
-
-# AVR_HOST_EXCLUDE can be used to exclude specific files later on
-
-CXXFLAGS += $(AVR_INC_FLAGS)
-CFLAGS += $(AVR_INC_FLAGS)
-
-CXXFlags += -Werror -Wall
-CFLAGS += -Werror -Wall
-
-default: all
-
-%.d:%.c
-        set -e; $(CC) -MM $(CFLAGS) $< \
-        | sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' > $@ ; \
-        [ -s $@ ] || rm -f $@
-
-%.d:%.cpp
-        set -e; $(CXX) -MM $(CXXFLAGS) $< \
-        | sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' > $@ ; \
-        [ -s $@ ] || rm -f $@
-
-%.host.d:%.c
-        set -e; $(CC) -MM $(CFLAGS) $< \
-        | sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' > $@ ; \
-        [ -s $@ ] || rm -f $@
-
-%.host.d:%.cpp
-        set -e; $(CXX) -MM $(CXXFLAGS) $< \
-        | sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' > $@ ; \
-        [ -s $@ ] || rm -f $@
-
-printlibs:
-        echo $(AVR_LIBS)
-
-$(TARGET).elf: $(TARGET).o $(TARGET_OBJS) $(AVR_OBJS)
-        $(CXX) $(CLDFLAGS) -g -o $@ $^
-
-_clean:
-        - rm *.elf *.hex *.o .midictrl.flags
-
-libclean:
-        rm -rf $(TARGET_OBJS) $(OBJS)
-
-# concrete settings for development environment
-
-UNAME=$(shell uname)
-ISWIN=$(findstring CYGWIN,$(UNAME))
-ISMAC=$(findstring Darwin,$(UNAME))
-
-CC = avr-gcc
-CXX = avr-g++
+# Project files
+PROJECT_PATH = ./
+PROJECT_OBJS = ChatServer.o
+#----------------------------------------------------------
+# Programmer settings
+AVRDUDE_PROGRAMMER = stk500v1
+AVRDUDE_PORT = /dev/ttyACM0
+AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
+AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
+# -F forces programming without checking device
+#  identifier.
+#  This is, because the arduino bootloader does
+#  not conform to the stk500v1 standard when sending
+#  the device identifier. Hence the device ID check
+#  always will fail.
+AVRDUDE_FLAGS += -F
+#----------------------------------------------------------
+# compiler suite
+CC=avr-gcc
+CPP=avr-g++
+# AR=avr-ar # we currently do not package the libraries in .a files, so this is not needed
 OBJCOPY = avr-objcopy
-AVR_ARCH = atmega64
-F_CPU = 16000000L
-CORE = minicommand2
+SIZE = avr-size
+AVRDUDE = avrdude
+#----------------------------------------------------------
+# Linker settings
+LDFLAGS = -Wl,-Map=$(TARGET).map,--cref
+# -Wl and --gc-sections are needed to avoid __cxa_pure_virtual() reference errors
+#  which are caused by arduino c++ virtual functions
+LDFLAGS += -Wl,--gc-sections
+#----------------------------------------------------------
+# Compiler settings
+# -mmcu selects the AVR chip type -> specifies instructionset etc.
+# -DF_CPU defines the F_CPU preprocessor makro
+CPP_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
+# -ffunction-sections -fdata-sections are needed to avoid
+#  __cxa_pure_virtual() reference errors which are caused by
+#  arduino c++ virtual functions
+CPP_FLAGS += -ffunction-sections -fdata-sections
+C_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
+#----------------------------------------------------------
+# Arduino library settings:
+# this specifies which part of the Arduino Core library to compile:
+# Arduino core library consists of C++ AND C sources
+# => handle them separately here
+ARDUINO_CORE_PATH = $(ARDUINO_PATH)/hardware/arduino/cores/arduino
+ARDUINO_CORE_OBJS = IPAddress.o Print.o WString.o WMath.o 
+ARDUINO_CORE_C_OBJS = wiring_digital.o wiring.o
+
+# this is for board specific headers
+ARDUINO_VARIANT_PATH = $(ARDUINO_PATH)/hardware/arduino/variants/$(BOARD_TYPE)
+
+ARDUINO_LIBRARIES_PATH = $(ARDUINO_PATH)/libraries
+
+# Ethernet library:
+ETHERNET_LIBRARY_PATH = $(ARDUINO_LIBRARIES_PATH)/Ethernet
+ETHERNET_OBJS = Dhcp.o Dns.o EthernetClient.o Ethernet.o EthernetServer.o EthernetUdp.o  
+ETHERNET_UTIL_LIBRARY_PATH = $(ARDUINO_LIBRARIES_PATH)/Ethernet/utility
+ETHERNET_UTIL_OBJS = socket.o w5100.o
+
+# SPI Library (required by Ethernet Library)
+SPI_LIBRARY_PATH = $(ARDUINO_LIBRARIES_PATH)/SPI
+SPI_OBJS = SPI.o
+
+# Accumulate all paths to header files
+INCLUDE_FLAGS = -I$(ARDUINO_CORE_PATH)
+INCLUDE_FLAGS += -I$(ARDUINO_VARIANT_PATH)
+INCLUDE_FLAGS += -I$(ETHERNET_LIBRARY_PATH)
+INCLUDE_FLAGS += -I$(ETHERNET_UTIL_LIBRARY_PATH)
+INCLUDE_FLAGS += -I$(SPI_LIBRARY_PATH)
+#----------------------------------------------------------
+
+# generate lists of output files (in build dir)
+SPI_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(SPI_OBJS))
+ARDUINO_CORE_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ARDUINO_CORE_OBJS))
+ARDUINO_CORE_C_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ARDUINO_CORE_C_OBJS))
+ETHERNET_UTIL_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ETHERNET_UTIL_OBJS))
+ETHERNET_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ETHERNET_OBJS))
+PROJECT_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(PROJECT_OBJS))
+
+#--------------------------------------------------------------
+# rules:
+all: build size
+build: elf hex
+
+# upload the program to the microcontroller flash:
+upload: build
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH)
+
+# analyze compiled program size:
+size:
+	$(SIZE) --target=$(FORMAT) $(TARGET).hex
+
+elf: $(TARGET).elf
+hex: $(TARGET).hex
+
+# link everything together:
+$(TARGET).elf: core ethernet spi project
+	$(CPP) $(CPP_FLAGS) $(SPI_OBJS_FIN) $(ARDUINO_CORE_C_OBJS_FIN) $(ARDUINO_CORE_OBJS_FIN) $(ETHERNET_OBJS_FIN) $(ETHERNET_UTIL_OBJS_FIN) $(PROJECT_OBJS_FIN) -o $(TARGET).elf $(LDFLAGS)
+
+# convert elf to hex file for programmer:
+# exclude eeprom section, in case it exists
+# as we do not want to write this to flash
+$(TARGET).hex: $(TARGET).elf
+	$(OBJCOPY) -O $(FORMAT) -R .eeprom $< $@
+
+clean:
+	rm -rv $(BUILD_DIR)/*
+	rm -v $(TARGET).elf
+	rm -v $(TARGET).hex
+	rm -v $(TARGET).map
+
+ethernet: $(ETHERNET_OBJS_FIN) $(ETHERNET_UTIL_OBJS_FIN)
+
+spi: $(SPI_OBJS_FIN)
+
+core: $(ARDUINO_CORE_OBJS_FIN) $(ARDUINO_CORE_C_OBJS_FIN)
+
+project: $(PROJECT_OBJS_FIN)
+
+# build arduino core
+$(ARDUINO_CORE_OBJS_FIN): %.o: 
+	$(CPP) -c $(CPP_FLAGS) $(ARDUINO_CORE_PATH)/$(subst $(BUILD_DIR)/,,$*).cpp -o $*.o
+$(ARDUINO_CORE_C_OBJS_FIN): %.o:
+	$(CC) -c $(C_FLAGS) $(ARDUINO_CORE_PATH)/$(subst $(BUILD_DIR)/,,$*).c -o $*.o
+
+# build SPI
+$(SPI_OBJS_FIN): %.o:
+	$(CPP) -c $(CPP_FLAGS) $(SPI_LIBRARY_PATH)/$(subst $(BUILD_DIR)/,,$*).cpp -o $*.o
+
+# build Ethernet library
+$(ETHERNET_OBJS_FIN): %.o:
+	$(CPP) -c $(CPP_FLAGS) $(ETHERNET_LIBRARY_PATH)/$(subst $(BUILD_DIR)/,,$*).cpp -o $*.o
+$(ETHERNET_UTIL_OBJS_FIN): %.o:
+	$(CPP) -c $(CPP_FLAGS) $(ETHERNET_UTIL_LIBRARY_PATH)/$(subst $(BUILD_DIR)/,,$*).cpp -o $*.o
+
+# build Project files
+$(PROJECT_OBJS_FIN): %.o: $(patsubst %.o,%.cpp,$(PROJECT_OBJS))
+	$(CPP) -c $(CPP_FLAGS) $(PROJECT_PATH)/$(subst $(BUILD_DIR)/,,$*).cpp -o $*.o

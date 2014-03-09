@@ -17,9 +17,8 @@
  
  */
 
-#include <SPI.h>
-#include <Ethernet.h>
-
+#include "SPI.h"
+#include "Ethernet.h"
 // Enter a MAC address and IP address for your controller below.
 // The IP address will be dependent on your local network.
 // gateway and subnet are optional:
@@ -34,20 +33,18 @@ IPAddress subnet(255, 255,0,0);
 EthernetServer server(23);
 boolean alreadyConnected = false; // whether or not the client was connected previously
 
-void setup() {
+int main() {
   // initialize the ethernet device
   Ethernet.begin(mac, ip, gateway, subnet);
   // start listening for clients
   server.begin();
  // Open serial communications and wait for port to open:
-  Serial.begin(9600);
-   while (!Serial) {
-    ; // wait for serial port to connect. Needed for Leonardo only
+
+
+
+  while (1){
+    loop();
   }
-
-
-  Serial.print("Chat server address:");
-  Serial.println(Ethernet.localIP());
 }
 
 void loop() {
@@ -59,7 +56,6 @@ void loop() {
     if (!alreadyConnected) {
       // clead out the input buffer:
       client.flush();    
-      Serial.println("We have a new client");
       client.println("Hello, client!"); 
       alreadyConnected = true;
     } 
@@ -70,7 +66,6 @@ void loop() {
       // echo the bytes back to the client:
       server.write(thisChar);
       // echo the bytes to the server as well:
-      Serial.write(thisChar);
     }
   }
 }
