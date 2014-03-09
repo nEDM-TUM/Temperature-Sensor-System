@@ -1,4 +1,5 @@
 MCU = atmega328
+F_CPU = 8000000UL
 
 ARDUINO_PATH = /home/wenwen/uni/s56/idp/Arduino-master
 
@@ -6,7 +7,11 @@ BOARD_TYPE = ethernet
 
 BUILD_DIR = ./
 
+LDFLAGS = -Wl,-Map=all.map,--cref
+
 ARDUINO_CORE_PATH = $(ARDUINO_PATH)/hardware/arduino/cores/arduino
+ARDUINO_CORE_OBJS = IPAddress.o Print.o WString.o WMath.o 
+ARDUINO_CORE_C_OBJS = wiring_digital.o wiring.o
 
 ARDUINO_VARIANT_PATH = $(ARDUINO_PATH)/hardware/arduino/variants/$(BOARD_TYPE)
 
@@ -31,12 +36,21 @@ INCLUDE_FLAGS += -I$(ETHERNET_LIBRARY_PATH)
 INCLUDE_FLAGS += -I$(ETHERNET_UTIL_LIBRARY_PATH)
 INCLUDE_FLAGS += -I$(SPI_LIBRARY_PATH)
 
-CPP_FLAGS = -mmcu=$(MCU) $(INCLUDE_FLAGS)
+CPP_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
+C_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
 
+SPI_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(SPI_OBJS))
+ARDUINO_CORE_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ARDUINO_CORE_OBJS))
+ARDUINO_CORE_C_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ARDUINO_CORE_C_OBJS))
+ETHERNET_UTIL_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ETHERNET_UTIL_OBJS))
+ETHERNET_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ETHERNET_OBJS))
 
 CC=avr-gcc
 CPP=avr-g++
 AR=avr-ar
+
+all: core ethernet spi
+	$(CPP) $(SPI_OBJS_FIN) $(ARDUINO_CORE_C_OBJS_FIN) $(ARDUINO_CORE_OBJS_FIN) $(ETHERNET_OBJS_FIN) $(ETHERNET_UTIL_OBJS_FIN) -o all.elf $(LDFLAGS)
 
 test: $(TEST_OBJS)
 
@@ -44,8 +58,16 @@ ethernet: $(ETHERNET_OBJS) $(ETHERNET_UTIL_OBJS)
 
 spi: $(SPI_OBJS)
 
+core: $(ARDUINO_CORE_OBJS) $(ARDUINO_CORE_C_OBJS)
+
 $(TEST_OBJS): %.o:
 	$(CPP) -c ./ChatServer.cpp $(CPP_FLAGS) -o $(BUILD_DIR)/$*.o
+
+$(ARDUINO_CORE_OBJS): %.o:
+	$(CPP) -c $(CPP_FLAGS) $(ARDUINO_CORE_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
+
+$(ARDUINO_CORE_C_OBJS): %.o:
+	$(CC) -c $(C_FLAGS) $(ARDUINO_CORE_PATH)/$*.c -o $(BUILD_DIR)/$*.o
 
 $(SPI_OBJS): %.o:
 	$(CPP) $(SPI_LIBRARY_PATH)/$*.cpp -c $(CPP_FLAGS) -o $(BUILD_DIR)/$*.o
