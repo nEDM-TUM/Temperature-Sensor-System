@@ -7,12 +7,16 @@ BOARD_TYPE = ethernet
 
 BUILD_DIR = ./build
 
+TARGET = main
+
+FORMAT = ihex
+
 # Project files
 PROJECT_PATH = ./
 PROJECT_OBJS = ChatServer.o
 #----------------------------------------------------------
 
-LDFLAGS = -Wl,-Map=all.map,--cref
+LDFLAGS = -Wl,-Map=$(TARGET).map,--cref
 # -Wl and --gc-sections are needed to avoid __cxa_pure_virtual() reference errors
 #  which are caused by arduino c++ virtual functions
 LDFLAGS += -Wl,--gc-sections
@@ -67,12 +71,37 @@ PROJECT_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(PROJECT_OBJS))
 CC=avr-gcc
 CPP=avr-g++
 # AR=avr-ar # we currently do not package the libraries in .a files, so this is not needed
+OBJCOPY = avr-objcopy
+SIZE = avr-size
+AVRDUDE = avrdude
 
 #--------------------------------------------------------------
 # rules:
+all: build size
+build: elf hex
 
-all: core ethernet spi project
-	$(CPP) $(CPP_FLAGS) $(SPI_OBJS_FIN) $(ARDUINO_CORE_C_OBJS_FIN) $(ARDUINO_CORE_OBJS_FIN) $(ETHERNET_OBJS_FIN) $(ETHERNET_UTIL_OBJS_FIN) $(PROJECT_OBJS_FIN) -o all.elf $(LDFLAGS)
+# upload the program to the microcontroller flash:
+upload:
+	$(AVRDUDE) 
+
+# analyze compiled program size:
+size:
+	$(SIZE) --target=$(FORMAT) $(TARGET).hex
+
+elf: $(TARGET).elf
+hex: $(TARGET).hex
+
+$(TARGET).elf: core ethernet spi project
+	$(CPP) $(CPP_FLAGS) $(SPI_OBJS_FIN) $(ARDUINO_CORE_C_OBJS_FIN) $(ARDUINO_CORE_OBJS_FIN) $(ETHERNET_OBJS_FIN) $(ETHERNET_UTIL_OBJS_FIN) $(PROJECT_OBJS_FIN) -o $(TARGET).elf $(LDFLAGS)
+
+$(TARGET).hex: $(TARGET).elf
+	$(OBJCOPY) -O $(FORMAT) -R .eeprom $< $@
+
+clean:
+	rm -rv $(BUILD_DIR)/*
+	rm -v $(TARGET).elf
+	rm -v $(TARGET).hex
+	rm -v $(TARGET).map
 
 ethernet: $(ETHERNET_OBJS) $(ETHERNET_UTIL_OBJS)
 
@@ -82,7 +111,7 @@ core: $(ARDUINO_CORE_OBJS) $(ARDUINO_CORE_C_OBJS)
 
 project: $(PROJECT_OBJS)
 
-$(ARDUINO_CORE_OBJS): %.o:
+$(ARDUINO_CORE_OBJS): %.o: 
 	$(CPP) -c $(CPP_FLAGS) $(ARDUINO_CORE_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
 
 $(ARDUINO_CORE_C_OBJS): %.o:
