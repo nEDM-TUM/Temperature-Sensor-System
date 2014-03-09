@@ -1,10 +1,10 @@
 MCU = atmega328
 
-ARDUINO_PATH = /home/rainer/Arduino-master
+ARDUINO_PATH = /home/wenwen/uni/s56/idp/Arduino-master
 
 BOARD_TYPE = ethernet
 
-BUILD_DIR = ./build
+BUILD_DIR = ./
 
 ARDUINO_CORE_PATH = $(ARDUINO_PATH)/hardware/arduino/cores/arduino
 
@@ -20,6 +20,11 @@ ETHERNET_UTIL_OBJS = socket.o w5100.o
 SPI_LIBRARY_PATH = $(ARDUINO_LIBRARIES_PATH)/SPI
 SPI_OBJS = SPI.o
 
+TEST_OBJS = test.o
+TEST_OBJS += $(SPI_OBJS)
+TEST_OBJS += $(ETHERNET_OBJS)
+TEST_OBJS += $(ETHERNET_UTIL_OBJS)
+
 INCLUDE_FLAGS = -I$(ARDUINO_CORE_PATH)
 INCLUDE_FLAGS += -I$(ARDUINO_VARIANT_PATH)
 INCLUDE_FLAGS += -I$(ETHERNET_LIBRARY_PATH)
@@ -33,15 +38,20 @@ CC=avr-gcc
 CPP=avr-g++
 AR=avr-ar
 
+test: $(TEST_OBJS)
+
 ethernet: $(ETHERNET_OBJS) $(ETHERNET_UTIL_OBJS)
 
 spi: $(SPI_OBJS)
 
+$(TEST_OBJS): %.o:
+	$(CPP) -c ./ChatServer.cpp $(CPP_FLAGS) -o $(BUILD_DIR)/$*.o
+
 $(SPI_OBJS): %.o:
-	$(CPP) -c $(CPP_FLAGS) $(SPI_LIBRARY_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
+	$(CPP) $(SPI_LIBRARY_PATH)/$*.cpp -c $(CPP_FLAGS) -o $(BUILD_DIR)/$*.o
 
 $(ETHERNET_OBJS): %.o:
-	$(CPP) -c $(CPP_FLAGS) $(ETHERNET_LIBRARY_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
+	$(CPP) $(ETHERNET_LIBRARY_PATH)/$*.cpp -c $(CPP_FLAGS) -o $(BUILD_DIR)/$*.o
 $(ETHERNET_UTIL_OBJS): %.o:
-	$(CPP) -c $(CPP_FLAGS) $(ETHERNET_UTIL_LIBRARY_PATH)/$*.cpp -o $(BUILD_DIR)/$*.o
+	$(CPP) $(ETHERNET_UTIL_LIBRARY_PATH)/$*.cpp -c $(CPP_FLAGS) -o $(BUILD_DIR)/$*.o
 

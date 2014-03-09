@@ -33,6 +33,7 @@ Temperature:
 		- 8-9 eur
 		- Propr. ZACwire Protocol (1 wire)
 		http://www.ednt.eu/epages/62693982.sf/de_DE/?ObjectPath=/Shops/62693982/Products/701000008
+    office@ednt.de
 	TSIC 306F
 		- +- 0.3k
 		- 5-6 eur
