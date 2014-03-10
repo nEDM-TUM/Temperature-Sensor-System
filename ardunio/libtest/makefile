@@ -67,6 +67,8 @@ C_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
 ARDUINO_CORE_PATH = $(ARDUINO_PATH)/hardware/arduino/cores/arduino
 ARDUINO_CORE_OBJS = IPAddress.o new.o Print.o WMath.o WString.o 
 ARDUINO_CORE_C_OBJS = wiring_digital.o wiring.o
+ARDUINO_CORE_LIBC_PATH = $(ARDUINO_CORE_PATH)/avr-libc
+ARDUINO_CORE_LIBC_C_OBJS = malloc.o realloc.o
 
 # this is for board specific headers
 ARDUINO_VARIANT_PATH = $(ARDUINO_PATH)/hardware/arduino/variants/$(BOARD_TYPE)
@@ -89,11 +91,13 @@ INCLUDE_FLAGS += -I$(ARDUINO_VARIANT_PATH)
 INCLUDE_FLAGS += -I$(ETHERNET_LIBRARY_PATH)
 INCLUDE_FLAGS += -I$(ETHERNET_UTIL_LIBRARY_PATH)
 INCLUDE_FLAGS += -I$(SPI_LIBRARY_PATH)
+INCLUDE_FLAGS += -I$(ARDUINO_CORE_LIBC_PATH)
 #----------------------------------------------------------
 
 # generate lists of output files (in build dir)
 SPI_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(SPI_OBJS))
 ARDUINO_CORE_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ARDUINO_CORE_OBJS))
+ARDUINO_CORE_LIBC_C_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ARDUINO_CORE_LIBC_C_OBJS))
 ARDUINO_CORE_C_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ARDUINO_CORE_C_OBJS))
 ETHERNET_UTIL_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ETHERNET_UTIL_OBJS))
 ETHERNET_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ETHERNET_OBJS))
@@ -110,7 +114,7 @@ upload:
 
 # analyze compiled program size:
 size:
-	$(SIZE) --target=$(FORMAT) $(TARGET).elf
+	$(SIZE) $(TARGET).elf
 
 elf: $(TARGET).elf
 hex: $(TARGET).hex
@@ -127,15 +131,12 @@ $(TARGET).hex: $(TARGET).elf
 
 clean:
 	rm -rv $(BUILD_DIR)/*
-	rm -v $(TARGET).elf
-	rm -v $(TARGET).hex
-	rm -v $(TARGET).map
 
 ethernet: $(ETHERNET_OBJS_FIN) $(ETHERNET_UTIL_OBJS_FIN)
 
 spi: $(SPI_OBJS_FIN)
 
-core: $(ARDUINO_CORE_OBJS_FIN) $(ARDUINO_CORE_C_OBJS_FIN)
+core: $(ARDUINO_CORE_OBJS_FIN) $(ARDUINO_CORE_C_OBJS_FIN) $(ARDUINO_CORE_LIBC_C_OBJS_FIN)
 
 project: $(PROJECT_OBJS_FIN)
 
@@ -144,6 +145,8 @@ $(ARDUINO_CORE_OBJS_FIN): %.o:
 	$(CPP) -c $(CPP_FLAGS) $(ARDUINO_CORE_PATH)/$(subst $(BUILD_DIR)/,,$*).cpp -o $*.o
 $(ARDUINO_CORE_C_OBJS_FIN): %.o:
 	$(CC) -c $(C_FLAGS) $(ARDUINO_CORE_PATH)/$(subst $(BUILD_DIR)/,,$*).c -o $*.o
+$(ARDUINO_CORE_LIBC_C_OBJS_FIN): %.o:
+	$(CC) -c $(C_FLAGS) $(ARDUINO_CORE_LIBC_PATH)/$(subst $(BUILD_DIR)/,,$*).c -o $*.o
 
 # build SPI
 $(SPI_OBJS_FIN): %.o:
