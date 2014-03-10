@@ -9,7 +9,7 @@
 #----------------------------------------------------------
 # Project settings
 MCU = atmega328
-F_CPU = 8000000UL
+F_CPU = 16000000UL
 
 BOARD_TYPE = ethernet
 
@@ -65,7 +65,7 @@ C_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
 # Arduino core library consists of C++ AND C sources
 # => handle them separately here
 ARDUINO_CORE_PATH = $(ARDUINO_PATH)/hardware/arduino/cores/arduino
-ARDUINO_CORE_OBJS = IPAddress.o Print.o WString.o WMath.o 
+ARDUINO_CORE_OBJS = IPAddress.o Print.o WString.o WMath.o new.o
 ARDUINO_CORE_C_OBJS = wiring_digital.o wiring.o
 
 # this is for board specific headers
@@ -105,7 +105,7 @@ all: build size
 build: elf hex
 
 # upload the program to the microcontroller flash:
-upload: build
+upload:
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH)
 
 # analyze compiled program size:
