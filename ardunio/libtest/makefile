@@ -65,8 +65,8 @@ C_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
 # Arduino core library consists of C++ AND C sources
 # => handle them separately here
 ARDUINO_CORE_PATH = $(ARDUINO_PATH)/hardware/arduino/cores/arduino
-ARDUINO_CORE_OBJS = CDC.o HardwareSerial.o HID.o IPAddress.o new.o Print.o Stream.o Tone.o USBCore.o WMath.o WString.o 
-ARDUINO_CORE_C_OBJS = WInterrupts.o wiring_analog.o wiring.o wiring_digital.o wiring_pulse.o wiring_shift.o
+ARDUINO_CORE_OBJS = IPAddress.o new.o Print.o WMath.o WString.o 
+ARDUINO_CORE_C_OBJS = wiring_digital.o wiring.o
 
 # this is for board specific headers
 ARDUINO_VARIANT_PATH = $(ARDUINO_PATH)/hardware/arduino/variants/$(BOARD_TYPE)
