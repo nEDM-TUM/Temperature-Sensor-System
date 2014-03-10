@@ -54,11 +54,19 @@ void test(){
 
 }
 
+void rec(int deep){
+  if(deep > 0 ){
+    rec(--deep);
+  }else{
+    test();
+  }
+}
+
 int main() {
 	DDRB = (1<<PB1);
 
 
-	test();
+	rec(10);
   // initialize the ethernet device
   Ethernet.begin(mac, ip, gateway, gateway, subnet);
   //Ethernet.begin(mac);
