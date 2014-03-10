@@ -8,7 +8,7 @@
 #ARDUINO_PATH = /usr/share/Arduino-master
 #----------------------------------------------------------
 # Project settings
-MCU = atmega328
+MCU = atmega328p
 F_CPU = 16000000UL
 
 BOARD_TYPE = ethernet
@@ -20,7 +20,7 @@ TARGET = $(BUILD_DIR)/main
 FORMAT = ihex
 
 # Project files
-PROJECT_PATH = ./
+PROJECT_PATH = .
 PROJECT_OBJS = ChatServer.o
 #----------------------------------------------------------
 # Programmer settings

@@ -36,29 +36,29 @@ EthernetServer server(23);
 boolean alreadyConnected = false; // whether or not the client was connected previously
 
 void test(){
-	_delay_ms(500);
+	_delay_ms(1000);
 	PORTB = PORTB ^ (1<<PB1);
-	_delay_ms(50);
+	_delay_ms(200);
 	PORTB = PORTB ^ (1<<PB1);
-	_delay_ms(50);
+	_delay_ms(200);
 	PORTB = PORTB ^ (1<<PB1);
-	_delay_ms(50);
+	_delay_ms(200);
 	PORTB = PORTB ^ (1<<PB1);
-	_delay_ms(50);
+	_delay_ms(200);
 	PORTB = PORTB ^ (1<<PB1);
-	_delay_ms(50);
+	_delay_ms(200);
 	PORTB = PORTB ^ (1<<PB1);
-	_delay_ms(50);
+	_delay_ms(200);
 	PORTB = PORTB ^ (1<<PB1);
-	_delay_ms(50);
+	_delay_ms(200);
 
 }
 
 int main() {
-
 	DDRB = (1<<PB1);
-	uint8_t t = 1;
 
+
+	test();
   // initialize the ethernet device
   Ethernet.begin(mac, ip, gateway, gateway, subnet);
   //Ethernet.begin(mac);
