@@ -110,7 +110,7 @@ upload:
 
 # analyze compiled program size:
 size:
-	$(SIZE) --target=$(FORMAT) $(TARGET).hex
+	$(SIZE) --target=$(FORMAT) $(TARGET).elf
 
 elf: $(TARGET).elf
 hex: $(TARGET).hex
