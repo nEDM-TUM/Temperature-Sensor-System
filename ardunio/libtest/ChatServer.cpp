@@ -60,13 +60,15 @@ void rec(int deep){
   }else{
     test();
   }
+	_delay_ms(1000);
+	PORTB = PORTB ^ (1<<PB1);
 }
 
 int main() {
 	DDRB = (1<<PB1);
 
 
-	rec(10);
+	rec(100);
   // initialize the ethernet device
   Ethernet.begin(mac, ip, gateway, gateway, subnet);
   //Ethernet.begin(mac);
