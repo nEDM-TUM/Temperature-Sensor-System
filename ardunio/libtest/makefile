@@ -48,7 +48,7 @@ AVRDUDE = avrdude
 LDFLAGS = -Wl,-Map=$(TARGET).map,--cref
 # -Wl and --gc-sections are needed to avoid __cxa_pure_virtual() reference errors
 #  which are caused by arduino c++ virtual functions
-LDFLAGS += -Wl,--gc-sections
+#LDFLAGS += -Wl,--gc-sections
 #----------------------------------------------------------
 # Compiler settings
 # -mmcu selects the AVR chip type -> specifies instructionset etc.
@@ -57,7 +57,7 @@ CPP_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
 # -ffunction-sections -fdata-sections are needed to avoid
 #  __cxa_pure_virtual() reference errors which are caused by
 #  arduino c++ virtual functions
-CPP_FLAGS += -ffunction-sections -fdata-sections
+#CPP_FLAGS += -ffunction-sections -fdata-sections
 C_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
 #----------------------------------------------------------
 # Arduino library settings:
