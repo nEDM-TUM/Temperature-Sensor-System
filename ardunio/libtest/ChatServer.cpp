@@ -65,6 +65,7 @@ void rec(int deep){
 }
 
 int main() {
+	Init();
 	DDRB = (1<<PB1);
 
 
