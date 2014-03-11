@@ -46,19 +46,19 @@ AVRDUDE = avrdude
 #----------------------------------------------------------
 # Linker settings
 LDFLAGS = -Wl,-Map=$(TARGET).map,--cref
-# -Wl and --gc-sections are needed to avoid __cxa_pure_virtual() reference errors
-#  which are caused by arduino c++ virtual functions
-#LDFLAGS += -Wl,--gc-sections
+# --gc-sections will allow the linker to remove unused sections
+LDFLAGS += -Wl,--gc-sections
 #----------------------------------------------------------
 # Compiler settings
 # -mmcu selects the AVR chip type -> specifies instructionset etc.
 # -DF_CPU defines the F_CPU preprocessor makro
 CPP_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
-# -ffunction-sections -fdata-sections are needed to avoid
-#  __cxa_pure_virtual() reference errors which are caused by
-#  arduino c++ virtual functions
-#CPP_FLAGS += -ffunction-sections -fdata-sections
+# -ffunction-sections -fdata-sections are needed to place
+#  functions in separate sections, to be able to remove
+#  unneeded functions during linking
+CPP_FLAGS += -ffunction-sections -fdata-sections
 C_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
+C_FLAGS += -ffunction-sections -fdata-sections
 #----------------------------------------------------------
 # Arduino library settings:
 # this specifies which part of the Arduino Core library to compile:
