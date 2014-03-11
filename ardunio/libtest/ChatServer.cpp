@@ -19,28 +19,65 @@
 
 #include "SPI.h"
 #include "Ethernet.h"
+#include <avr/io.h>
+#include <util/delay.h>
 // Enter a MAC address and IP address for your controller below.
 // The IP address will be dependent on your local network.
 // gateway and subnet are optional:
 byte mac[] = { 
   0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-IPAddress ip(192,168,1, 177);
-IPAddress gateway(192,168,1, 1);
-IPAddress subnet(255, 255, 0, 0);
+IPAddress ip(10,0,0,77);
+IPAddress gateway(10,0,0,1);
+IPAddress subnet(255, 255,0,0);
 
 
 // telnet defaults to port 23
 EthernetServer server(23);
 boolean alreadyConnected = false; // whether or not the client was connected previously
 
+void test(){
+	_delay_ms(1000);
+	PORTB = PORTB ^ (1<<PB1);
+	_delay_ms(200);
+	PORTB = PORTB ^ (1<<PB1);
+	_delay_ms(200);
+	PORTB = PORTB ^ (1<<PB1);
+	_delay_ms(200);
+	PORTB = PORTB ^ (1<<PB1);
+	_delay_ms(200);
+	PORTB = PORTB ^ (1<<PB1);
+	_delay_ms(200);
+	PORTB = PORTB ^ (1<<PB1);
+	_delay_ms(200);
+	PORTB = PORTB ^ (1<<PB1);
+	_delay_ms(200);
+
+}
+
+void rec(int deep){
+  if(deep > 0 ){
+    rec(--deep);
+  }else{
+    test();
+  }
+	_delay_ms(1000);
+	PORTB = PORTB ^ (1<<PB1);
+}
+
 int main() {
+	Init();
+	DDRB = (1<<PB1);
+
+
+	rec(100);
   // initialize the ethernet device
-  Ethernet.begin(mac, ip, gateway, subnet);
+  Ethernet.begin(mac, ip, gateway, gateway, subnet);
+  //Ethernet.begin(mac);
   // start listening for clients
+	test();
   server.begin();
  // Open serial communications and wait for port to open:
-
-
+	test();
 
   while (1){
     loop();
@@ -48,6 +85,8 @@ int main() {
 }
 
 void loop() {
+	PORTB = PORTB ^ (1<<PB1);
+	_delay_ms(100);
   // wait for a new client:
   EthernetClient client = server.available();
 
