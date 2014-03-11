@@ -21,7 +21,7 @@ FORMAT = ihex
 
 # Project files
 PROJECT_PATH = .
-PROJECT_OBJS = ChatServer.o
+PROJECT_OBJS = Client.o
 #----------------------------------------------------------
 # Programmer settings
 AVRDUDE_PROGRAMMER = stk500v1

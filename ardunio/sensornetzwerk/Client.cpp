@@ -1,64 +1,88 @@
 /*
- Chat  Server
- 
- A simple server that distributes any incoming messages to all
- connected clients.  To use telnet to  your device's IP address and type.
- You can see the client's input in the serial monitor as well.
- Using an Arduino Wiznet Ethernet shield. 
- 
- Circuit:
- * Ethernet shield attached to pins 10, 11, 12, 13
- * Analog inputs attached to pins A0 through A5 (optional)
- 
- created 18 Dec 2009
- by David A. Mellis
- modified 9 Apr 2012
- by Tom Igoe
- 
- */
+  Client for transfering sensor data 
+*/
 
 #include "SPI.h"
 #include "Ethernet.h"
 #include <avr/io.h>
 #include <util/delay.h>
-// Enter a MAC address and IP address for your controller below.
-// The IP address will be dependent on your local network.
-// gateway and subnet are optional:
-byte mac[] = { 
-  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-IPAddress ip(10,0,0,77);
-IPAddress gateway(10,0,0,1);
-IPAddress subnet(255, 255,0,0);
+// The defined MAC address and IP address for client
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+byte ip[] = { 10,0,0,77};
+// The server ip and port
+byte server[] = {10,0,1,1};
+int port = 12345;
 
+// The client object
+EthernetClient client;
 
-// telnet defaults to port 1000
-EthernetServer server(1000);
-boolean alreadyConnected = false; // whether or not the client was connected previously
+// The JSON template
+char json[128] = "{\"ID\":\"%s\", \"data\":\"%s\", \"acc\":\"%s\", \"time\":\"%s\"}";
+/* 3 times blink as error signal (3 s)*/
+// FIXME inline
+inline void errorBlink(){
+	PORTB = PORTB ^ (1<<PB1);
+	_delay_ms(150);
+	PORTB = PORTB ^ (1<<PB1);
+	_delay_ms(150);
+	PORTB = PORTB ^ (1<<PB1);
+	_delay_ms(150);
+	PORTB = PORTB ^ (1<<PB1);
+	_delay_ms(150);
+	PORTB = PORTB ^ (1<<PB1);
+	_delay_ms(150);
+	PORTB = PORTB ^ (1<<PB1);
+	_delay_ms(150);
+	PORTB = 0<<PB1;
+	_delay_ms(100);
+}
 
-void errorBlink(){
-	PORTB = PORTB ^ (1<<PB1);
-	_delay_ms(500);
-	PORTB = PORTB ^ (1<<PB1);
-	_delay_ms(500);
-	PORTB = PORTB ^ (1<<PB1);
-	_delay_ms(500);
-	PORTB = PORTB ^ (1<<PB1);
-	_delay_ms(500);
+/* 1 times blink as success signal (1 s) */
+// FIXME inline
+inline void sucBlink(){
 	PORTB = PORTB ^ (1<<PB1);
 	_delay_ms(500);
 	PORTB = PORTB ^ (1<<PB1);
 	_delay_ms(500);
 	PORTB = 0<<PB1;
-
 }
 
-void rec(int deep){
-  if(deep > 0 ){
-	  _delay_ms(1000);
-	  PORTB = PORTB ^ (1<<PB1);
-    rec(--deep);
+inline void connectToServer(){
+  if (client.connect (server, port)){
+    client.println("Hello, I'm the client :)");
+  }
+}
+
+// Convert data in JSON format
+// TODO parameter types
+inline char * formatJSON(char* id, char* data, char* acc, char* time){
+  char buf[128];
+  sprintf(buf, json, id, data, acc, time);
+  return buf;
+}
+
+inline char * getJSONdata(){
+  return formatJSON("XX", "xxxx", "0.1", "dd-MM-yyyy hh:mm:ss"); 
+}
+
+inline void trySendData() {
+  if (client.connected()){
+    client.println(getJSONdata());  
+    // Do success blink after send Data
+    // The blink costs 1 second
+    sucBlink();
+    // FIXME When server write sth. to the client,
+    // that means, sth. may be wrong,
+    // do error blink, which takes 3 seconds!!!
+    if(client.available()){
+      client.flush();
+      errorBlink();
+    }
   }else{
-    test();
+    // If connect failed, do error blink every 5 seconds 
+    errorBlink();
+	  _delay_ms(4000);
+    connectToServer();
   }
 }
 
@@ -66,46 +90,13 @@ int main() {
   init();
 	DDRB = (1<<PB1);
 
-
-	rec(0);
   // initialize the ethernet device
   Ethernet.begin(mac, ip);
-  //Ethernet.begin(mac);
-  // start listening for clients
-	test();
-  server.begin();
- // Open serial communications and wait for port to open:
-	test();
+
+  connectToServer();
 
   while (1){
-    loop();
+    trySendData();
   }
 }
-
-void loop() {
-	PORTB = PORTB ^ (1<<PB1);
-	_delay_ms(100);
-  // wait for a new client:
-  EthernetClient client = server.available();
-
-  // when the client sends the first byte, say hello:
-  if (client) {
-    if (!alreadyConnected) {
-      // clead out the input buffer:
-      client.flush();    
-      client.println("Hello, client!"); 
-      alreadyConnected = true;
-    } 
-
-    if (client.available() > 0) {
-      // read the bytes incoming from the client:
-      char thisChar = client.read();
-      // echo the bytes back to the client:
-      server.write(thisChar);
-      // echo the bytes to the server as well:
-    }
-  }
-}
-
-
 
