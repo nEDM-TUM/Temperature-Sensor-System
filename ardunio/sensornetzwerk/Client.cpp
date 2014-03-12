@@ -17,10 +17,12 @@ int port = 12345;
 EthernetClient client;
 
 // The JSON template
+{"value":{"name1": xxx, "name2": xxx ....}}
 char json[128] = "{\"ID\":\"%s\", \"data\":\"%s\", \"acc\":\"%s\", \"time\":\"%s\"}";
-/* 3 times blink as error signal (3 s)*/
+
+/* flash led 3 times as error signal (3 s)*/
 // FIXME inline
-inline void errorBlink(){
+inline void errorFlash(){
 	PORTB = PORTB ^ (1<<PB1);
 	_delay_ms(150);
 	PORTB = PORTB ^ (1<<PB1);
@@ -37,9 +39,9 @@ inline void errorBlink(){
 	_delay_ms(100);
 }
 
-/* 1 times blink as success signal (1 s) */
+/* flash led one time as a success signal (1 s) */
 // FIXME inline
-inline void sucBlink(){
+inline void sucFlash(){
 	PORTB = PORTB ^ (1<<PB1);
 	_delay_ms(500);
 	PORTB = PORTB ^ (1<<PB1);
@@ -53,7 +55,7 @@ inline void connectToServer(){
   }
 }
 
-// Convert data in JSON format
+// Convert data to JSON format
 // TODO parameter types
 inline char * formatJSON(char* id, char* data, char* acc, char* time){
   char buf[128];
@@ -68,19 +70,19 @@ inline char * getJSONdata(){
 inline void trySendData() {
   if (client.connected()){
     client.println(getJSONdata());  
-    // Do success blink after send Data
-    // The blink costs 1 second
-    sucBlink();
-    // FIXME When server write sth. to the client,
-    // that means, sth. may be wrong,
-    // do error blink, which takes 3 seconds!!!
+    // Indicate success after data has been sent
+    // this blocks for 1 second
+    sucFlash();
+    // FIXME When server writes sth. to the client,
+    // that means, sth. might be wrong,
+    // indicate error, which takes 3 seconds!!!
     if(client.available()){
       client.flush();
-      errorBlink();
+      errorFlash();
     }
   }else{
-    // If connect failed, do error blink every 5 seconds 
-    errorBlink();
+    // If connect failed, indicate error every 5 seconds 
+    errorFlash();
 	  _delay_ms(4000);
     connectToServer();
   }
