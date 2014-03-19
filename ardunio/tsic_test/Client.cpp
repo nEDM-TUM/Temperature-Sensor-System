@@ -45,14 +45,18 @@ ISR(TIMER2_OVF_vect){
 	TCCR2B = 0; //disable timer
 	result = (byteh <<8)|bytel;
 	resparity = parity;
+  // debug, LED blink
 	PORTB = PORTB ^ (1<<PB1);
 }
-
+// Interrupt handler of PCIE1 (PCINIT[14...8]!!!)
 ISR(PCINT1_vect){
+  // Read timer 2
 	uint8_t tval = TCNT2;
+  // Reset timer 2
 	TCNT2 = 0;
+  
 	if(PINC & (1<< PC0)){
-		//rising edge
+		// PC0 is 1 -> rising edge
 		lowtime = tval;
 		if(bitcount != 8){
 			bytel = (bytel << 1);
@@ -63,8 +67,9 @@ ISR(PCINT1_vect){
 			parity = parity ^ (tval < tcrit);
 		}
 	}else{
-		//falling edge
-		TCCR2B = (1<<CS22); // timer 2: enable with prescaler 64
+		// PC0 is 0 -> falling edge
+		TCCR2B = (1<<CS22); // start timer 2: enable with prescaler 64
+    // FIXME find appropriate range
 		if((lowtime < (tval + 3)) && (lowtime > (tval - 3))){
 			//this was start bit :)
 			tcrit = tval;
@@ -75,9 +80,13 @@ ISR(PCINT1_vect){
 }
 
 void interrupt_init(){
-	PCICR = (1<< PCIE1); //enable interrupt for PCINT[23...16]
-	PCMSK1 = (1<< PCINT8);
-	TIMSK2 = (1<<TOIE2); // enable overflow interript for timer0
+	PCICR = (1<< PCIE1); //enable interrupt for PCINT[14...8]
+	PCMSK1 = (1<< PCINT8); // PCINT8 -> PC0
+  // Attention: Timer 0 is used by ardunio core
+	TIMSK2 = (1<<TOIE2); // enable overflow interript for timer2
+  // Timer init (reset to default)
+	TCCR2A = 0;
+	TCCR2B = 0;
 }
 
 inline void trySendData() {
@@ -111,8 +120,6 @@ inline void trySendData() {
 int main() {
   init();
 	DDRB = (1<<PB1);
-	TCCR2A = 0;
-	TCCR2B = 0;
 	interrupt_init();
 
 
