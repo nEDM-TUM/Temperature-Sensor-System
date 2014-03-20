@@ -29,52 +29,66 @@ inline void connectToServer(){
 }
 
 
-uint8_t lowtime = 255;
-uint8_t deb1 = 255;
-uint8_t deb2 = 255;
-uint8_t bytea = 255;
-uint8_t byteb = 255;
-uint8_t bytec = 255;
-uint8_t resa = 255;
-uint8_t resb = 255;
-uint8_t resc = 255;
-uint8_t tcrit;
-uint8_t bitcount = 255;
-uint8_t parity;
-uint8_t resparity;
+uint8_t tl = 255;
+uint8_t bindex= 1;
+uint8_t bsd = 255;
+uint8_t[2] bits = {0, 0};
+uint8_t[2] parity = {0, 0};
 
 uint16_t result;
+#define error 3
+#define 2error 6
+inline storeBit(uint8_t bindex, uint8 bit){
+  bits[bindex] << 1;
+  bits[index] |= parity[bindex];
+  parity[bindex]=bit;
+}
 
 ISR(TIMER2_OVF_vect){
 	TCCR2B = 0; //disable timer
-	resa = bytea;
-	resb = byteb;
-	resc = bytec;
+  bindex=1;
+	result = (bits[bindex] <<8)|bits[bindex-1];
+	resparity = (parity[bindex] << 1) | parity[bindex];
+  // debug, LED blink
 	PORTB = PORTB ^ (1<<PB1);
 }
 // Interrupt handler of PCIE1 (PCINIT[14...8]!!!)
 ISR(PCINT1_vect){
   // Read timer 2
-	uint8_t tval = TCNT2;
+	uint8_t tc = TCNT2;
   // Reset timer 2
 	TCNT2 = 0;
   
 	if(PINC & (1<< PC0)){
 		// PC0 is 1 -> rising edge
-		lowtime = tval;
-		bytec = (bytec << 1);
-		asm("rol %0" : "=r" (byteb) : "0" (byteb));
-		asm("rol %0" : "=r" (bytea) : "0" (bytea));
-		bytec = bytec ^ (tval < tcrit);
+    // Save the timer counter plus error
+    tl = tc + error;
 	}else{
 		// PC0 is 0 -> falling edge
-		TCCR2B = (1<<CS22); // start timer 2: enable with prescaler 64
-    // FIXME find appropriate range
-		if((lowtime < (tval + 3)) && (lowtime > (tval - 3))){
-			//this was start bit :)
-			tcrit = tval;
-			bitcount = 0;
-		}
+		if(tl<tc){
+      // It is one
+      if(tl>tsd){ 
+        // It is actually 0 STOP
+        storeBit(bindex, 0);
+      } else{
+        storeBit(bindex, 1);
+      }
+    }else{
+      if(tl-tc > 2error){
+        // It is zero
+        storeBit(bindex, 0);
+      }else{
+			  //this was start bit :)
+        bindex^=bindex;
+        tsd = tc;
+        // FIXME
+        if(bindex){
+          parity[bindex] = parity[bindex-1];
+          bits[bindex] = parity[bindex-1];
+        }
+      }
+    }
+	TCCR2B = (1<<CS22); // start timer 2: enable with prescaler 64
 	}
 }
 
@@ -90,9 +104,8 @@ void interrupt_init(){
 
 inline void trySendData() {
   if (client.connected()){
-		result = (((resa<<5) | (resb>>3)) <<8) | ((resb<<7) | (resc>>1));
 		char buf[128];
-		sprintf(buf, "resa: %x, resb: %x resc: %x", resa, resb, resc);
+		sprintf(buf, "deb1: %d, deb2: %d", deb1, deb2);
     client.println(buf);  
 		sprintf(buf, "result: %x", result);
     client.println(buf);  
