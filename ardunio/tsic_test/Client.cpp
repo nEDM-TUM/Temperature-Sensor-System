@@ -32,8 +32,12 @@ inline void connectToServer(){
 uint8_t lowtime = 255;
 uint8_t deb1 = 255;
 uint8_t deb2 = 255;
-uint8_t byteh = 255;
-uint8_t bytel = 255;
+uint8_t bytea = 255;
+uint8_t byteb = 255;
+uint8_t bytec = 255;
+uint8_t resa = 255;
+uint8_t resb = 255;
+uint8_t resc = 255;
 uint8_t tcrit;
 uint8_t bitcount = 255;
 uint8_t parity;
@@ -43,8 +47,9 @@ uint16_t result;
 
 ISR(TIMER2_OVF_vect){
 	TCCR2B = 0; //disable timer
-	result = (byteh <<8)|bytel;
-	resparity = parity;
+	resa = bytea;
+	resb = byteb;
+	resc = bytec;
 	PORTB = PORTB ^ (1<<PB1);
 }
 
@@ -54,21 +59,16 @@ ISR(PCINT1_vect){
 	if(PINC & (1<< PC0)){
 		//rising edge
 		lowtime = tval;
-		if(bitcount != 8){
-			bytel = (bytel << 1);
-			bytel = bytel ^ (tval < tcrit);
-			bitcount++;
-		}else{
-			parity = (parity << 1);
-			parity = parity ^ (tval < tcrit);
-		}
+		bytec = (bytec << 1);
+		asm("rol %0" : "=r" (byteb) : "0" (byteb));
+		asm("rol %0" : "=r" (bytea) : "0" (bytea));
+		bytec = bytec ^ (tval < tcrit);
 	}else{
 		//falling edge
 		TCCR2B = (1<<CS22); // timer 2: enable with prescaler 64
 		if((lowtime < (tval + 3)) && (lowtime > (tval - 3))){
 			//this was start bit :)
 			tcrit = tval;
-			byteh = bytel;
 			bitcount = 0;
 		}
 	}
@@ -82,8 +82,9 @@ void interrupt_init(){
 
 inline void trySendData() {
   if (client.connected()){
+		result = (((resa<<5) | (resb>>3)) <<8) | ((resb<<7) | (resc>>1));
 		char buf[128];
-		sprintf(buf, "deb1: %d, deb2: %d", deb1, deb2);
+		sprintf(buf, "resa: %x, resb: %x resc: %x", resa, resb, resc);
     client.println(buf);  
 		sprintf(buf, "result: %x", result);
     client.println(buf);  
