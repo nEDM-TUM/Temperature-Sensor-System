@@ -30,17 +30,21 @@ inline void connectToServer(){
 
 
 uint8_t tl = 255;
+uint8_t tsd = 255;
 uint8_t bindex= 1;
-uint8_t bsd = 255;
-uint8_t[2] bits = {0, 0};
-uint8_t[2] parity = {0, 0};
+uint8_t bits[] = {0, 0};
+uint8_t parity[] = {0, 0};
+uint8_t resparity;
+
+uint8_t deb1 = 255;
+uint8_t deb2 = 255;
 
 uint16_t result;
 #define error 3
-#define 2error 6
-inline storeBit(uint8_t bindex, uint8 bit){
+#define error2 6
+inline void storeBit(uint8_t bindex, uint8_t bit){
   bits[bindex] << 1;
-  bits[index] |= parity[bindex];
+  bits[bindex] |= parity[bindex];
   parity[bindex]=bit;
 }
 
@@ -49,8 +53,6 @@ ISR(TIMER2_OVF_vect){
   bindex=1;
 	result = (bits[bindex] <<8)|bits[bindex-1];
 	resparity = (parity[bindex] << 1) | parity[bindex];
-  // debug, LED blink
-	PORTB = PORTB ^ (1<<PB1);
 }
 // Interrupt handler of PCIE1 (PCINIT[14...8]!!!)
 ISR(PCINT1_vect){
@@ -74,14 +76,15 @@ ISR(PCINT1_vect){
         storeBit(bindex, 1);
       }
     }else{
-      if(tl-tc > 2error){
+      if(tl-tc > error2){
         // It is zero
         storeBit(bindex, 0);
+  // TODO  debug, LED blink
+	PORTB = PORTB ^ (1<<PB1);
       }else{
 			  //this was start bit :)
         bindex^=bindex;
         tsd = tc;
-        // FIXME
         if(bindex){
           parity[bindex] = parity[bindex-1];
           bits[bindex] = parity[bindex-1];
@@ -100,6 +103,8 @@ void interrupt_init(){
   // Timer init (reset to default)
 	TCCR2A = 0;
 	TCCR2B = 0;
+  // Reset timer 2
+	TCNT2 = 0;
 }
 
 inline void trySendData() {

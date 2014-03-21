@@ -73,7 +73,15 @@ ISR(PCINT1_vect){
 		if((lowtime < (tval + 3)) && (lowtime > (tval - 3))){
 			//this was start bit :)
 			tcrit = tval;
-			bitcount = 0;
+		}
+		if(lowtime>tval){
+			if(lowtime-tval < 3){
+				tcrit = tval;
+			}
+		}else{
+			if(tval-lowtime < 3){
+				tcrit = tval;
+			}
 		}
 	}
 }
@@ -90,9 +98,20 @@ void interrupt_init(){
 
 inline void trySendData() {
   if (client.connected()){
-		result = (((resa<<5) | (resb>>3)) <<8) | ((resb<<7) | (resc>>1));
+		uint8_t ra,rb,rc;
+		cli();
+		ra = resa;
+		rb = resb;
+		rc = resc;
+		sei();
+		uint8_t resth = ((ra<<5) | (rb>>3));
+		uint8_t restl = ((rb<<7) | (rc>>1));
+		result = (((ra<<5) | (rb>>3)) <<8) | ((rb<<7) | (rc>>1));
+		result =( resth <<8)|restl;
 		char buf[128];
-		sprintf(buf, "resa: %x, resb: %x resc: %x", resa, resb, resc);
+		sprintf(buf, "ra: %x, rb: %x rc: %x", ra, rb, rc);
+    client.println(buf);  
+		sprintf(buf, "resth: %x restl: %x", resth, restl);
     client.println(buf);  
 		sprintf(buf, "result: %x", result);
     client.println(buf);  
