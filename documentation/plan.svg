@@ -24,16 +24,16 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.7"
-     inkscape:cx="568.43064"
-     inkscape:cy="300.68236"
+     inkscape:zoom="1.4"
+     inkscape:cx="555.14275"
+     inkscape:cy="354.92721"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1362"
-     inkscape:window-height="721"
-     inkscape:window-x="1600"
-     inkscape:window-y="656"
+     inkscape:window-width="1916"
+     inkscape:window-height="1033"
+     inkscape:window-x="0"
+     inkscape:window-y="32"
      inkscape:window-maximized="0"
      fit-margin-top="0"
      fit-margin-left="0"
@@ -57,7 +57,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -242,7 +242,7 @@
          sodipodi:role="line"
          id="tspan2995-7"
          x="334.01193"
-         y="276.55023">RJ11</tspan></text>
+         y="276.55023">RJ45</tspan></text>
     <rect
        style="fill:#e5ff80;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect2991-6-9"
@@ -260,7 +260,7 @@
          sodipodi:role="line"
          id="tspan2995-7-3"
          x="334.01193"
-         y="309.69788">RJ11</tspan></text>
+         y="309.69788">RJ45</tspan></text>
     <rect
        style="fill:#e5ff80;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect2991-6-3"
@@ -278,7 +278,7 @@
          sodipodi:role="line"
          id="tspan2995-7-1"
          x="334.01193"
-         y="342.84558">RJ11</tspan></text>
+         y="342.84558">RJ45</tspan></text>
     <rect
        style="fill:#e5ff80;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect2991-6-4"
@@ -296,7 +296,7 @@
          sodipodi:role="line"
          id="tspan2995-7-8"
          x="334.01193"
-         y="375.99329">RJ11</tspan></text>
+         y="375.99329">RJ45</tspan></text>
     <rect
        style="fill:#e5ff80;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect2991-6-8"
@@ -314,7 +314,7 @@
          sodipodi:role="line"
          id="tspan2995-7-34"
          x="334.01193"
-         y="409.14102">RJ11</tspan></text>
+         y="409.14102">RJ45</tspan></text>
     <rect
        style="fill:#e5ff80;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect2991-6-1"
@@ -332,7 +332,7 @@
          sodipodi:role="line"
          id="tspan2995-7-87"
          x="334.01193"
-         y="442.2887">RJ11</tspan></text>
+         y="442.2887">RJ45</tspan></text>
     <rect
        style="fill:#e5ff80;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect2991-6-2"
@@ -350,7 +350,7 @@
          sodipodi:role="line"
          id="tspan2995-7-5"
          x="334.01193"
-         y="475.43631">RJ11</tspan></text>
+         y="475.43631">RJ45</tspan></text>
     <rect
        style="fill:#e5ff80;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect2991-6-7"
@@ -368,7 +368,7 @@
          sodipodi:role="line"
          id="tspan2995-7-83"
          x="334.01193"
-         y="508.58408">RJ11</tspan></text>
+         y="508.58408">RJ45</tspan></text>
     <rect
        style="fill:#e5ff80;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect2991-6-0"
@@ -386,7 +386,7 @@
          sodipodi:role="line"
          id="tspan2995-7-4"
          x="334.01193"
-         y="541.73175">RJ11</tspan></text>
+         y="541.73175">RJ45</tspan></text>
     <rect
        style="fill:#e5ff80;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect2991-6-5"
@@ -404,7 +404,7 @@
          sodipodi:role="line"
          id="tspan2995-7-0"
          x="334.01193"
-         y="574.87946">RJ11</tspan></text>
+         y="574.87946">RJ45</tspan></text>
     <rect
        style="fill:#e5ff80;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect2991-6-80"
@@ -422,7 +422,7 @@
          sodipodi:role="line"
          id="tspan2995-7-49"
          x="334.01193"
-         y="608.0271">RJ11</tspan></text>
+         y="608.0271">RJ45</tspan></text>
     <rect
        style="fill:#e5ff80;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect2991-6-71"
@@ -440,7 +440,7 @@
          sodipodi:role="line"
          id="tspan2995-7-6"
          x="334.01193"
-         y="641.1748">RJ11</tspan></text>
+         y="641.1748">RJ45</tspan></text>
     <rect
        style="fill:#87aade;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect5274"
@@ -747,7 +747,7 @@
          sodipodi:role="line"
          id="tspan2995-7-1-4"
          x="179.93108"
-         y="383.56607">RJ11</tspan></text>
+         y="383.56607">RJ45</tspan></text>
     <rect
        style="fill:#de8787;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect5533"
@@ -836,7 +836,7 @@
          sodipodi:role="line"
          id="tspan2995-7-1-4-8"
          x="179.93108"
-         y="168.07191">RJ11</tspan></text>
+         y="168.07191">RJ45</tspan></text>
     <rect
        style="fill:#de8787;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect5533-4"
@@ -906,7 +906,7 @@
          sodipodi:role="line"
          id="tspan2995-7-1-4-8-8"
          x="179.93108"
-         y="266.53329">RJ11</tspan></text>
+         y="266.53329">RJ45</tspan></text>
     <rect
        style="fill:#de8787;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect5533-4-3"
@@ -1027,7 +1027,7 @@
          sodipodi:role="line"
          id="tspan2995-7-1-4-9"
          x="179.93108"
-         y="482.36218">RJ11</tspan></text>
+         y="482.36218">RJ45</tspan></text>
     <rect
        style="fill:#de8787;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect5533-9"
@@ -1116,7 +1116,7 @@
          sodipodi:role="line"
          id="tspan2995-7-1-4-3"
          x="179.93108"
-         y="652.36804">RJ11</tspan></text>
+         y="652.36804">RJ45</tspan></text>
     <rect
        style="fill:#de8787;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect5533-1"
@@ -1298,15 +1298,19 @@
          y="92.953194">Measuring</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:13px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
-       x="238.17307"
-       y="150.18996"
+       style="font-size:13px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="268.38199"
+       y="121.84876"
        id="text6525"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan6527"
-         x="238.17307"
-         y="150.18996">max 10m</tspan></text>
+         x="268.38199"
+         y="121.84876">RS485</tspan><tspan
+         sodipodi:role="line"
+         x="268.38199"
+         y="138.09877"
+         id="tspan3226">max 200m</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:13px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
