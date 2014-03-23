@@ -24,16 +24,16 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4"
-     inkscape:cx="555.14275"
-     inkscape:cy="354.92721"
+     inkscape:zoom="1.979899"
+     inkscape:cx="389.4773"
+     inkscape:cy="415.79586"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1916"
-     inkscape:window-height="1033"
-     inkscape:window-x="0"
-     inkscape:window-y="32"
+     inkscape:window-width="1276"
+     inkscape:window-height="753"
+     inkscape:window-x="1080"
+     inkscape:window-y="1112"
      inkscape:window-maximized="0"
      fit-margin-top="0"
      fit-margin-left="0"
@@ -476,14 +476,14 @@
     <text
        xml:space="preserve"
        style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
-       x="334.0119"
+       x="332.0119"
        y="187.50621"
        id="text2993-2-1"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan2995-7-18"
-         x="334.0119"
-         y="187.50621">RJ11</tspan></text>
+         x="332.0119"
+         y="187.50621">RJ11?</tspan></text>
     <rect
        style="fill:#87aade;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect3003-1"
@@ -600,14 +600,14 @@
     <text
        xml:space="preserve"
        style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
-       x="337.67859"
+       x="331.67859"
        y="168.07646"
        id="text5266"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5268"
-         x="337.67859"
-         y="168.07646">SPI</tspan></text>
+         x="331.67859"
+         y="168.07646">ZAC?</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
@@ -825,18 +825,18 @@
        width="27.857143"
        height="27.857143"
        x="177.34772"
-       y="151.49931" />
+       y="153.6721" />
     <text
        xml:space="preserve"
        style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
        x="179.93108"
-       y="168.07191"
+       y="170.24472"
        id="text2993-2-0-7-0"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan2995-7-1-4-8"
          x="179.93108"
-         y="168.07191">RJ45</tspan></text>
+         y="170.24472">RJ45</tspan></text>
     <rect
        style="fill:#de8787;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect5533-4"
@@ -856,8 +856,8 @@
          x="62.56638"
          y="136.84535">Sensor</tspan></text>
     <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 175.30946,165.42788 -81.785722,0"
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m 117.5765,167.60068 -24.40357,0"
        id="path5605-6"
        inkscape:connector-curvature="0" />
     <text
@@ -895,18 +895,18 @@
        width="27.857143"
        height="27.857143"
        x="177.34772"
-       y="249.96069" />
+       y="252.13348" />
     <text
        xml:space="preserve"
        style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
        x="179.93108"
-       y="266.53329"
+       y="268.70609"
        id="text2993-2-0-7-0-6"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan2995-7-1-4-8-8"
          x="179.93108"
-         y="266.53329">RJ45</tspan></text>
+         y="268.70609">RJ45</tspan></text>
     <rect
        style="fill:#de8787;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect5533-4-3"
@@ -925,11 +925,6 @@
          id="tspan5579-0-6"
          x="62.56638"
          y="235.30673">Sensor</tspan></text>
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 175.30946,263.88925 -81.785722,0"
-       id="path5605-6-1"
-       inkscape:connector-curvature="0" />
     <text
        xml:space="preserve"
        style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
@@ -1322,5 +1317,68 @@
          id="tspan6531"
          x="575.71777"
          y="369.03323">max 5m</tspan></text>
+    <rect
+       style="fill:#de8787;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+       id="rect3125-6"
+       width="33.378452"
+       height="33.378452"
+       x="119.35967"
+       y="150.91145" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m 175.31118,167.60068 -20.52202,0"
+       id="path5605-6-5"
+       inkscape:connector-curvature="0" />
+    <text
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="135.85121"
+       y="166.08749"
+       id="text4028"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4030"
+         x="135.85121"
+         y="166.08749"
+         style="font-size:6px;text-align:center;text-anchor:middle">Protocol</tspan><tspan
+         sodipodi:role="line"
+         x="135.85121"
+         y="173.58749"
+         id="tspan4032"
+         style="font-size:6px;text-align:center;text-anchor:middle">Converter</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m 117.33383,266.06206 -24.403567,0"
+       id="path5605-6-6"
+       inkscape:connector-curvature="0" />
+    <rect
+       style="fill:#de8787;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+       id="rect3125-6-2"
+       width="33.378452"
+       height="33.378452"
+       x="119.117"
+       y="249.37283" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m 175.06851,266.06206 -20.52202,0"
+       id="path5605-6-5-8"
+       inkscape:connector-curvature="0" />
+    <text
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="135.60854"
+       y="264.54886"
+       id="text4028-5"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4030-8"
+         x="135.60854"
+         y="264.54886"
+         style="font-size:6px;text-align:center;text-anchor:middle">Protocol</tspan><tspan
+         sodipodi:role="line"
+         x="135.60854"
+         y="272.04886"
+         id="tspan4032-5"
+         style="font-size:6px;text-align:center;text-anchor:middle">Converter</tspan></text>
   </g>
 </svg>
