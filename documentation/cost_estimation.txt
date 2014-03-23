@@ -1,0 +1,64 @@
+1x Arduino Ethernet: <= 70 €
+
+1x Data Collection Board: <= 35.00 €
+	1x AVR Atmega164:
+		<= 6.00 €
+	16x ST485 driver:
+		<= 1.00 * 16 € = 16.00 €
+	16x RJ45 socket:
+		<= 0.50 * 16 € = 8.00 €
+	1x Chicken food:
+		<= 5.00€
+	
+14x Temperature Board: <= 10.50 € * 14 = 147.00 €
+	Temperature Sensor:
+		<= 8€
+	ST485 driver:
+		<= 1.00 €
+	RJ45 socket:
+		<= 0.50 €
+	Chicken food:
+		<= 1.00 €
+
+2x Humidity Board: <= 29.50 € * 2 = 59.00 €
+	Humidity Sensor:
+		<= 25.00 €
+	AVR Atmega88:
+		<= 2.00 €
+	ST485 driver:
+		<= 1.00 €
+	RJ45 socket:
+		<= 0.50 €
+	Chicken food:
+		<= 1.00 €
+
+10x CAT.5 wire 10m <= 25.00 €
+	<= 2.50 €
+
+4x CAT.5 wire 15m <= 14.00 €
+	<= 3.50 €
+
+2x CAT.5 wire 20m <= 10.00 €
+	<= 5.00 €
+
+------------------------------------------
+Upper bound for core functionality:
+<= 360.00 €
+
+
+Approximate upcomming cost:
+
+1x Casing + Mounting for Arduino + Data collection Board: <= 20.00 €
+
+16x Casing + Mounting for sensors: 80.00€
+	<= 5.00 €
+
+3x Shipping cost from various suppliers: 15.00 €
+	<= 5.00 €
+
+Loss during development: ~ 25 €
+
+------------------------------------------
+Approximate upper bound of total cost:
+500.00 €
+
