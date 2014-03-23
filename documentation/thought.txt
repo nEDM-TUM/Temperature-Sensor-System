@@ -1,0 +1,10 @@
+- Powerinput of sensor boards
+  - 5V (not lower then 4.75V)
+    - Not stable
+  - 12V supply 
+    - Regulate with LM7805
+    - How to supply?
+    - boards can be too rot, effect on the temperature measurement
+    
+- Handle with I2C
+  - Using microprocessor to convert I2C to ZAC protocol, which allows RS485 communication
