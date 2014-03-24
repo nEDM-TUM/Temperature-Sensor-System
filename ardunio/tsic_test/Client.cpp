@@ -106,7 +106,7 @@ inline void trySendData() {
 		sei();
 		uint8_t resth = ((ra<<5) | (rb>>3));
 		uint8_t restl = ((rb<<7) | (rc>>1));
-		result = (((ra<<5) | (rb>>3)) <<8) | ((rb<<7) | (rc>>1));
+		//result = (((ra<<5) | (rb>>3)) <<8) | ((rb<<7) | (rc>>1));
 		result =( resth <<8)|restl;
 		char buf[128];
 		sprintf(buf, "ra: %x, rb: %x rc: %x", ra, rb, rc);
