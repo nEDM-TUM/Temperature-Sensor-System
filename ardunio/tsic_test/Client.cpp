@@ -63,6 +63,10 @@ ISR(PCINT1_vect){
 		// PC0 is 1 -> rising edge
 		lowtime = tval;
 		bytec = (bytec << 1);
+		// idea: use only 16 bit here, as most significant bits are not used
+		// anyways
+		// Also try to directly use 16 bis or 32 bit integers. this might reduce
+		// stack and register overhead
 		asm("rol %0" : "=r" (byteb) : "0" (byteb));
 		asm("rol %0" : "=r" (bytea) : "0" (bytea));
 		bytec = bytec ^ (tval < tcrit);
@@ -74,6 +78,7 @@ ISR(PCINT1_vect){
 			//this was start bit :)
 			tcrit = tval;
 		}
+		// code below is bullshit???
 		if(lowtime>tval){
 			if(lowtime-tval < 3){
 				tcrit = tval;
