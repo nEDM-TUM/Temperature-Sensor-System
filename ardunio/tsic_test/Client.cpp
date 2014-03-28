@@ -73,11 +73,11 @@ ISR(PCINT1_vect){
 	}else{
 		// PC0 is 0 -> falling edge
 		TCCR2B = (1<<CS22); // start timer 2: enable with prescaler 64
-    // FIXME find appropriate range
-		if((lowtime < (tval + 3)) && (lowtime > (tval - 3))){
-			//this was start bit :)
-			tcrit = tval;
-		}
+    //// FIXME find appropriate range
+		//if((lowtime < (tval + 3)) && (lowtime > (tval - 3))){
+		//	//this was start bit :)
+		//	tcrit = tval;
+		//}
 		// code below is bullshit???
 		if(lowtime>tval){
 			if(lowtime-tval < 3){
