@@ -6,9 +6,16 @@
 //#include "strfun.h"
 #include "usart.h"
 
-uint8_t capH=0;
-uint8_t capL=0;
-uint8_t temp=0;
+#define SLA 0x28
+#define CMODE 7
+#define STALE 6
+uint8_t capH=0xff;
+uint8_t capL=0xff;
+uint8_t tempH=0xff;
+uint8_t tempL=0xff;
+// FIXME converted roughly for test
+uint8_t cap=0xff;
+uint8_t temp=0xff;
 
 void waitUntilFinished(){
   while(!(TWCR & (1 << TWINT))){
@@ -21,33 +28,36 @@ inline void mr(){
   // Start condition
   TWCR = ((1 << TWINT) | (1 << TWSTA) | (1 << TWEN));
   waitUntilFinished();
-  printf("TWCR out= %x\n\r", TWCR);
-  printf("TWSR= %x\n\r", TWSR);
+  //printf("TWCR out= %x\n\r", TWCR);
+  //printf("TWSR= %x\n\r", TWSR);
   if (TWSR != 0x8){
     return;  
   }
-  printf("Started\n\r");
+  //printf("Started\n\r");
   // SLA + W (bit 0)
-  TWDR = (0x28 << 1);
+  TWDR = (SLA << TWD1);
   TWCR = ((1 << TWINT) | (1 << TWEN));
   waitUntilFinished();
   // TWSR = 0x18 means SLA+W has been transmitted; ACK has been received
   if (TWSR != 0x18){
     return;
   }
-  printf("Required\n\r");
+  // printf("Required\n\r");
   // Stop condition
   TWCR = ((1 << TWINT) | (1 << TWSTO) | (1 << TWEN));
+  // FIXME waitUntilFinished();
 }
 
-inline uint8_t readByte(){
-  TWCR = ((1 << TWINT) | (1 << TWEA) | (1 << TWEN));
+uint8_t readByte(uint8_t ack){
+  //printf("TWDR SLA + R = 0x%x\n\r", TWDR);
+  TWCR = ((1 << TWINT) | (ack << TWEA) | (1 << TWEN));
+  //printf("TWDR already received ??? = 0x%x\n\r", TWDR);
   waitUntilFinished();
   // TWSR = 0x50 means Data byte has been received; ACK has been returned
   if (TWSR != 0x50){
-    return;
+    return 0xff;
   }
-  printf("Read finished\n\r");
+  //printf("Read finished\n\r");
   return TWDR;
 }
 
@@ -60,27 +70,30 @@ inline void df(){
     return;  
   }
   // SLA + R (bit 1)
-  TWDR = (0x28 << TWD1) | (1 << TWD0);
+  TWDR = (SLA << TWD1) | (1 << TWD0);
   TWCR = ((1 << TWINT) | (1 << TWEN));
   waitUntilFinished();
   // TWSR = 0x40 means SLA+R has been transmitted; ACK has been received
   if (TWSR != 0x40){
     return;
   }
-  TWCR = ((1 << TWINT) | (1 << TWEA) | (1 << TWEN));
-  waitUntilFinished();
-  // TWSR = 0x50 means Data byte has been received; ACK has been returned
-  if (TWSR != 0x50){
-    return;
-  }
-  capH = readByte();
-  capL = readByte();
-  temp = readByte();
+
+  capH = readByte(1);
+  capL = readByte(1);
+  tempH = readByte(1);
+  tempL = readByte(0);
 
   // Stop condition
   TWCR = ((1 << TWINT) | (1 << TWSTO) | (1 << TWEN));
+  // FIXME waitUntilFinished();
+}
 
-
+inline uint8_t verifyStatus(){
+  //if((capH & ((1 << CMODE) | (1 << STALE))) == 0){
+  if((capH & ( (1 << STALE))) == 0){
+    return 1;
+  }
+  return 0;
 }
 
 int main (void)
@@ -91,8 +104,8 @@ int main (void)
 	uart_init();
 
   // init registers for i2c
-  // Set Fscl 250 kHz
-  TWBR = 24; 
+  // Set Fscl 100 kHz
+  TWBR = 72; 
 
   // FIXME not needed !!! Enable TWI operation
   TWCR |= 1 << TWEN;
@@ -105,9 +118,20 @@ int main (void)
     // TODO  debug, LED blink
     PORTB = PORTB ^ (1<<PB1);
     mr();
-    df();
+    do{
+      df();
+    }while(!verifyStatus());
+  
+    capH = capH & 0x3f;
     printf("capH = %x\n\r", capH);
     printf("capL = %x\n\r", capL);
-    printf("temp = %x\n\r", temp);
+    printf("tempH = %x\n\r", tempH);
+    printf("tempL = %x\n\r", tempL);
+
+    cap = ((capH*3) >> 1) + (capH >>4);
+    temp = (tempH >> 1) + (tempH >> 3) + (tempH >> 6);
+
+    printf("converted cap = %u\n\r", cap);
+    printf("converted temp = %u - 40 = %d\n\r", temp, temp-40);
 	}
 }
