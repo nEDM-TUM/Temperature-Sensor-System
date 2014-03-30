@@ -86,12 +86,14 @@ void loop(){
 	uint16_t cels2;
 	// start meassurement:
 	printf("bank1:\n\r");
-	meassure_bank1();
+	meassure_start_bank1();
+	meassure_start_bank2();
+	_delay_ms(120);
+	meassure_stop_bank1();
+	meassure_stop_bank2();
 
 	cels1 = analyze(bytearr_bank1);
 
-	printf("bank2:\n\r");
-	meassure_bank2();
 
 	cels2 = analyze(bytearr_bank2);
 

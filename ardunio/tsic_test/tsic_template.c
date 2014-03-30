@@ -9,7 +9,8 @@
 #undef TEMPL_LOWTIME
 #undef TEMPL_SENSOR_PIN
 #undef TEMPL_BYTE_ARRAY
-#undef TEMPL_MEASSURE
+#undef TEMPL_START_MEASSURE
+#undef TEMPL_STOP_MEASSURE
 #undef TEMPL_PCIF
 #undef TEMPL_START_TIMER
 #if BANK == 1
@@ -24,7 +25,8 @@
 	#define TEMPL_LOWTIME lowtime1
 	#define TEMPL_SENSOR_PIN sensor_pin1
 	#define TEMPL_BYTE_ARRAY bytearr_bank1
-	#define TEMPL_MEASSURE meassure_bank1
+	#define TEMPL_START_MEASSURE meassure_start_bank1
+	#define TEMPL_STOP_MEASSURE meassure_stop_bank1
 	#define TEMPL_PCIF PCIF1
 
 	#define TEMPL_START_TIMER TEMPL_TCCRB = (1<<CS22)
@@ -40,7 +42,8 @@
 	#define TEMPL_LOWTIME lowtime2
 	#define TEMPL_SENSOR_PIN sensor_pin2
 	#define TEMPL_BYTE_ARRAY bytearr_bank2
-	#define TEMPL_MEASSURE meassure_bank2
+	#define TEMPL_START_MEASSURE meassure_start_bank2
+	#define TEMPL_STOP_MEASSURE meassure_stop_bank2
 	#define TEMPL_PCIF PCIF0
 
 	#define TEMPL_START_TIMER TEMPL_TCCRB = (1<<CS01) | (1<<CS00)
@@ -149,7 +152,7 @@ ISR(TEMPL_PCINT_VECT){
 	}
 }
 
-void TEMPL_MEASSURE (){
+void TEMPL_START_MEASSURE (){
 	TEMPL_TCRIT = 0xff;
 	TEMPL_TCNT = 0xff;
 	TEMPL_LOWTIME = 0;
@@ -165,7 +168,11 @@ void TEMPL_MEASSURE (){
 	//PCICR = (1<< PCIE1);
 	// wait >100ms for meassurement to complete
 	// there should not happen too many interrupts, as they extend _delay_ms
-	_delay_ms(140);
+}
+
+void TEMPL_STOP_MEASSURE (){
+	// wait >100ms for meassurement to complete
+	// there should not happen too many interrupts, as they extend _delay_ms
 	if(TEMPL_PCMSK & (1<< TEMPL_SENSOR_PIN)){
 		// interrupt was still enabled
 		// -> meassurement was not successful
