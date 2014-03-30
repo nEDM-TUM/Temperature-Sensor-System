@@ -1,9 +1,6 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
-//#include <stdint.h>
-//#include <stdlib.h>
 #include <util/delay.h>
-//#include "strfun.h"
 #include "usart.h"
 
 // sensors connected at:
@@ -12,21 +9,10 @@
 // PD7 - PCINT23
 
 uint8_t lowtime = 255;
-uint8_t deb1 = 255;
-uint8_t deb2 = 255;
 uint8_t bytea = 255;
 uint8_t byteb = 255;
 uint8_t bytec = 255;
-uint8_t resa = 255;
-uint8_t resb = 255;
-uint8_t resc = 255;
 uint8_t tcrit = 0xff;
-uint8_t tcrit2 = 0xff;
-uint8_t bitcount = 255;
-uint8_t bitcount2 = 255;
-uint8_t parity;
-uint8_t resparity;
-uint32_t res4 = 255;
 
 uint16_t result;
 
@@ -139,6 +125,7 @@ uint8_t check_parity(uint8_t value, uint8_t parity){
 	return parity == 0;
 }
 
+
 void loop(){
 	//printf("---\n\r");
 	
@@ -147,8 +134,6 @@ void loop(){
 	tcrit = 0xff;
 	TCNT2 = 0;
 	lowtime = 0xff;
-	bitcount = 0;
-	bitcount2 = 0;
 	// this will be shifted through and help us to determine
 	// if we have received enough bits
 	bytea = 0xff;
@@ -197,10 +182,7 @@ void loop(){
 		printf("FORMAT ERROR\n\r");
 	}
 	if (error){
-		printf("Bitcount: %d\n\r", bitcount);
-		printf("Bitcount2: %d\n\r", bitcount2);
 		printf("tcrit: %d\n\r", tcrit);
-		printf("tcrit2: %d\n\r", tcrit);
 	}
 	//result = (((ra<<5) | (rb>>3)) <<8) | ((rb<<7) | (rc>>1));
 	result =( resth <<8)|restl;
