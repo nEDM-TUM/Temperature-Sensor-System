@@ -54,21 +54,21 @@ ISR(TIMER2_OVF_vect){
 // Interrupt handler of PCIE1 (PCINIT[14...8]!!!)
 // IDEA: use OCRnA for tcrit storage to reduce stack usage
 ISR(PCINT1_vect){
-	//PORTB |= (1<<PB1);
-	//PORTB = PORTB ^ (1<<PB1);
   // Read timer 2
 	uint8_t tval = TCNT2;
   // Reset timer 2
 	TCNT2 = 0;
   
 	// this should filter out vibrations on the wire
+	// FIXME: check if we need this. I was not able to construct
+	// a situation, where this was called in a lab environment.
+	// But maybe with long wires we might have spikes.
 	if ((tval < 2)  && (TCCR2B  == (1<<CS22))){
-		printf("INSTABILITY!\n\r");
+		//printf("INSTABILITY!\n\r");
 		return;
 	}
 	TCCR2B = (1<<CS22); // start timer 2: enable with prescaler 64
 	if(PINC & (1<< PC0)){
-		bitcount++;
 		// PC0 is 1 -> rising edge
 		lowtime = tval;
 		bytec = (bytec << 1);
@@ -80,22 +80,14 @@ ISR(PCINT1_vect){
 		asm("rol %0" : "=r" (bytea) : "0" (bytea));
 		bytec = bytec ^ (tval < tcrit);
 	}else{
-		bitcount2++;
 		// PC0 is 0 -> falling edge
-    //// FIXME find appropriate range
-		//if((lowtime < (tval + 3)) && (lowtime > (tval - 3))){
-		//	//this was start bit :)
-		//	tcrit = tval;
-		//}
 		if(lowtime>tval){
 			if(lowtime-tval < 2){
 				tcrit = tval;
-				tcrit2 = lowtime;
 			}
 		}else{
 			if(tval-lowtime < 2){
 				tcrit = tval;
-				tcrit2 = lowtime;
 			}
 		}
 	}
