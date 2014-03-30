@@ -13,7 +13,7 @@ uint8_t bytea = 255;
 uint8_t byteb = 255;
 uint8_t bytec = 255;
 uint8_t tcrit = 0xff;
-
+uint8_t sensor_pin = 0;
 uint16_t result;
 
 ISR(TIMER2_OVF_vect){
@@ -33,7 +33,7 @@ ISR(TIMER2_OVF_vect){
 		// => stop measurement
 		// disable interrupt for this pin
 		// -> unmask:
-		PCMSK1 &= ~(1<< PCINT8);
+		PCMSK1 &= ~(1<< sensor_pin);
 		// TODO: check, if we have to clear possibly arrived interrupts
 		// this this would be done by writing 1 to the corresponding bit:
 		// PCIFR |= (1<< PCIF1);
@@ -75,7 +75,7 @@ ISR(PCINT1_vect){
 	// start timer 2: enable with prescaler 64
 	TCCR2B = (1<<CS22);
 
-	if(PINC & (1<< PC0)){
+	if(PINC & (1<< sensor_pin)){
 		// PC0 is 1 -> rising edge
 		// this is the time, the signal was low:
 		lowtime = tval;
@@ -134,6 +134,37 @@ uint8_t check_parity(uint8_t value, uint8_t parity){
 	return parity == 0;
 }
 
+void meassure(){
+	tcrit = 0xff;
+	TCNT2 = 0xff;
+	lowtime = 0;
+	// this will be shifted through and help us to determine
+	// if we have received enough bits
+	bytea = 0xff;
+	byteb = 0xff;
+	bytec = 0xff;
+	// if in the meantime interrupts have arrived -> clear them
+	PCIFR |= (1<< PCIF1);
+	//enable interrupt for PCINT[14...8]
+	PCMSK1 = (1<< sensor_pin); // PCINT8 -> PC0
+	//PCICR = (1<< PCIE1);
+	// wait >100ms for meassurement to complete
+	// there should not happen too many interrupts, as they extend _delay_ms
+	_delay_ms(120);
+	if(PCMSK1 & (1<< sensor_pin)){
+		// interrupt was still enabled
+		// -> meassurement was not successful
+		// disable interrupts now (to be in consistent state)
+		PCMSK1 &= ~(1<< sensor_pin); // PCINT8 -> PC0
+		//PCICR &= ~(1<< PCIE1);
+		// return error:
+		bytea =0xff;
+		byteb =0xff;
+		bytec =0xff;
+		printf("ERROR Meassurement not complete\n\r");
+	}
+
+}
 
 void loop(){
 	//printf("---\n\r");
@@ -151,16 +182,16 @@ void loop(){
 	// if in the meantime interrupts have arrived -> clear them
 	PCIFR |= (1<< PCIF1);
 	//enable interrupt for PCINT[14...8]
-	PCMSK1 = (1<< PCINT8); // PCINT8 -> PC0
+	PCMSK1 = (1<< sensor_pin); // PCINT8 -> PC0
 	//PCICR = (1<< PCIE1);
 	// wait >100ms for meassurement to complete
 	// there should not happen too many interrupts, as they extend _delay_ms
-	_delay_ms(200);
-	if(PCMSK1 & (1<< PCINT8)){
+	_delay_ms(120);
+	if(PCMSK1 & (1<< sensor_pin)){
 		// interrupt was still enabled
 		// -> meassurement was not successful
 		// disable interrupts now (to be in consistent state)
-		PCMSK1 &= ~(1<< PCINT8); // PCINT8 -> PC0
+		PCMSK1 &= ~(1<< sensor_pin); // PCINT8 -> PC0
 		//PCICR &= ~(1<< PCIE1);
 		// return error:
 		bytea =0xff;
@@ -198,8 +229,8 @@ void loop(){
 	uint16_t cels = ((result * 25)>>8)*35-1000;
 	//printf("ra: %x, rb: %x rc: %x\n\r", ra, rb, rc);
 	//printf("resth: %x restl: %x\n\r", resth, restl);
-	//printf("result: %x\n\r", result);
-	//printf("cels: %u\n\r", cels);
+	printf("result: %x\n\r", result);
+	printf("cels: %u\n\r", cels);
 
 	_delay_ms(500);
 }
