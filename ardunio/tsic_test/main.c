@@ -17,6 +17,12 @@ uint8_t tcrit = 0xff;
 uint16_t result;
 
 ISR(TIMER2_OVF_vect){
+
+//#define TEMPL1 PORTB
+//#include "template.c"
+//#define TEMPL1 PORTC
+//#include "template.c"
+
 	TCCR2B = 0; //disable timer
 	// we use the fact, that TSIC always sends 5 zeroes at the beginning
 	// to determine, if the transmission was complete
