@@ -20,7 +20,7 @@ uint8_t bytec = 255;
 uint8_t resa = 255;
 uint8_t resb = 255;
 uint8_t resc = 255;
-uint8_t tcrit;
+uint8_t tcrit = 0xff;
 uint8_t bitcount = 255;
 uint8_t parity;
 uint8_t resparity;
@@ -30,13 +30,23 @@ uint16_t result;
 
 ISR(TIMER2_OVF_vect){
 	TCCR2B = 0; //disable timer
-	resa = bytea;
-	resb = byteb;
-	resc = bytec;
+	if (tcrit != 0xff){
+		// we have seen a start bit AND are finished with transmission
+		// => stop measurement
+		PCICR &= ~(1<< PCIE1); //disable interrupt for PCINT[14...8]
+		// if already interrupts are there clear them
+		// this is done by writing 1 to it
+		PCIFR |= (1<< PCIF1);
+
+	}
 	PORTB = PORTB ^ (1<<PB1);
+	//PORTB |= (1<<PB1);
 }
 // Interrupt handler of PCIE1 (PCINIT[14...8]!!!)
+// IDEA: use OCRnA for tcrit storage to reduce stack usage
 ISR(PCINT1_vect){
+	//PORTB |= (1<<PB1);
+	//PORTB = PORTB ^ (1<<PB1);
   // Read timer 2
 	uint8_t tval = TCNT2;
   // Reset timer 2
@@ -61,7 +71,6 @@ ISR(PCINT1_vect){
 		//	//this was start bit :)
 		//	tcrit = tval;
 		//}
-		// code below is bullshit???
 		if(lowtime>tval){
 			if(lowtime-tval < 3){
 				tcrit = tval;
@@ -75,7 +84,8 @@ ISR(PCINT1_vect){
 }
 
 void interrupt_init(){
-	PCICR = (1<< PCIE1); //enable interrupt for PCINT[14...8]
+	// enable interrupt will be done when starting measurement
+	//PCICR = (1<< PCIE1); //enable interrupt for PCINT[14...8]
 	PCMSK1 = (1<< PCINT8); // PCINT8 -> PC0
   // Attention: Timer 0 is used by ardunio core
 	TIMSK2 = (1<<TOIE2); // enable overflow interript for timer2
@@ -84,16 +94,52 @@ void interrupt_init(){
 	TCCR2B = 0;
 }
 
+uint8_t check_parity(uint8_t value, uint8_t parity){
+	for (;value!=0;value = value >> 1){
+		parity ^= value & 0x1;
+	}
+	return parity == 0;
+}
+
 void loop(){
+	printf("---\n\r");
+	
+	// start meassurement:
+	// initialize tcrit (used to determine if measurement was successful)
+	tcrit = 0xff;
+	//enable interrupt for PCINT[14...8]
+	PCICR = (1<< PCIE1);
+	// wait >100ms for meassurement to complete
+	// there should not happen too many interrupts, as they extend _delay_ms
+	_delay_ms(200);
+	if(PCICR & (1<< PCIE1)){
+		// interrupt was still enabled
+		// -> meassurement was not successful
+		// disable interrupts now (to be in consistent state)
+		PCICR &= ~(1<< PCIE1);
+		// return error:
+		bytea =0xff;
+		byteb =0xff;
+		bytec =0xff;
+		printf("ERROR Meassurement not complete\n\r");
+	}
+
+
 
 	uint8_t ra,rb,rc;
-	cli();
-	ra = resa;
-	rb = resb;
-	rc = resc;
-	sei();
+	ra = bytea;
+	rb = byteb;
+	rc = bytec;
 	uint8_t resth = ((ra<<5) | (rb>>3));
 	uint8_t restl = ((rb<<7) | (rc>>1));
+
+	if (!check_parity(restl, bytec & 0x1) ){
+		printf("PARITY ERROR low\n\r");
+	}
+	if (!check_parity(resth, (byteb>>2) & 0x1 ) ){
+		printf("PARITY ERROR high\n\r");
+	}
+
 	//result = (((ra<<5) | (rb>>3)) <<8) | ((rb<<7) | (rc>>1));
 	result =( resth <<8)|restl;
 	printf("ra: %x, rb: %x rc: %x\n\r", ra, rb, rc);
@@ -115,6 +161,7 @@ int main (void)
 	interrupt_init();
 
 	uart_init();
+	sei();
 
 	printf("Controller started\n\r");
 	while (1) {
