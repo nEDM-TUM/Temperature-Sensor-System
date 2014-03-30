@@ -41,18 +41,17 @@ ISR(TIMER2_OVF_vect){
 		// => stop measurement
 		// disable interrupt for this pin
 		// -> unmask:
-		PCMSK1 &= ~(1<< PCINT8); // PCINT8 -> PC0
-		// PCICR &= ~(1<< PCIE1); //disable interrupt for PCINT[14...8]
-		// if already interrupts are there clear them
-		// this is done by writing 1 to it
+		PCMSK1 &= ~(1<< PCINT8);
+		// TODO: check, if we have to clear possibly arrived interrupts
+		// this this would be done by writing 1 to the corresponding bit:
 		// PCIFR |= (1<< PCIF1);
 
 	}
 	PORTB = PORTB ^ (1<<PB1);
-	//PORTB |= (1<<PB1);
 }
+
 // Interrupt handler of PCIE1 (PCINIT[14...8]!!!)
-// IDEA: use OCRnA for tcrit storage to reduce stack usage
+// IDEA: use OCRnA/B for tcrit / tval storage to reduce stack usage
 ISR(PCINT1_vect){
   // Read timer 2
 	uint8_t tval = TCNT2;
@@ -63,24 +62,53 @@ ISR(PCINT1_vect){
 	// FIXME: check if we need this. I was not able to construct
 	// a situation, where this was called in a lab environment.
 	// But maybe with long wires we might have spikes.
+	// We need to check, if timer is already running,
+	// as this might be the first interrupt, where
+	// tval is 0 by default.
+	// TODO: check if we can change start value for TCNT2 to
+	// 0xff, then the second check would not be needed.
 	if ((tval < 2)  && (TCCR2B  == (1<<CS22))){
 		//printf("INSTABILITY!\n\r");
 		return;
 	}
-	TCCR2B = (1<<CS22); // start timer 2: enable with prescaler 64
+
+	// TODO:
+	// can we start the timer already outside?
+	// we are now checking if we have received enough bytes
+	// on timeout, so a overflow would not hurt
+	// but we might get a random value for the first interrupt
+	// which might falsely be detected as a start bit.
+	// It would also mess with the spike detector above.
+	// as the first interrupt could be falsely detected
+	// as a spike.
+	// start timer 2: enable with prescaler 64
+	TCCR2B = (1<<CS22);
+
 	if(PINC & (1<< PC0)){
 		// PC0 is 1 -> rising edge
+		// this is the time, the signal was low:
 		lowtime = tval;
-		bytec = (bytec << 1);
-		// idea: use only 16 bit here, as most significant bits are not used
-		// anyways
-		// Also try to directly use 16 bis or 32 bit integers. this might reduce
+		// TODO: Idea:
+		// Try to directly use 16 bis or 32 bit integers. this might reduce
 		// stack and register overhead
+		// shift all 3 bytes to the left:
+		// shift first byte -> carry flag is the msb
+		bytec = (bytec << 1);
+		// use "rol" to shift the other two bits with carry
 		asm("rol %0" : "=r" (byteb) : "0" (byteb));
 		asm("rol %0" : "=r" (bytea) : "0" (bytea));
+		// now we write the received bit:
+		// if this (rising) edge happened before the critical time,
+		// we extracted from the start bit, we are dealing with a '1',
+		// else with a '0'
 		bytec = bytec ^ (tval < tcrit);
 	}else{
 		// PC0 is 0 -> falling edge
+		// we check for a start bit:
+		// A start bit should have a duty cycle of 50%
+		// We also accept bits as start bits within a small mergin
+		// If we have detected a start bit, we use the high time of the
+		// bit as the critical time tcrit
 		if(lowtime>tval){
 			if(lowtime-tval < 2){
 				tcrit = tval;
