@@ -52,6 +52,11 @@ ISR(PCINT1_vect){
   // Reset timer 2
 	TCNT2 = 0;
   
+	// this should filter out vibrations on the wire
+	if ((tval < 2)  && (TCCR2B  == (1<<CS22))){
+		printf("INSTABILITY!\n\r");
+		return;
+	}
 	if(PINC & (1<< PC0)){
 		// PC0 is 1 -> rising edge
 		lowtime = tval;
