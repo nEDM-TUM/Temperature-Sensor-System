@@ -32,7 +32,11 @@ uint16_t result;
 
 ISR(TIMER2_OVF_vect){
 	TCCR2B = 0; //disable timer
-	if (tcrit != 0xff){
+	// we use the fact, that TSIC always sends 5 zeroes at the beginning
+	// to determine, if the transmission was complete
+	// as it might happen, that we start meassuring just before the
+	// second start bit. We then have to wait for the next transmission
+	if ((tcrit != 0xff) && (!(bytea & (1<<2))) ){
 		// we have seen a start bit AND are finished with transmission
 		// => stop measurement
 		// disable interrupt for this pin
@@ -125,6 +129,11 @@ void loop(){
 	lowtime = 0xff;
 	bitcount = 0;
 	bitcount2 = 0;
+	// this will be shifted through and help us to determine
+	// if we have received enough bits
+	bytea = 0xff;
+	byteb = 0xff;
+	bytec = 0xff;
 	// if in the meantime interrupts have arrived -> clear them
 	PCIFR |= (1<< PCIF1);
 	//enable interrupt for PCINT[14...8]
