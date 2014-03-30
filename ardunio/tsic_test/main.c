@@ -39,6 +39,9 @@ ISR(TIMER2_OVF_vect){
 		bytea = 0xff;
 		byteb = 0xff;
 		bytec = 0xff;
+		// we also have to set the timer value to initial value
+		// this has to be done for spike detection to work correctly
+		TCNT2 = 0xff;
 	}
 	PORTB = PORTB ^ (1<<PB1);
 }
@@ -58,22 +61,11 @@ ISR(PCINT1_vect){
 	// We need to check, if timer is already running,
 	// as this might be the first interrupt, where
 	// tval is 0 by default.
-	// TODO: check if we can change start value for TCNT2 to
-	// 0xff, then the second check would not be needed.
-	if ((tval < 2)  && (TCCR2B  == (1<<CS22))){
+	if (tval < 2){
 		//printf("INSTABILITY!\n\r");
 		return;
 	}
 
-	// TODO:
-	// can we start the timer already outside?
-	// we are now checking if we have received enough bytes
-	// on timeout, so a overflow would not hurt
-	// but we might get a random value for the first interrupt
-	// which might falsely be detected as a start bit.
-	// It would also mess with the spike detector above.
-	// as the first interrupt could be falsely detected
-	// as a spike.
 	// start timer 2: enable with prescaler 64
 	TCCR2B = (1<<CS22);
 
@@ -143,8 +135,8 @@ void loop(){
 	// start meassurement:
 	// initialize tcrit (used to determine if measurement was successful)
 	tcrit = 0xff;
-	TCNT2 = 0;
-	lowtime = 0xff;
+	TCNT2 = 0xff;
+	lowtime = 0;
 	// this will be shifted through and help us to determine
 	// if we have received enough bits
 	bytea = 0xff;
