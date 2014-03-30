@@ -77,11 +77,11 @@ ISR(PCINT1_vect){
 		//	tcrit = tval;
 		//}
 		if(lowtime>tval){
-			if(lowtime-tval < 3){
+			if(lowtime-tval < 2){
 				tcrit = tval;
 			}
 		}else{
-			if(tval-lowtime < 3){
+			if(tval-lowtime < 2){
 				tcrit = tval;
 			}
 		}
@@ -107,11 +107,13 @@ uint8_t check_parity(uint8_t value, uint8_t parity){
 }
 
 void loop(){
-	printf("---\n\r");
+	//printf("---\n\r");
 	
 	// start meassurement:
 	// initialize tcrit (used to determine if measurement was successful)
 	tcrit = 0xff;
+	TCNT2 = 0;
+	lowtime = 0xff;
 	//enable interrupt for PCINT[14...8]
 	PCICR = (1<< PCIE1);
 	// wait >100ms for meassurement to complete
@@ -144,14 +146,16 @@ void loop(){
 	if (!check_parity(resth, (byteb>>2) & 0x1 ) ){
 		printf("PARITY ERROR high\n\r");
 	}
-
+	if (resth & ~(0x7)){
+		printf("FORMAT ERROR\n\r");
+	}
 	//result = (((ra<<5) | (rb>>3)) <<8) | ((rb<<7) | (rc>>1));
 	result =( resth <<8)|restl;
-	printf("ra: %x, rb: %x rc: %x\n\r", ra, rb, rc);
-	printf("resth: %x restl: %x\n\r", resth, restl);
-	printf("result: %x\n\r", result);
 	uint16_t cels = ((result * 25)>>8)*35-1000;
-	printf("cels: %u\n\r", cels);
+	//printf("ra: %x, rb: %x rc: %x\n\r", ra, rb, rc);
+	//printf("resth: %x restl: %x\n\r", resth, restl);
+	//printf("result: %x\n\r", result);
+	//printf("cels: %u\n\r", cels);
 
 	_delay_ms(500);
 }
