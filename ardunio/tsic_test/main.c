@@ -21,7 +21,9 @@ uint8_t resa = 255;
 uint8_t resb = 255;
 uint8_t resc = 255;
 uint8_t tcrit = 0xff;
+uint8_t tcrit2 = 0xff;
 uint8_t bitcount = 255;
+uint8_t bitcount2 = 255;
 uint8_t parity;
 uint8_t resparity;
 uint32_t res4 = 255;
@@ -60,6 +62,7 @@ ISR(PCINT1_vect){
 		printf("INSTABILITY!\n\r");
 		return;
 	}
+	TCCR2B = (1<<CS22); // start timer 2: enable with prescaler 64
 	if(PINC & (1<< PC0)){
 		bitcount++;
 		// PC0 is 1 -> rising edge
@@ -73,8 +76,8 @@ ISR(PCINT1_vect){
 		asm("rol %0" : "=r" (bytea) : "0" (bytea));
 		bytec = bytec ^ (tval < tcrit);
 	}else{
+		bitcount2++;
 		// PC0 is 0 -> falling edge
-		TCCR2B = (1<<CS22); // start timer 2: enable with prescaler 64
     //// FIXME find appropriate range
 		//if((lowtime < (tval + 3)) && (lowtime > (tval - 3))){
 		//	//this was start bit :)
@@ -83,10 +86,12 @@ ISR(PCINT1_vect){
 		if(lowtime>tval){
 			if(lowtime-tval < 2){
 				tcrit = tval;
+				tcrit2 = lowtime;
 			}
 		}else{
 			if(tval-lowtime < 2){
 				tcrit = tval;
+				tcrit2 = lowtime;
 			}
 		}
 	}
@@ -119,6 +124,7 @@ void loop(){
 	TCNT2 = 0;
 	lowtime = 0xff;
 	bitcount = 0;
+	bitcount2 = 0;
 	// if in the meantime interrupts have arrived -> clear them
 	PCIFR |= (1<< PCIF1);
 	//enable interrupt for PCINT[14...8]
@@ -148,17 +154,25 @@ void loop(){
 	rc = bytec;
 	uint8_t resth = ((ra<<5) | (rb>>3));
 	uint8_t restl = ((rb<<7) | (rc>>1));
-
+	uint8_t error = 0;
 	if (!check_parity(restl, bytec & 0x1) ){
+		error = 1;
 		printf("PARITY ERROR low\n\r");
 	}
 	if (!check_parity(resth, (byteb>>2) & 0x1 ) ){
+		error = 1;
 		printf("PARITY ERROR high\n\r");
 	}
 	if (resth & ~(0x7)){
+		error = 1;
 		printf("FORMAT ERROR\n\r");
 	}
-	printf("Bitcount: %d\n\r", bitcount);
+	if (error){
+		printf("Bitcount: %d\n\r", bitcount);
+		printf("Bitcount2: %d\n\r", bitcount2);
+		printf("tcrit: %d\n\r", tcrit);
+		printf("tcrit2: %d\n\r", tcrit);
+	}
 	//result = (((ra<<5) | (rb>>3)) <<8) | ((rb<<7) | (rc>>1));
 	result =( resth <<8)|restl;
 	uint16_t cels = ((result * 25)>>8)*35-1000;
