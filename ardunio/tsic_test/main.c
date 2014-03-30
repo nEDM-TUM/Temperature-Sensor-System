@@ -32,6 +32,13 @@ ISR(TIMER2_OVF_vect){
 		// this this would be done by writing 1 to the corresponding bit:
 		// PCIFR |= (1<< PCIF1);
 
+	}else{
+		// we will receive the rest of the data in the next iteration
+		// hence we have to clean up the buffer, as we have to have a defined state
+		// to distinguish between humidity and temperature sensor
+		bytea = 0xff;
+		byteb = 0xff;
+		bytec = 0xff;
 	}
 	PORTB = PORTB ^ (1<<PB1);
 }
@@ -77,17 +84,21 @@ ISR(PCINT1_vect){
 		// TODO: Idea:
 		// Try to directly use 16 bis or 32 bit integers. this might reduce
 		// stack and register overhead
-		// shift all 3 bytes to the left:
-		// shift first byte -> carry flag is the msb
-		bytec = (bytec << 1);
-		// use "rol" to shift the other two bits with carry
-		asm("rol %0" : "=r" (byteb) : "0" (byteb));
-		asm("rol %0" : "=r" (bytea) : "0" (bytea));
-		// now we write the received bit:
-		// if this (rising) edge happened before the critical time,
-		// we extracted from the start bit, we are dealing with a '1',
-		// else with a '0'
-		bytec = bytec ^ (tval < tcrit);
+		if (tcrit != 0xff){
+			// here we receive a byte.
+			// we now know, that we have received a start bit in the past
+			// shift all 3 bytes to the left:
+			// shift first byte -> carry flag is the msb
+			bytec = (bytec << 1);
+			// use "rol" to shift the other two bits with carry
+			asm("rol %0" : "=r" (byteb) : "0" (byteb));
+			asm("rol %0" : "=r" (bytea) : "0" (bytea));
+			// now we write the received bit:
+			// if this (rising) edge happened before the critical time,
+			// we extracted from the start bit, we are dealing with a '1',
+			// else with a '0'
+			bytec = bytec ^ (tval < tcrit);
+		}
 	}else{
 		// PC0 is 0 -> falling edge
 		// we check for a start bit:
