@@ -33,10 +33,13 @@ ISR(TIMER2_OVF_vect){
 	if (tcrit != 0xff){
 		// we have seen a start bit AND are finished with transmission
 		// => stop measurement
-		PCICR &= ~(1<< PCIE1); //disable interrupt for PCINT[14...8]
+		// disable interrupt for this pin
+		// -> unmask:
+		PCMSK1 &= ~(1<< PCINT8); // PCINT8 -> PC0
+		// PCICR &= ~(1<< PCIE1); //disable interrupt for PCINT[14...8]
 		// if already interrupts are there clear them
 		// this is done by writing 1 to it
-		PCIFR |= (1<< PCIF1);
+		// PCIFR |= (1<< PCIF1);
 
 	}
 	PORTB = PORTB ^ (1<<PB1);
@@ -58,6 +61,7 @@ ISR(PCINT1_vect){
 		return;
 	}
 	if(PINC & (1<< PC0)){
+		bitcount++;
 		// PC0 is 1 -> rising edge
 		lowtime = tval;
 		bytec = (bytec << 1);
@@ -90,8 +94,8 @@ ISR(PCINT1_vect){
 
 void interrupt_init(){
 	// enable interrupt will be done when starting measurement
-	//PCICR = (1<< PCIE1); //enable interrupt for PCINT[14...8]
-	PCMSK1 = (1<< PCINT8); // PCINT8 -> PC0
+	PCICR = (1<< PCIE1); //enable interrupt for PCINT[14...8]
+	//PCMSK1 = (1<< PCINT8); // PCINT8 -> PC0
   // Attention: Timer 0 is used by ardunio core
 	TIMSK2 = (1<<TOIE2); // enable overflow interript for timer2
   // Timer init (reset to default)
@@ -114,16 +118,21 @@ void loop(){
 	tcrit = 0xff;
 	TCNT2 = 0;
 	lowtime = 0xff;
+	bitcount = 0;
+	// if in the meantime interrupts have arrived -> clear them
+	PCIFR |= (1<< PCIF1);
 	//enable interrupt for PCINT[14...8]
-	PCICR = (1<< PCIE1);
+	PCMSK1 = (1<< PCINT8); // PCINT8 -> PC0
+	//PCICR = (1<< PCIE1);
 	// wait >100ms for meassurement to complete
 	// there should not happen too many interrupts, as they extend _delay_ms
 	_delay_ms(200);
-	if(PCICR & (1<< PCIE1)){
+	if(PCMSK1 & (1<< PCINT8)){
 		// interrupt was still enabled
 		// -> meassurement was not successful
 		// disable interrupts now (to be in consistent state)
-		PCICR &= ~(1<< PCIE1);
+		PCMSK1 &= ~(1<< PCINT8); // PCINT8 -> PC0
+		//PCICR &= ~(1<< PCIE1);
 		// return error:
 		bytea =0xff;
 		byteb =0xff;
@@ -149,6 +158,7 @@ void loop(){
 	if (resth & ~(0x7)){
 		printf("FORMAT ERROR\n\r");
 	}
+	printf("Bitcount: %d\n\r", bitcount);
 	//result = (((ra<<5) | (rb>>3)) <<8) | ((rb<<7) | (rc>>1));
 	result =( resth <<8)|restl;
 	uint16_t cels = ((result * 25)>>8)*35-1000;
