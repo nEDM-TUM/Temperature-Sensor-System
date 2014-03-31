@@ -1,5 +1,6 @@
 #undef TEMPL_TMR_OVF_VECT
 #undef TEMPL_PCINT_VECT
+#undef TEMPL_TCCRA
 #undef TEMPL_TCCRB
 #undef TEMPL_PCMSK
 #undef TEMPL_TCNT
@@ -12,10 +13,15 @@
 #undef TEMPL_START_MEASSURE
 #undef TEMPL_STOP_MEASSURE
 #undef TEMPL_PCIF
+#undef TEMPL_PCIE
 #undef TEMPL_START_TIMER
+#undef TEMPL_INIT
+#undef TEMPL_TIMSK // Timer/Counter Interrupt Mask Rigister
+#undef TEMPL_TIMSK_TOIE // Timer/Counter Overflow Interrupt Enable bit
 #if BANK == 1
 	#define TEMPL_TMR_OVF_VECT TIMER2_OVF_vect
 	#define TEMPL_PCINT_VECT PCINT1_vect
+	#define TEMPL_TCCRA TCCR2A
 	#define TEMPL_TCCRB TCCR2B
 	#define TEMPL_PCMSK PCMSK1
 	#define TEMPL_TCNT TCNT2
@@ -28,11 +34,17 @@
 	#define TEMPL_START_MEASSURE meassure_start_bank1
 	#define TEMPL_STOP_MEASSURE meassure_stop_bank1
 	#define TEMPL_PCIF PCIF1
+  #define TEMPL_PCIE PCIE1 //enable interrupt for PCINT[14...8]
 
 	#define TEMPL_START_TIMER TEMPL_TCCRB = (1<<CS22)
+
+  #define TEMPL_INIT INT_INIT1
+  #define TEMPL_TIMSK TIMSK2
+  #define TEMPL_TIMSK_TOIE TOIE2
 #elif BANK == 2
 	#define TEMPL_TMR_OVF_VECT TIMER0_OVF_vect
 	#define TEMPL_PCINT_VECT PCINT0_vect
+	#define TEMPL_TCCRA TCCR0A
 	#define TEMPL_TCCRB TCCR0B
 	#define TEMPL_PCMSK PCMSK0
 	#define TEMPL_TCNT TCNT0
@@ -45,12 +57,27 @@
 	#define TEMPL_START_MEASSURE meassure_start_bank2
 	#define TEMPL_STOP_MEASSURE meassure_stop_bank2
 	#define TEMPL_PCIF PCIF0
+  #define TEMPL_PCIE PCIE0 //enable interrupt for PCINT[7...0]
 
 	#define TEMPL_START_TIMER TEMPL_TCCRB = (1<<CS01) | (1<<CS00)
+
+  #define TEMPL_INIT INT_INIT2
+  #define TEMPL_TIMSK TIMSK0
+  #define TEMPL_TIMSK_TOIE TOIE0
+
 #else
 
 #endif
 
+void TEMPL_INIT(){
+	// enable interrupt will be done when starting measurement
+	PCICR = (1<< TEMPL_PCIE); //Pin change interrupt enable
+	//PCMSK1 = (1<< PCINT8); // PCINT8 -> PC0
+	TEMPL_TIMSK = (1<<TEMPL_TIMSK_TOIE); 
+  // Timer init (reset to default)
+	TEMPL_TCCRA = 0;
+	TEMPL_TCCRB = 0;
+}
 
 ISR(TEMPL_TMR_OVF_VECT){
 
