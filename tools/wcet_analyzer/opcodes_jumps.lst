@@ -1,0 +1,4 @@
+eijmp 2
+#ijmp 2 # not supported
+jmp 3
+rjmp 2
