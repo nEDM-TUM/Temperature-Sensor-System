@@ -38,7 +38,7 @@
 
 	#define TEMPL_START_TIMER TEMPL_TCCRB = (1<<CS22)
 
-  #define TEMPL_INIT INT_INIT1
+  #define TEMPL_INIT int_init1
   #define TEMPL_TIMSK TIMSK2
   #define TEMPL_TIMSK_TOIE TOIE2
 #elif BANK == 2
@@ -61,19 +61,18 @@
 
 	#define TEMPL_START_TIMER TEMPL_TCCRB = (1<<CS01) | (1<<CS00)
 
-  #define TEMPL_INIT INT_INIT2
+  #define TEMPL_INIT int_init2
   #define TEMPL_TIMSK TIMSK0
   #define TEMPL_TIMSK_TOIE TOIE0
-
 #else
 
 #endif
 
-void TEMPL_INIT(){
+void TEMPL_INIT (){
 	// enable interrupt will be done when starting measurement
-	PCICR = (1<< TEMPL_PCIE); //Pin change interrupt enable
+	PCICR |= ( 1 << TEMPL_PCIE ); //Pin change interrupt enable
 	//PCMSK1 = (1<< PCINT8); // PCINT8 -> PC0
-	TEMPL_TIMSK = (1<<TEMPL_TIMSK_TOIE); 
+	TEMPL_TIMSK = ( 1 << TEMPL_TIMSK_TOIE ); 
   // Timer init (reset to default)
 	TEMPL_TCCRA = 0;
 	TEMPL_TCCRB = 0;

@@ -52,13 +52,17 @@ uint16_t analyze(uint8_t * buf){
   result =( resth <<8)|restl;
   uint16_t cels = ((result * 25)>>8)*35-1000;
   if (resth != storeH){
-    printf("!!!!HIGHT bits are changed: 0x%x => 0x%x", resth, storeH);
+    printf("!!!!HIGHT bits are changed: 0x%x => 0x%x\n\r", resth, storeH);
     //printf("buf[2]: %x, buf[1]: %x buf[0]: %x\n\r", buf[2], buf[1], buf[0]);
     //printf("resth: %x restl: %x\n\r", resth, restl);
     printf("result: %x\n\r", result);
+    printf("cels: %d\n\r", cels);
+    resth=0x3;
+    restl=0xff;
+    printf("cels (not exact): %d\n\r", resth<<3-10+resth>>1+resth>>2+restl>>5);
     //printf("cels: %u\n\r", cels);
   } else if(restl != storeL){
-    printf("Low bits are changed: 0x%x => 0x%x", restl, storeL);
+    printf("Low bits are changed: 0x%x => 0x%x\n\r", restl, storeL);
   }
   storeH = resth;
   storeL = restl;
@@ -74,17 +78,17 @@ void loop(){
 	// start meassurement:
 	printf("bank1:\n\r");
 	meassure_start_bank1();
-	meassure_start_bank2();
+	//meassure_start_bank2();
 	_delay_ms(120);
 	meassure_stop_bank1();
-	meassure_stop_bank2();
+	//meassure_stop_bank2();
 
 	cels1 = analyze(bytearr_bank1);
 
 
-	cels2 = analyze(bytearr_bank2);
+	//cels2 = analyze(bytearr_bank2);
 
-	printf("bank1: %d  bank2: %d\n\r", cels1, cels2);
+	//printf("bank1: %d  bank2: %d\n\r", cels1, cels2);
 	_delay_ms(500);
 }
 
@@ -94,11 +98,13 @@ int main (void)
 	static FILE usart_stdout = FDEV_SETUP_STREAM( mputc, 0, _FDEV_SETUP_WRITE);
 	stdout = &usart_stdout;
 
-	DDRB = (1<<PB1);
-	TEMPL_INIT();
 
 	uart_init();
 	sei();
+
+	DDRB = (1<<PB1);
+	int_init1();
+	int_init2();
 
 	printf("Controller started\n\r");
 	while (1) {
