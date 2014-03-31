@@ -1,0 +1,117 @@
+adc 1
+add 1
+adiw 2
+and 1
+andi 1
+asr 1
+bclr 1
+bld 1
+brbc 2 1
+brbs 2 1
+brcc 2 1
+brcs 2 1
+break 1
+breq 2 1
+brge 2 1
+brhc 2 1
+brhs 2 1
+brid 2 1
+brie 2 1
+brlo 2 1
+brlt 2 1
+brmi 2 1
+brne 2 1
+brpl 2 1
+brsh 2 1
+brtc 2 1
+brts 2 1
+brvc 2 1
+brvs 2 1
+bst 1
+call 5 4
+cbi 2
+cbr 1
+clc 1
+clh 1
+cli 1
+cln 1
+clr 1
+cls 1
+clt 1
+clv 1
+clz 1
+com 1
+cp 1
+cpc 1
+cpi 1
+dec 1
+des 2 1
+eicall 2
+eijmp 2
+elpm 3
+eor 1
+fmul 2
+fmuls 2
+fmulsu 2
+icall 4 3
+ijmp 2
+in 1
+inc 1
+jmp 3
+lac 1
+las 1
+lat 1
+ld 2
+ldd 2
+ldi 1
+lds 2
+lpm 3
+lsl 1
+lsr 1
+mov 1
+movw 1
+mul 2
+muls 2
+mulsu 2
+neg 1
+nop 1
+or 1
+ori 1
+out 1
+pop 2
+push 2
+rcall 4 3
+ret 5 4
+reti 5 4
+rjmp 2
+rol 1
+ror 1
+sbc 1
+sbci 1
+sbi 2
+sbic 3 2 1
+sbis 3 2 1
+sbiw 2
+sbr 1
+sbrc 3 2 1
+sbrs 3 2 1
+sec 1
+seh 1
+sei 1
+sen 1
+ser 1
+ses 1
+set 1
+sev 1
+sez 1
+sleep 1
+spm 1000
+st 2
+std 2
+sts 2
+sub 1
+subi 1
+swap 1
+tst 1
+wdr 1
+xch 1
