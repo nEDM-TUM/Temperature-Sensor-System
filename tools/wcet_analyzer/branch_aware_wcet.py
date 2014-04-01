@@ -99,8 +99,8 @@ for line in sys.stdin:
 # TODO...
 
 
-startaddress = int("a6", 16)
-stopaddress = int("f6", 16)
+startaddress = int("104", 16)
+stopaddress = int("1d4", 16)
 
 
 
@@ -124,13 +124,13 @@ def wcet(startaddr, stopaddr, depth):
                 print "ERROR: Loop detected!! -> assuming only single pass"
                 addr = addr + size
             else:
-                print "branching into depth: " + str(depth + 1)
+                print "branching into depth " + str(depth + 1) + " Time (without jump) is " + str(cycles) 
                 return max(cycles + time2 + wcet(destination, stopaddr, depth + 1), cycles + time1 + wcet(addr + size, stopaddr, depth + 1))
         if (instr_type == "skip"):
             cycles = cycles + time1
             (_,_, size_next,_,_,_) = code[addr + size]
             addr = addr + size + size_next
-    print "branch part finished. depth was " + str(depth)
+    print "branch from " + hex(startaddr) + " finished. Branch time was: " + str(cycles) + ". depth was " + str(depth)
     return cycles
 
 

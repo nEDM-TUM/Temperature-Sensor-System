@@ -193,7 +193,7 @@ void TEMPL_START_MEASSURE (){
 	// if in the meantime interrupts have arrived -> clear them
 	PCIFR |= (1<< TEMPL_PCIF);
 	//enable interrupt for PCINT[14...8]
-	TEMPL_PCMSK = (1<< TEMPL_SENSOR_PIN); // PCINT8 -> PC0
+	TEMPL_PCMSK = TEMPL_SENSOR_PIN; // PCINT8 -> PC0
 	//PCICR = (1<< PCIE1);
 	// wait >100ms for meassurement to complete
 	// there should not happen too many interrupts, as they extend _delay_ms
@@ -202,11 +202,11 @@ void TEMPL_START_MEASSURE (){
 void TEMPL_STOP_MEASSURE (){
 	// wait >100ms for meassurement to complete
 	// there should not happen too many interrupts, as they extend _delay_ms
-	if(TEMPL_PCMSK & (1<< TEMPL_SENSOR_PIN)){
+	if(TEMPL_PCMSK & TEMPL_SENSOR_PIN){
 		// interrupt was still enabled
 		// -> meassurement was not successful
 		// disable interrupts now (to be in consistent state)
-		TEMPL_PCMSK &= ~(1<< TEMPL_SENSOR_PIN); // PCINT8 -> PC0
+		TEMPL_PCMSK &= TEMPL_N_SENSOR_PIN; // PCINT8 -> PC0
 		//PCICR &= ~(1<< PCIE1);
 		// return error:
 		TEMPL_BYTE_ARRAY [2] =0xff;
