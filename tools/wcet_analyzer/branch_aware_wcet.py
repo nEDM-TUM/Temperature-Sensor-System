@@ -128,7 +128,7 @@ def wcet(startaddr, stopaddr, depth):
                 return max(cycles + time2 + wcet(destination, stopaddr, depth + 1), cycles + time1 + wcet(addr + size, stopaddr, depth + 1))
         if (instr_type == "skip"):
             cycles = cycles + time1
-            (_,_, size_next,_,_,_) = code[addr - size]
+            (_,_, size_next,_,_,_) = code[addr + size]
             addr = addr + size + size_next
     print "branch part finished. depth was " + str(depth)
     return cycles
