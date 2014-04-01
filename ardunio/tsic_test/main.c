@@ -20,7 +20,6 @@ uint8_t nsensor_pin_mask2 = ~(1<<PB0);
 // TEST STORAGE
 uint8_t storeH = 0xff;
 uint8_t storeL = 0xff;
-
 #undef BANK
 #define BANK 1
 #include "tsic_template.c"
@@ -59,7 +58,7 @@ uint16_t analyze(uint8_t * buf){
     //printf("resth: %x restl: %x\n\r", resth, restl);
     printf("result: %x\n\r", result);
     printf("cels: %d\n\r", cels);
-    resth=0x3;
+    resth=0x7;
     restl=0xff;
     printf("cels (not exact): %d\n\r", resth<<3-10+resth>>1+resth>>2+restl>>5);
     //printf("cels: %u\n\r", cels);

@@ -18,6 +18,7 @@
 #undef TEMPL_INIT
 #undef TEMPL_TIMSK // Timer/Counter Interrupt Mask Rigister
 #undef TEMPL_TIMSK_TOIE // Timer/Counter Overflow Interrupt Enable bit
+#undef TEMPL_N_SENSOR_PIN
 #if BANK == 1
 	#define TEMPL_TMR_OVF_VECT TIMER2_OVF_vect
 	#define TEMPL_PCINT_VECT PCINT1_vect
