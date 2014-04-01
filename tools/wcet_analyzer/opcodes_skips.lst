@@ -1,0 +1,4 @@
+sbic 3 2 1
+sbis 3 2 1
+sbrc 3 2 1
+sbrs 3 2 1

@@ -44,6 +44,7 @@ com 1
 cp 1
 cpc 1
 cpi 1
+cpse 3
 dec 1
 des 2 1
 eicall 2

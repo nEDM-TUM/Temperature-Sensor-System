@@ -29,7 +29,8 @@
 	#define TEMPL_TCRIT OCR2A
 	#define TEMPL_TVAL OCR2B
 	#define TEMPL_LOWTIME lowtime1
-	#define TEMPL_SENSOR_PIN sensor_pin1
+	#define TEMPL_SENSOR_PIN sensor_pin_mask1
+	#define TEMPL_N_SENSOR_PIN nsensor_pin_mask1
 	#define TEMPL_BYTE_ARRAY bytearr_bank1
 	#define TEMPL_START_MEASSURE meassure_start_bank1
 	#define TEMPL_STOP_MEASSURE meassure_stop_bank1
@@ -52,7 +53,8 @@
 	#define TEMPL_TCRIT OCR0A
 	#define TEMPL_TVAL OCR0B
 	#define TEMPL_LOWTIME lowtime2
-	#define TEMPL_SENSOR_PIN sensor_pin2
+	#define TEMPL_SENSOR_PIN sensor_pin_mask2
+	#define TEMPL_N_SENSOR_PIN nsensor_pin_mask2
 	#define TEMPL_BYTE_ARRAY bytearr_bank2
 	#define TEMPL_START_MEASSURE meassure_start_bank2
 	#define TEMPL_STOP_MEASSURE meassure_stop_bank2
@@ -95,7 +97,7 @@ ISR(TEMPL_TMR_OVF_VECT){
 		// => stop measurement
 		// disable interrupt for this pin
 		// -> unmask:
-		TEMPL_PCMSK &= ~(1<< TEMPL_SENSOR_PIN);
+		TEMPL_PCMSK &= TEMPL_N_SENSOR_PIN;
 		// TODO: check, if we have to clear possibly arrived interrupts
 		// this this would be done by writing 1 to the corresponding bit:
 		// PCIFR |= (1<< PCIF1);
@@ -137,7 +139,7 @@ ISR(TEMPL_PCINT_VECT){
 	// start timer 2: enable with prescaler 64
 	TEMPL_TCCRB = (1<<CS22);
 
-	if(TEMPL_PIN & (1<< TEMPL_SENSOR_PIN)){
+	if(TEMPL_PIN & TEMPL_SENSOR_PIN){
 		// PC0 is 1 -> rising edge
 		// this is the time, the signal was low:
 		TEMPL_LOWTIME = TEMPL_TVAL;
