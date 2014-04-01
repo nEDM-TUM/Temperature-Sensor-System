@@ -82,18 +82,14 @@ void TEMPL_INIT (){
 }
 
 ISR(TEMPL_TMR_OVF_VECT){
-
-//#define TEMPL1 PORTB
-//#include "template.c"
-//#define TEMPL1 PORTC
-//#include "template.c"
-
 	TEMPL_TCCRB = 0; //disable timer
 	// we use the fact, that TSIC always sends 5 zeroes at the beginning
 	// to determine, if the transmission was complete
 	// as it might happen, that we start meassuring just before the
 	// second start bit. We then have to wait for the next transmission
-	if ((TEMPL_TCRIT != 0xff) && (!(TEMPL_BYTE_ARRAY [2] & (1<<2))) ){
+  uint8_t b = !(TEMPL_BYTE_ARRAY [2] & (1<<2));
+  printf("b: 0x%x\n\r",b);
+	if (!(TEMPL_BYTE_ARRAY [2] & (1<<2))){
 		// we have seen a start bit AND are finished with transmission
 		// => stop measurement
 		// disable interrupt for this pin
@@ -104,6 +100,7 @@ ISR(TEMPL_TMR_OVF_VECT){
 		// PCIFR |= (1<< PCIF1);
 
 	}else{
+  printf("\t\t\t\tb(else): 0x%x\n\r",b);
 		// we will receive the rest of the data in the next iteration
 		// hence we have to clean up the buffer, as we have to have a defined state
 		// to distinguish between humidity and temperature sensor
@@ -116,7 +113,7 @@ ISR(TEMPL_TMR_OVF_VECT){
 	}
 }
 
-// Interrupt handler of PCIE1 (PCINIT[14...8]!!!)
+// Interrupt handler
 // IDEA: use OCRnA/B for TEMPL_TCRIT / TEMPL_TVAL storage to reduce stack usage
 ISR(TEMPL_PCINT_VECT){
 	PORTB = PORTB ^ (1<< PB1);

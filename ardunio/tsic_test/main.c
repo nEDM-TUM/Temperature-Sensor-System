@@ -52,19 +52,17 @@ uint16_t analyze(uint8_t * buf){
   //result = (((buf[2]<<5) | (buf[1]>>3)) <<8) | ((buf[1]<<7) | (buf[0]>>1));
   result =( resth <<8)|restl;
   uint16_t cels = ((result * 25)>>8)*35-1000;
-  if (resth != storeH){
-    printf("!!!!HIGHT bits are changed: 0x%x => 0x%x\n\r", resth, storeH);
+  //if (resth != storeH){
+    //printf("!!!!HIGHT bits are changed: 0x%x => 0x%x\n\r", storeH, resth);
     //printf("buf[2]: %x, buf[1]: %x buf[0]: %x\n\r", buf[2], buf[1], buf[0]);
     //printf("resth: %x restl: %x\n\r", resth, restl);
-    printf("result: %x\n\r", result);
-    printf("cels: %d\n\r", cels);
-    resth=0x7;
-    restl=0xff;
-    printf("cels (not exact): %d\n\r", resth<<3-10+resth>>1+resth>>2+restl>>5);
+    //printf("result: %x\n\r", result);
+    //printf("cels: %d\n\r", cels);
+    printf("0x%x%x cels (not exact): %d\n\r", resth, restl,(resth<<3)-7+(resth>>1)+(resth>>2)+(restl>>5));
     //printf("cels: %u\n\r", cels);
-  } else if(restl != storeL){
-    printf("Low bits are changed: 0x%x => 0x%x\n\r", restl, storeL);
-  }
+  //} else if(restl != storeL){
+    //printf("Low bits are changed: 0x%x => 0x%x\n\r", storeL, restl);
+  //}
   storeH = resth;
   storeL = restl;
 
@@ -77,17 +75,17 @@ void loop(){
 	uint16_t cels1;
 	uint16_t cels2;
 	// start meassurement:
-	printf("bank1:\n\r");
 	meassure_start_bank1();
-	//meassure_start_bank2();
-	_delay_ms(120);
+	_delay_ms(150);
 	meassure_stop_bank1();
-	//meassure_stop_bank2();
+
+	meassure_start_bank2();
+	_delay_ms(150);
+	meassure_stop_bank2();
 
 	cels1 = analyze(bytearr_bank1);
 
-
-	//cels2 = analyze(bytearr_bank2);
+	cels2 = analyze(bytearr_bank2);
 
 	//printf("bank1: %d  bank2: %d\n\r", cels1, cels2);
 	_delay_ms(500);
