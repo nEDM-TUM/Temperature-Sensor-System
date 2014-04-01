@@ -10,10 +10,12 @@
 
 uint8_t lowtime1 = 255;
 uint8_t bytearr_bank1[3];
-uint8_t sensor_pin1 = PC0;
+uint8_t sensor_pin_mask1 = (1<<PC0);
+uint8_t nsensor_pin_mask1 = ~(1<<PC0);
 uint8_t lowtime2 = 255;
 uint8_t bytearr_bank2[3];
-uint8_t sensor_pin2 = PB0;
+uint8_t sensor_pin_mask2 = (1<<PB0);
+uint8_t nsensor_pin_mask2 = ~(1<<PB0);
 
 #undef BANK
 #define BANK 1

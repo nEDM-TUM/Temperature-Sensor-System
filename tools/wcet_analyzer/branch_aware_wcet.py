@@ -99,17 +99,18 @@ for line in sys.stdin:
 # TODO...
 
 
-startaddress = int("10c", 16)
-stopaddress = int("1e8", 16)
+startaddress = int("a6", 16)
+stopaddress = int("f6", 16)
 
 
 
 def wcet(startaddr, stopaddr, depth):
-    if depth > 5:
-        return 5555
+    if depth > 10:
+        print "ERROR: Maximum recursion depth reached"
+        return 0
     addr = startaddr
     cycles = 0
-    while (addr != stopaddr and addr <= stopaddr and addr >= startaddr):
+    while (addr <= stopaddr and addr >= startaddr):
         print hex(addr) + " : " + str(code [addr])
         (instruction, instr_type, size, time1, time2, destination) = code[addr]
         if (instr_type == "norm"):
@@ -119,17 +120,22 @@ def wcet(startaddr, stopaddr, depth):
             cycles = cycles + time1
             addr = destination
         if (instr_type == "br"):
-            print "branching"
-            return max(cycles + time2 + wcet(destination, stopaddr, depth + 1), cycles + time1 + wcet(addr + size, stopaddr, depth + 1))
+            if addr > destination:
+                print "ERROR: Loop detected!! -> assuming only single pass"
+                addr = addr + size
+            else:
+                print "branching into depth: " + str(depth + 1)
+                return max(cycles + time2 + wcet(destination, stopaddr, depth + 1), cycles + time1 + wcet(addr + size, stopaddr, depth + 1))
         if (instr_type == "skip"):
             cycles = cycles + time1
             (_,_, size_next,_,_,_) = code[addr - size]
             addr = addr + size + size_next
+    print "branch part finished. depth was " + str(depth)
     return cycles
 
 
-print "RESULT:"
-print str(wcet(startaddress, stopaddress, 0))
+wcetresult =  str(wcet(startaddress, stopaddress, 0))
+print "RESULT: " + wcetresult
 
 #total_used_instr = {}
 #total_cycles = 0
