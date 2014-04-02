@@ -68,8 +68,10 @@ void loop(){
 	cf = 0;
 	cr = 0;
 #endif
+	meassure_start_bank1();
 	meassure_start_bank2();
 	_delay_ms(110);
+	meassure_stop_bank1();
 	meassure_stop_bank2();
 #ifdef DEBUG
 	printf("cf = %d\n\r", cf);
@@ -79,8 +81,8 @@ void loop(){
 	printf("Tr%d = %d\n\r", 10, timesr[10]);
 	printf("Tf%d = %d\n\r", 11, times[11]);
 #endif
-	//cels1 = analyze(bytearr_bank1);
-
+	
+	cels1 = analyze(bytearr_bank1);
 	cels2 = analyze(bytearr_bank2);
 
 	printf("bank1: %d  bank2: %d\n\r", cels1, cels2);

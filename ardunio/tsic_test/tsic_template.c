@@ -194,7 +194,7 @@ ISR(TEMPL_PCINT_VECT){
 		// If we have detected a start bit, we use the high time of the
 		// bit as the critical time TEMPL_TCRIT
 		if(TEMPL_LOWTIME>TEMPL_TVAL){
-			if(TEMPL_LOWTIME-TEMPL_TVAL < 2){
+			if(TEMPL_LOWTIME-TEMPL_TVAL < 3){
 				TEMPL_TCRIT = TEMPL_TVAL;
 #ifdef DEBUG
 				s++;
@@ -203,7 +203,7 @@ ISR(TEMPL_PCINT_VECT){
 #endif
 			}
 		}else{
-			if(TEMPL_TVAL-TEMPL_LOWTIME < 2){
+			if(TEMPL_TVAL-TEMPL_LOWTIME < 3){
 				TEMPL_TCRIT = TEMPL_TVAL;
 #ifdef DEBUG
 				s++;
