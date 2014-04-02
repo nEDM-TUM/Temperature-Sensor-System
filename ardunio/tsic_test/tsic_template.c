@@ -89,11 +89,13 @@ ISR(TEMPL_TMR_OVF_VECT){
 	// second start bit. We then have to wait for the next transmission
   //uint8_t b = !(TEMPL_BYTE_ARRAY [2] & (1<<2));
   //printf("b: 0x%x\n\r",b);
+	printf ("%x %x %x %d\n\r", TEMPL_BYTE_ARRAY [2], TEMPL_BYTE_ARRAY [1], TEMPL_BYTE_ARRAY [0], s);
 	if (!(TEMPL_BYTE_ARRAY [2] & (1<<2))){
 		// we have seen a start bit AND are finished with transmission
 		// => stop measurement
 		// disable interrupt for this pin
 		// -> unmask:
+		printf ("f\n\r");
 		TEMPL_PCMSK &= TEMPL_N_SENSOR_PIN;
 		// TODO: check, if we have to clear possibly arrived interrupts
 		// this this would be done by writing 1 to the corresponding bit:
@@ -110,13 +112,18 @@ ISR(TEMPL_TMR_OVF_VECT){
 		// we also have to set the timer value to initial value
 		// this has to be done for spike detection to work correctly
 		TEMPL_TCNT = 0xff;
+		// low time mightalso be 0xff -> this might cause problems
+		// if transmission starts again. so set it to default state 0:
+		TEMPL_LOWTIME = 0;
 	}
 }
 
 // Interrupt handler
 // IDEA: use OCRnA/B for TEMPL_TCRIT / TEMPL_TVAL storage to reduce stack usage
 ISR(TEMPL_PCINT_VECT){
-	PORTB = PORTB ^ (1<< PB1);
+	// start timer 2: enable with prescaler 64
+	TEMPL_START_TIMER;
+	//PORTB = PORTB ^ (1<< PB1);
   // Read timer 2
 	TEMPL_TVAL = TEMPL_TCNT;
   // Reset timer 2
@@ -134,11 +141,11 @@ ISR(TEMPL_PCINT_VECT){
 		return;
 	}
 
-	// start timer 2: enable with prescaler 64
-	TEMPL_START_TIMER;
 	//TEMPL_TCCRB = (1<<CS22);
 
 	if(TEMPL_PIN & TEMPL_SENSOR_PIN){
+		timesr[cr] = TEMPL_TVAL;
+		cr++;
 		// PC0 is 1 -> rising edge
 		// this is the time, the signal was low:
 		TEMPL_LOWTIME = TEMPL_TVAL;
@@ -161,6 +168,8 @@ ISR(TEMPL_PCINT_VECT){
 			TEMPL_BYTE_ARRAY [0] = TEMPL_BYTE_ARRAY [0] ^ (TEMPL_TVAL < TEMPL_TCRIT);
 		}
 	}else{
+		times[cf] = TEMPL_TVAL;
+		cf++;
 		// PC0 is 0 -> falling edge
 		// we check for a start bit:
 		// A start bit should have a duty cycle of 50%
@@ -169,11 +178,17 @@ ISR(TEMPL_PCINT_VECT){
 		// bit as the critical time TEMPL_TCRIT
 		if(TEMPL_LOWTIME>TEMPL_TVAL){
 			if(TEMPL_LOWTIME-TEMPL_TVAL < 2){
+				s++;
 				TEMPL_TCRIT = TEMPL_TVAL;
+				tcritb = TEMPL_LOWTIME;
+				tcrita = TEMPL_TVAL;
 			}
 		}else{
 			if(TEMPL_TVAL-TEMPL_LOWTIME < 2){
 				TEMPL_TCRIT = TEMPL_TVAL;
+				s++;
+				tcritb = TEMPL_LOWTIME;
+				tcrita = TEMPL_TVAL;
 			}
 		}
 	}

@@ -16,10 +16,14 @@ uint8_t lowtime2 = 255;
 uint8_t bytearr_bank2[3];
 uint8_t sensor_pin_mask2 = (1<<PB0);
 uint8_t nsensor_pin_mask2 = ~(1<<PB0);
+uint8_t s = 0;
+uint8_t tcrita;
+uint8_t tcritb;
+uint8_t times[30];
+uint8_t cf = 0;
+uint8_t timesr[30];
+uint8_t cr = 0;
 
-// TEST STORAGE
-uint8_t storeH = 0xff;
-uint8_t storeL = 0xff;
 #undef BANK
 #define BANK 1
 #include "tsic_template.c"
@@ -63,8 +67,6 @@ uint16_t analyze(uint8_t * buf){
   //} else if(restl != storeL){
     //printf("Low bits are changed: 0x%x => 0x%x\n\r", storeL, restl);
   //}
-  storeH = resth;
-  storeL = restl;
 
 	return cels;
 
@@ -79,15 +81,23 @@ void loop(){
 	//_delay_ms(150);
 	//meassure_stop_bank1();
 
+	cf = 0;
+	cr = 0;
+	printf("start\n\r");
 	meassure_start_bank2();
-	_delay_ms(150);
+	_delay_ms(110);
 	meassure_stop_bank2();
-
+	printf("cf = %d\n\r", cf);
+	printf("crita = %d critb = %d\n\r", tcrita, tcritb);
+		printf("Tr%d = %d\n\r", 0, timesr[0]);
+		printf("Tf%d = %d\n\r", 1, times[1]);
+		printf("Tr%d = %d\n\r", 10, timesr[10]);
+		printf("Tf%d = %d\n\r", 11, times[11]);
 	//cels1 = analyze(bytearr_bank1);
 
 	cels2 = analyze(bytearr_bank2);
 
-	//printf("bank1: %d  bank2: %d\n\r", cels1, cels2);
+	printf("bank1: %d  bank2: %d\n\r", cels1, cels2);
 	_delay_ms(500);
 }
 
