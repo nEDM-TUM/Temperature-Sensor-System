@@ -20,6 +20,10 @@
 #undef TEMPL_TIMSK_TOIE // Timer/Counter Overflow Interrupt Enable bit
 #undef TEMPL_N_SENSOR_PIN
 #if BANK == 1
+	uint8_t lowtime1;
+	uint8_t bytearr_bank1[3];
+	uint8_t sensor_pin_mask1 = (1<<PC0);
+	uint8_t nsensor_pin_mask1 = ~(1<<PC0);
 	#define TEMPL_TMR_OVF_VECT TIMER2_OVF_vect
 	#define TEMPL_PCINT_VECT PCINT1_vect
 	#define TEMPL_TCCRA TCCR2A
@@ -44,6 +48,10 @@
   #define TEMPL_TIMSK TIMSK2
   #define TEMPL_TIMSK_TOIE TOIE2
 #elif BANK == 2
+	uint8_t lowtime2;
+	uint8_t bytearr_bank2[3];
+	uint8_t sensor_pin_mask2 = (1<<PB0);
+	uint8_t nsensor_pin_mask2 = ~(1<<PB0);
 	#define TEMPL_TMR_OVF_VECT TIMER0_OVF_vect
 	#define TEMPL_PCINT_VECT PCINT0_vect
 	#define TEMPL_TCCRA TCCR0A
@@ -89,20 +97,20 @@ ISR(TEMPL_TMR_OVF_VECT){
 	// second start bit. We then have to wait for the next transmission
   //uint8_t b = !(TEMPL_BYTE_ARRAY [2] & (1<<2));
   //printf("b: 0x%x\n\r",b);
+#ifdef DEBUG
 	printf ("%x %x %x %d\n\r", TEMPL_BYTE_ARRAY [2], TEMPL_BYTE_ARRAY [1], TEMPL_BYTE_ARRAY [0], s);
+#endif
 	if (!(TEMPL_BYTE_ARRAY [2] & (1<<2))){
 		// we have seen a start bit AND are finished with transmission
 		// => stop measurement
 		// disable interrupt for this pin
 		// -> unmask:
-		printf ("f\n\r");
 		TEMPL_PCMSK &= TEMPL_N_SENSOR_PIN;
 		// TODO: check, if we have to clear possibly arrived interrupts
 		// this this would be done by writing 1 to the corresponding bit:
 		// PCIFR |= (1<< PCIF1);
 
 	}else{
-  //printf("\t\t\t\tb(else): 0x%x\n\r",b);
 		// we will receive the rest of the data in the next iteration
 		// hence we have to clean up the buffer, as we have to have a defined state
 		// to distinguish between humidity and temperature sensor
@@ -122,13 +130,17 @@ ISR(TEMPL_TMR_OVF_VECT){
 // IDEA: use OCRnA/B for TEMPL_TCRIT / TEMPL_TVAL storage to reduce stack usage
 ISR(TEMPL_PCINT_VECT){
 	// start timer 2: enable with prescaler 64
+	// the order AND position of the following 3 instructions
+	// is highly important for propper timing
+	// The timer should be started as soon as possible
+	// After that the timer value should be reset to 0 as soon as possible too
 	TEMPL_START_TIMER;
-	//PORTB = PORTB ^ (1<< PB1);
   // Read timer 2
 	TEMPL_TVAL = TEMPL_TCNT;
   // Reset timer 2
 	TEMPL_TCNT = 0;
   
+#ifdef SPIKEDETECT
 	// this should filter out vibrations on the wire
 	// FIXME: check if we need this. I was not able to construct
 	// a situation, where this was called in a lab environment.
@@ -140,12 +152,15 @@ ISR(TEMPL_PCINT_VECT){
 		//printf("INSTABILITY!\n\r");
 		return;
 	}
+#endif
 
 	//TEMPL_TCCRB = (1<<CS22);
 
 	if(TEMPL_PIN & TEMPL_SENSOR_PIN){
+#ifdef DEBUG
 		timesr[cr] = TEMPL_TVAL;
 		cr++;
+#endif
 		// PC0 is 1 -> rising edge
 		// this is the time, the signal was low:
 		TEMPL_LOWTIME = TEMPL_TVAL;
@@ -168,8 +183,10 @@ ISR(TEMPL_PCINT_VECT){
 			TEMPL_BYTE_ARRAY [0] = TEMPL_BYTE_ARRAY [0] ^ (TEMPL_TVAL < TEMPL_TCRIT);
 		}
 	}else{
+#ifdef DEBUG
 		times[cf] = TEMPL_TVAL;
 		cf++;
+#endif
 		// PC0 is 0 -> falling edge
 		// we check for a start bit:
 		// A start bit should have a duty cycle of 50%
@@ -178,17 +195,21 @@ ISR(TEMPL_PCINT_VECT){
 		// bit as the critical time TEMPL_TCRIT
 		if(TEMPL_LOWTIME>TEMPL_TVAL){
 			if(TEMPL_LOWTIME-TEMPL_TVAL < 2){
-				s++;
 				TEMPL_TCRIT = TEMPL_TVAL;
+#ifdef DEBUG
+				s++;
 				tcritb = TEMPL_LOWTIME;
 				tcrita = TEMPL_TVAL;
+#endif
 			}
 		}else{
 			if(TEMPL_TVAL-TEMPL_LOWTIME < 2){
 				TEMPL_TCRIT = TEMPL_TVAL;
+#ifdef DEBUG
 				s++;
 				tcritb = TEMPL_LOWTIME;
 				tcrita = TEMPL_TVAL;
+#endif
 			}
 		}
 	}
