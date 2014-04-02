@@ -5,6 +5,8 @@
 import sys
 import re
 
+startaddress = int("10e", 16)
+stopaddress = int("fffffff", 16)
 
 search_section = ''
 found = False
@@ -94,13 +96,15 @@ for line in sys.stdin:
         previous_address = address
 
         code[address] = (instruction, instr_type, size, time1, time2, destination)
+    else:
+        m = re.search('^\s*([0-9a-f]+)\s+\<(.*)\>:$', line)
+        if m:
+            if re.search(search_section, line):
+                print "found section: " + m.group(2)
+                startaddress = int(m.group(1), 16)
 
-# search entrypoint:
-# TODO...
 
 
-startaddress = int("104", 16)
-stopaddress = int("1d4", 16)
 
 
 
@@ -110,7 +114,8 @@ def wcet(startaddr, stopaddr, depth):
         return 0
     addr = startaddr
     cycles = 0
-    while (addr <= stopaddr and addr >= startaddr):
+    instruction = ""
+    while (addr <= stopaddr and addr >= startaddr and (instruction != "reti" and instruction != "ret")):
         print hex(addr) + " : " + str(code [addr])
         (instruction, instr_type, size, time1, time2, destination) = code[addr]
         if (instr_type == "norm"):
