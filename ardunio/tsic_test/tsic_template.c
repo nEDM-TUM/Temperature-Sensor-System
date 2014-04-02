@@ -87,8 +87,8 @@ ISR(TEMPL_TMR_OVF_VECT){
 	// to determine, if the transmission was complete
 	// as it might happen, that we start meassuring just before the
 	// second start bit. We then have to wait for the next transmission
-  uint8_t b = !(TEMPL_BYTE_ARRAY [2] & (1<<2));
-  printf("b: 0x%x\n\r",b);
+  //uint8_t b = !(TEMPL_BYTE_ARRAY [2] & (1<<2));
+  //printf("b: 0x%x\n\r",b);
 	if (!(TEMPL_BYTE_ARRAY [2] & (1<<2))){
 		// we have seen a start bit AND are finished with transmission
 		// => stop measurement
@@ -100,7 +100,7 @@ ISR(TEMPL_TMR_OVF_VECT){
 		// PCIFR |= (1<< PCIF1);
 
 	}else{
-  printf("\t\t\t\tb(else): 0x%x\n\r",b);
+  //printf("\t\t\t\tb(else): 0x%x\n\r",b);
 		// we will receive the rest of the data in the next iteration
 		// hence we have to clean up the buffer, as we have to have a defined state
 		// to distinguish between humidity and temperature sensor
@@ -135,7 +135,8 @@ ISR(TEMPL_PCINT_VECT){
 	}
 
 	// start timer 2: enable with prescaler 64
-	TEMPL_TCCRB = (1<<CS22);
+	TEMPL_START_TIMER;
+	//TEMPL_TCCRB = (1<<CS22);
 
 	if(TEMPL_PIN & TEMPL_SENSOR_PIN){
 		// PC0 is 1 -> rising edge
