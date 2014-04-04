@@ -130,17 +130,58 @@ def wcet(startaddr, stopaddr, depth):
                 addr = addr + size
             else:
                 print "branching into depth " + str(depth + 1) + " Time (without jump) is " + str(cycles) 
-                return max(cycles + time2 + wcet(destination, stopaddr, depth + 1), cycles + time1 + wcet(addr + size, stopaddr, depth + 1))
+                (cyclesA, treeA) = wcet(destination, stopaddr, depth + 1)
+                (cyclesB, treeB) = wcet(addr + size, stopaddr, depth + 1)
+                if cyclesA >cyclesB :
+                    nodeDest = ((hex(destination), time2, 1), [treeA])
+                    nodeCont = ((hex(addr + size), time1, 0), [treeB])
+                else:
+                    nodeDest = ((hex(destination), time2, 0), [treeA])
+                    nodeCont = ((hex(addr + size), time1, 1), [treeB])
+
+                treebranch = ((hex(addr), cycles, 0), [nodeDest, nodeCont])
+                return (max(cycles + time2 + cyclesA, cycles + time1 + cyclesB), treebranch)
         if (instr_type == "skip"):
             cycles = cycles + time1
             (_,_, size_next,_,_,_) = code[addr + size]
             addr = addr + size + size_next
     print "branch from " + hex(startaddr) + " finished. Branch time was: " + str(cycles) + ". depth was " + str(depth)
-    return cycles
+    tree = ((hex(addr), cycles, 0), [])
+    return (cycles, tree)
 
+def printtree(tree, root):
+    (head, childs) = tree
+    (head_addr, head_cyc, head_taken) = head
+    if head_taken == 1:
+        color = "red"
+    else:
+        color = "black"
+    print str(int(head_addr,16)) + " [label=\"" + head_addr +"\"]"
+    print str(int(root,16)) + " -> " + str(int(head_addr,16)) + "[label=\" " + str(head_cyc) + "\", color=\"" + color +"\"]"
+    for c in childs:
+        (child_head, treec) = c
+        #print str(c)
+        (child_addr, child_cyc, child_taken) = child_head
+        if child_taken == 1:
+            color = "red"
+        else:
+            color = "black"
+        print str(int(child_addr,16)) + " [label=\"" + child_addr +"\"]"
+        print str(int( head_addr,16)) + " -> " + str(int(child_addr,16)) + "[label=\" " + str(child_cyc) + "\", color=\""+color+"\"]"
+        for ct in treec:
+            printtree(ct, child_addr)
 
-wcetresult =  str(wcet(startaddress, stopaddress, 0))
-print "RESULT: " + wcetresult
+def printdot(tree, start):
+    print "digraph G{"
+    print str(int(start,16)) + " [label=\"" + start +"\", shape=box]"
+    printtree(tree, start)
+    print "}"
+
+(wcetresult, rtree) =  wcet(startaddress, stopaddress, 0)
+print "RESULT: " + str(wcetresult)
+
+printdot(rtree, hex(startaddress))
+
 
 #total_used_instr = {}
 #total_cycles = 0

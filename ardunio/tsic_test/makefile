@@ -57,6 +57,7 @@ LDFLAGS += -Wl,--gc-sections
 #  unneeded functions during linking
 C_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
 C_FLAGS += -ffunction-sections -fdata-sections
+C_FLAGS += -g
 
 
 
