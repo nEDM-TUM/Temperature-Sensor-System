@@ -127,6 +127,7 @@ def wcet(startaddr, stopaddr, depth):
         if (instr_type == "br"):
             if addr > destination:
                 print "ERROR: Loop detected!! -> assuming only single pass"
+                cycles = cycles + time1
                 addr = addr + size
             else:
                 print "branching into depth " + str(depth + 1) + " Time (without jump) is " + str(cycles) 
