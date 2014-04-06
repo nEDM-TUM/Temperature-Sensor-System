@@ -6,6 +6,8 @@
 //#include "strfun.h"
 #include "usart.h"
 
+#define START_TIMER TCCR0B = (1<< CS02 | 1 << CS00);
+#define STOP_TIMER TCCR0B = 0; //disable timer
 #define SLA 0x28
 #define CMODE 7
 #define STALE 6
@@ -98,13 +100,10 @@ inline uint8_t verifyStatus(){
   return 0;
 }
 
-ISR(TIMER0_OVF_vect){
+loop(){
     // TODO debug, LED blink
     PORTB = PORTB ^ (1<<PB1);
     _delay_ms(500);
-  if(ready){
-    // TODO debug, LED blink
-    PORTB = PORTB ^ (1<<PB1);
     mr();
     do{
       df();
@@ -121,8 +120,6 @@ ISR(TIMER0_OVF_vect){
 
     printf("converted cap = %u\n\r", cap);
     printf("converted temp = %u - 40 = %d\n\r", temp, temp-40);
-  }
-  ready != ready;
 }
 
 int main (void)
@@ -138,14 +135,24 @@ int main (void)
   TWBR = 72; 
 
   printf("Start\n\r");
-	// enable timer overflow interrupt
-	TIMSK0 = ( 1 << TOIE0 ); 
-  // Timer init 
-	TCCR0A = 0;
-	TCCR0B = (1 << CS02);
-  TCNT0 = 0;
     // TODO debug, LED blink
+	DDRB = (1<<PB1);
   PORTB = PORTB ^ (1<<PB1);
     _delay_ms(500);
   PORTB = PORTB ^ (1<<PB1);
+    _delay_ms(500);
+  PORTB = PORTB ^ (1<<PB1);
+    _delay_ms(500);
+  PORTB = PORTB ^ (1<<PB1);
+    _delay_ms(500);
+
+	// enable timer overflow interrupt
+	//TIMSK0 = ( 1 << TOIE0 ); 
+  // Timer init 
+	//TCCR0A = 0;
+  //START_TIMER 
+  //TCNT0 = 0;
+  while(1){
+    loop();
+  }
 }

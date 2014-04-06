@@ -25,7 +25,7 @@ PROJECT_OBJS = main.o usart.o
 #----------------------------------------------------------
 # Programmer settings
 AVRDUDE_PROGRAMMER = stk500v1
-AVRDUDE_PORT = /dev/ttyACM0
+AVRDUDE_PORT = /dev/ttyACM1
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
 # -F forces programming without checking device
