@@ -82,13 +82,14 @@
 void TEMPL_INIT (){
 	// enable interrupt will be done when starting measurement
 	PCICR |= ( 1 << TEMPL_PCIE ); //Pin change interrupt enable
-	//PCMSK1 = (1<< PCINT8); // PCINT8 -> PC0
+	// enable timer overflow interrupt
 	TEMPL_TIMSK = ( 1 << TEMPL_TIMSK_TOIE ); 
   // Timer init (reset to default)
 	TEMPL_TCCRA = 0;
 	TEMPL_TCCRB = 0;
 }
 
+// Timer overflow interrupt handler
 ISR(TEMPL_TMR_OVF_VECT){
 	TEMPL_TCCRB = 0; //disable timer
 	// we use the fact, that TSIC always sends 5 zeroes at the beginning
@@ -155,7 +156,6 @@ ISR(TEMPL_PCINT_VECT){
 #endif
 
 	//TEMPL_TCCRB = (1<<CS22);
-
 	if(TEMPL_PIN & TEMPL_SENSOR_PIN){
 #ifdef DEBUG
 		timesr[cr] = TEMPL_TVAL;

@@ -9,6 +9,7 @@
 #define SLA 0x28
 #define CMODE 7
 #define STALE 6
+uint8_t ready=1;
 uint8_t capH=0xff;
 uint8_t capL=0xff;
 uint8_t tempH=0xff;
@@ -45,7 +46,6 @@ inline void mr(){
   // printf("Required\n\r");
   // Stop condition
   TWCR = ((1 << TWINT) | (1 << TWSTO) | (1 << TWEN));
-  // FIXME waitUntilFinished();
 }
 
 uint8_t readByte(uint8_t ack){
@@ -62,7 +62,7 @@ uint8_t readByte(uint8_t ack){
 }
 
 inline void df(){
-  printf("Data Fetch\n\r");
+  // printf("Data Fetch\n\r");
   // Start condition
   TWCR = ((1 << TWINT) | (1 << TWSTA) | (1 << TWEN));
   waitUntilFinished();
@@ -85,7 +85,6 @@ inline void df(){
 
   // Stop condition
   TWCR = ((1 << TWINT) | (1 << TWSTO) | (1 << TWEN));
-  // FIXME waitUntilFinished();
 }
 
 inline uint8_t verifyStatus(){
@@ -96,26 +95,13 @@ inline uint8_t verifyStatus(){
   return 0;
 }
 
-int main (void)
-{
-	static FILE usart_stdout = FDEV_SETUP_STREAM( mputc, 0, _FDEV_SETUP_WRITE);
-	stdout = &usart_stdout;
-
-	uart_init();
-
-  // init registers for i2c
-  // Set Fscl 100 kHz
-  TWBR = 72; 
-
-  // FIXME not needed !!! Enable TWI operation
-  TWCR |= 1 << TWEN;
-  // Enable Acknowledge bit
-  TWCR |= 1 << TWEA;
-
-	printf("Do I2C reading\n\r");
-	while (1) {
-		_delay_ms(500);
-    // TODO  debug, LED blink
+ISR(TIMER0_OVF_vect){
+    printf("Ready\n\r");
+    // TODO debug, LED blink
+    PORTB = PORTB ^ (1<<PB1);
+    _delay_ms(500);
+  if(ready){
+    // TODO debug, LED blink
     PORTB = PORTB ^ (1<<PB1);
     mr();
     do{
@@ -133,5 +119,31 @@ int main (void)
 
     printf("converted cap = %u\n\r", cap);
     printf("converted temp = %u - 40 = %d\n\r", temp, temp-40);
-	}
+  }
+  ready != ready;
+}
+
+int main (void)
+{
+	static FILE usart_stdout = FDEV_SETUP_STREAM( mputc, 0, _FDEV_SETUP_WRITE);
+	stdout = &usart_stdout;
+
+	uart_init();
+
+  // init registers for i2c
+  // Set Fscl 100 kHz
+  TWBR = 72; 
+
+    printf("Start\n\r");
+	// enable timer overflow interrupt
+	TIMSK0 = ( 1 << TOIE0 ); 
+  // Timer init 
+	TCCR0A = 0;
+	TCCR0B = (1 << CS01);
+  TCNT0 = 0;
+    // TODO debug, LED blink
+  PORTB = PORTB ^ (1<<PB1);
+    _delay_ms(500);
+  PORTB = PORTB ^ (1<<PB1);
+    printf("Ready\n\r");
 }
