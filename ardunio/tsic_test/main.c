@@ -3,6 +3,7 @@
 #include <util/delay.h>
 #include "usart.h"
 
+#define SLA 0x77
 // sensors connected at:
 // PC0 - PCINT8
 // PB0 - PCINT0
@@ -53,6 +54,29 @@ uint16_t analyze(uint8_t * buf){
 
 	return cels;
 
+}
+
+void twi_init(){
+  // set slave address
+  // do NOT listen to general call
+  TWAR = (SLA << 1);
+  TWCR = (1<<TWEA) | (1<<TWEN)
+}
+
+void handle_communications(){
+  if(TWCR & (1<<TWINT)){
+    //TWI interrupt
+    switch (TWSR){
+      case 0xa8:
+        // own address received, ack has been returned:
+        TWDR = 0xaa; //data :)
+        TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT)
+
+        break;
+      
+    }
+
+  }
 }
 
 void loop(){
