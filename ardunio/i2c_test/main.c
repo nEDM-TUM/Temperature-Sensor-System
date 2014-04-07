@@ -19,9 +19,17 @@ uint8_t tempL=0xff;
 // FIXME converted roughly for test
 uint8_t cap=0xff;
 uint8_t temp=0xff;
+uint8_t counter=0;
 
 void waitUntilFinished(){
   while(!(TWCR & (1 << TWINT))){
+    asm("nop");
+    // Sorry, I'm busy wating!!
+  }
+}
+void waitUntil(){
+  while(!(TWCR & (1 << TWINT))){
+    printf("TWSR is %x\n\r", TWSR);
     asm("nop");
     // Sorry, I'm busy wating!!
   }
@@ -66,10 +74,12 @@ uint8_t readByte(uint8_t ack){
 }
 
 inline void df(){
+    //printf("TWSR is %x\n\r", TWSR);
   // printf("Data Fetch\n\r");
   // Start condition
   TWCR = ((1 << TWINT) | (1 << TWSTA) | (1 << TWEN));
-  waitUntilFinished();
+  waitUntil();
+  //waitUntilFinished();
   if (TWSR != 0x8){
     return;  
   }
@@ -89,7 +99,7 @@ inline void df(){
 
   // Stop condition
   TWCR = ((1 << TWINT) | (1 << TWSTO) | (1 << TWEN));
-  //printf("Fetched\n\r");
+ // printf("Fetched\n\r");
 }
 
 inline uint8_t verifyStatus(){
@@ -100,14 +110,17 @@ inline uint8_t verifyStatus(){
   return 0;
 }
 
-loop(){
+void loop(){
     // TODO debug, LED blink
     PORTB = PORTB ^ (1<<PB1);
     _delay_ms(500);
     mr();
+    counter=0;
     do{
+      //counter ++;
       df();
-    }while(!verifyStatus());
+    }while((capH & ( (1 << STALE))) && counter <100 );
+    printf("Counter is %d\n\r", counter);
   
     capH = capH & 0x3f;
     printf("capH = %x\n\r", capH);
