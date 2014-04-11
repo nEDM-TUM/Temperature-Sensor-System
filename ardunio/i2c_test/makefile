@@ -25,9 +25,9 @@ PROJECT_OBJS = main.o usart.o
 #----------------------------------------------------------
 # Programmer settings
 AVRDUDE_PROGRAMMER = usbasp
-AVRDUDE_PORT = /dev/ttyACM1
+AVRDUDE_PORT = /dev/ttyACM0
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
-AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
+AVRDUDE_FLAGS = -p $(MCU) -c $(AVRDUDE_PROGRAMMER)
 # -F forces programming without checking device
 #  identifier.
 #  This is, because the arduino bootloader does

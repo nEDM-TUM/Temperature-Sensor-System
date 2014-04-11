@@ -46,7 +46,7 @@ inline void mr(){
   }
   //printf("Started\n\r");
   // SLA + W (bit 0)
-  TWDR = (SLA << TWD1);
+  TWDR = (SLA << 1);
   TWCR = ((1 << TWINT) | (1 << TWEN));
   waitUntilFinished();
   // TWSR = 0x18 means SLA+W has been transmitted; ACK has been received
@@ -84,7 +84,7 @@ inline void df(){
     return;  
   }
   // SLA + R (bit 1)
-  TWDR = (SLA << TWD1) | (1 << TWD0);
+  TWDR = (SLA << 1) | (1 << 0);
   TWCR = ((1 << TWINT) | (1 << TWEN));
   waitUntilFinished();
   // TWSR = 0x40 means SLA+R has been transmitted; ACK has been received
