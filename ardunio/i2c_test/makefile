@@ -8,8 +8,8 @@
 #ARDUINO_PATH = /usr/share/Arduino-master
 #----------------------------------------------------------
 # Project settings
-MCU = atmega328p
-F_CPU = 16000000UL
+MCU = atmega48
+F_CPU = 8000000UL
 
 BOARD_TYPE = ethernet
 
@@ -24,17 +24,16 @@ PROJECT_PATH = .
 PROJECT_OBJS = main.o usart.o
 #----------------------------------------------------------
 # Programmer settings
-AVRDUDE_PROGRAMMER = stk500v1
+AVRDUDE_PROGRAMMER = usbasp
 AVRDUDE_PORT = /dev/ttyACM0
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
-AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
+AVRDUDE_FLAGS = -p $(MCU) -c $(AVRDUDE_PROGRAMMER)
 # -F forces programming without checking device
 #  identifier.
 #  This is, because the arduino bootloader does
 #  not conform to the stk500v1 standard when sending
 #  the device identifier. Hence the device ID check
 #  always will fail.
-AVRDUDE_FLAGS += -F
 #----------------------------------------------------------
 # compiler suite
 CC=avr-gcc

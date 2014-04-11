@@ -11,6 +11,9 @@
 #define SLA 0x28
 #define CMODE 7
 #define STALE 6
+#define TSTART 60
+#define TLONG 90
+#define TSHORT 30
 uint8_t ready=1;
 uint8_t capH=0xff;
 uint8_t capL=0xff;
@@ -35,7 +38,7 @@ void waitUntil(){
   }
 }
 inline void mr(){
-  printf("Measurement Request\n\r");
+  //printf("Measurement Request\n\r");
   // Start condition
   TWCR = ((1 << TWINT) | (1 << TWSTA) | (1 << TWEN));
   waitUntilFinished();
@@ -46,7 +49,7 @@ inline void mr(){
   }
   //printf("Started\n\r");
   // SLA + W (bit 0)
-  TWDR = (SLA << TWD1);
+  TWDR = (SLA << 1);
   TWCR = ((1 << TWINT) | (1 << TWEN));
   waitUntilFinished();
   // TWSR = 0x18 means SLA+W has been transmitted; ACK has been received
@@ -55,7 +58,7 @@ inline void mr(){
   }
   // Stop condition
   TWCR = ((1 << TWINT) | (1 << TWSTO) | (1 << TWEN));
-  // printf("Required\n\r");
+ // printf("Required\n\r");
   // TODO what happend???
   // waitUntilFinished();
 }
@@ -78,13 +81,13 @@ inline void df(){
   // printf("Data Fetch\n\r");
   // Start condition
   TWCR = ((1 << TWINT) | (1 << TWSTA) | (1 << TWEN));
-  waitUntil();
+  waitUntilFinished();
   //waitUntilFinished();
   if (TWSR != 0x8){
     return;  
   }
   // SLA + R (bit 1)
-  TWDR = (SLA << TWD1) | (1 << TWD0);
+  TWDR = (SLA << 1) | (1 << 0);
   TWCR = ((1 << TWINT) | (1 << TWEN));
   waitUntilFinished();
   // TWSR = 0x40 means SLA+R has been transmitted; ACK has been received
@@ -110,23 +113,68 @@ inline uint8_t verifyStatus(){
   return 0;
 }
 
+inline void sendSTART(){
+  PORTD &= ~(1<<PC0);  
+  _delay_us(TSTART);
+  PORTD |= (1<<PC0);  
+  _delay_us(TSTART);
+}
+
+inline void send0(){
+    PORTD &= ~(1<<PC0);  
+    _delay_us(TLONG);
+    PORTD |= (1<<PC0);  
+    _delay_us(TSHORT);
+
+}
+
+inline void send1(){
+    PORTD &= ~(1<<PC0);  
+    _delay_us(TSHORT);
+    PORTD |= (1<<PC0);  
+    _delay_us(TLONG);
+}
+
+inline void sendBYTE(uint8_t byte){
+  uint8_t index = 0;
+  for(; index <8; index++){
+    if(byte & (1 << index)){
+      send1();
+    }else{
+      send0();
+    }
+  }
+}
+
+inline void convertToZAC(){
+  PORTD |= (1<<PC0);
+  _delay_us(2*TSTART);
+  sendSTART();
+  sendBYTE(capH);
+  sendBYTE(capL);
+  sendBYTE(tempH);
+  sendBYTE(tempL);
+}
+
 void loop(){
     // TODO debug, LED blink
-    PORTB = PORTB ^ (1<<PB1);
     _delay_ms(500);
+    PORTD = PORTD ^ (1<<PD5);
+    _delay_ms(500);
+    PORTD = PORTD ^ (1<<PD5);
     mr();
-    counter=0;
+
     // measurement will be ready after 50...60ms (this value was aquired by experimental meassurement).
-    _delay_ms(50);
+    _delay_ms(55);
+    counter=0;
     do{
-      counter ++;
       _delay_us(20);
+      counter ++;
       df();
     }while((capH & ( (1 << STALE))) && counter <100 );
-
     printf("Counter is %d\n\r", counter);
-  
     capH = capH & 0x3f;
+    convertToZAC(); 
     printf("capH = %x\n\r", capH);
     printf("capL = %x\n\r", capL);
     printf("tempH = %x\n\r", tempH);
@@ -149,19 +197,22 @@ int main (void)
 
   // init registers for i2c
   // Set Fscl 100 kHz
-  TWBR = 72; 
+  TWBR = 32; 
 
   printf("Start\n\r");
+  // PC0 as output port
+	DDRC = (1<<PC0);
     // TODO debug, LED blink
-	DDRB = (1<<PB1);
-  PORTB = PORTB ^ (1<<PB1);
+	DDRD = (1<<PD5);
+  PORTD = PORTD ^ (1<<PD5);
     _delay_ms(500);
-  PORTB = PORTB ^ (1<<PB1);
+  PORTD = PORTD ^ (1<<PD5);
     _delay_ms(500);
-  PORTB = PORTB ^ (1<<PB1);
+  PORTD = PORTD ^ (1<<PD5);
     _delay_ms(500);
-  PORTB = PORTB ^ (1<<PB1);
+  PORTD = PORTD ^ (1<<PD5);
     _delay_ms(500);
+  PORTD = PORTD ^ (1<<PD5);
 
 	// enable timer overflow interrupt
 	//TIMSK0 = ( 1 << TOIE0 ); 
