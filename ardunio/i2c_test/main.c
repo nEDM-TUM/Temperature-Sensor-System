@@ -15,10 +15,10 @@
 #define TLONG 90
 #define TSHORT 30
 uint8_t ready=1;
-uint8_t capH=0xff;
-uint8_t capL=0xff;
-uint8_t tempH=0xff;
-uint8_t tempL=0xff;
+uint8_t capH=0x1a;
+uint8_t capL=0x12;
+uint8_t tempH=0x55;
+uint8_t tempL=0x44;
 // FIXME converted roughly for test
 uint8_t cap=0xff;
 uint8_t temp=0xff;
@@ -77,7 +77,7 @@ uint8_t readByte(uint8_t ack){
 }
 
 inline void df(){
-    //printf("TWSR is %x\n\r", TWSR);
+  printf("TWSR is %x\n\r", TWSR);
   // printf("Data Fetch\n\r");
   // Start condition
   TWCR = ((1 << TWINT) | (1 << TWSTA) | (1 << TWEN));
@@ -114,30 +114,30 @@ inline uint8_t verifyStatus(){
 }
 
 inline void sendSTART(){
-  PORTD &= ~(1<<PC0);  
+  PORTC &= ~(1<<PC0);  
   _delay_us(TSTART);
-  PORTD |= (1<<PC0);  
+  PORTC |= (1<<PC0);  
   _delay_us(TSTART);
 }
 
 inline void send0(){
-    PORTD &= ~(1<<PC0);  
+    PORTC &= ~(1<<PC0);  
     _delay_us(TLONG);
-    PORTD |= (1<<PC0);  
+    PORTC |= (1<<PC0);  
     _delay_us(TSHORT);
 
 }
 
 inline void send1(){
-    PORTD &= ~(1<<PC0);  
+    PORTC &= ~(1<<PC0);  
     _delay_us(TSHORT);
-    PORTD |= (1<<PC0);  
+    PORTC |= (1<<PC0);  
     _delay_us(TLONG);
 }
 
 inline void sendBYTE(uint8_t byte){
   uint8_t index = 0;
-  for(; index <8; index++){
+  for(index=7; index >= 0; index--){
     if(byte & (1 << index)){
       send1();
     }else{
@@ -147,7 +147,7 @@ inline void sendBYTE(uint8_t byte){
 }
 
 inline void convertToZAC(){
-  PORTD |= (1<<PC0);
+  PORTC |= (1<<PC0);
   _delay_us(2*TSTART);
   sendSTART();
   sendBYTE(capH);
@@ -158,11 +158,11 @@ inline void convertToZAC(){
 
 void loop(){
     // TODO debug, LED blink
-    _delay_ms(500);
-    PORTD = PORTD ^ (1<<PD5);
-    _delay_ms(500);
-    PORTD = PORTD ^ (1<<PD5);
-    mr();
+   // _delay_ms(500);
+   // PORTD = PORTD ^ (1<<PD5);
+   // _delay_ms(500);
+   // PORTD = PORTD ^ (1<<PD5);
+    //mr();
 
     // measurement will be ready after 50...60ms (this value was aquired by experimental meassurement).
     _delay_ms(55);
@@ -170,21 +170,21 @@ void loop(){
     do{
       _delay_us(20);
       counter ++;
-      df();
-    }while((capH & ( (1 << STALE))) && counter <100 );
-    printf("Counter is %d\n\r", counter);
+      //df();
+    }while((capH & ( (1 << STALE))) && counter <1 );
+    //printf("Counter is %d\n\r", counter);
     capH = capH & 0x3f;
     convertToZAC(); 
     printf("capH = %x\n\r", capH);
-    printf("capL = %x\n\r", capL);
-    printf("tempH = %x\n\r", tempH);
-    printf("tempL = %x\n\r", tempL);
+    //printf("capL = %x\n\r", capL);
+    //printf("tempH = %x\n\r", tempH);
+    //printf("tempL = %x\n\r", tempL);
 
-    cap = ((capH*3) >> 1) + (capH >>4);
-    temp = (tempH >> 1) + (tempH >> 3) + (tempH >> 6);
+    //cap = ((capH*3) >> 1) + (capH >>4);
+    //temp = (tempH >> 1) + (tempH >> 3) + (tempH >> 6);
 
-    printf("converted cap = %u\n\r", cap);
-    printf("converted temp = %u - 40 = %d\n\r", temp, temp-40);
+    //printf("converted cap = %u\n\r", cap);
+    //printf("converted temp = %u - 40 = %d\n\r", temp, temp-40);
 }
 
 int main (void)
