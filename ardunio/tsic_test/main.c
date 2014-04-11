@@ -12,6 +12,7 @@
 uint8_t send_buffer[8];
 uint8_t stable_data[8];
 uint8_t bufferpointer;
+uint8_t icount;
 
 #ifdef DEBUG
 uint8_t s = 0;
@@ -63,7 +64,7 @@ uint16_t analyze(uint8_t * buf){
 uint16_t analyze_hum_temp(uint8_t * buf){
 	uint8_t tempH = buf[1];
 	uint8_t tempL = buf[0];
-	return (tempH >> 1) + (tempH >> 3) + (tempH >> 6);
+	return (tempH >> 1) + (tempH >> 3) + (tempH >> 6) - 40;
 }
 
 uint16_t analyze_hum_hum(uint8_t * buf){
@@ -141,7 +142,7 @@ void interpret(uint8_t * data){
 void printarray(uint8_t * arr, uint8_t len){
   uint8_t i;
   for (i=0;i<len;i++){
-    printf(" %x ", arr[i]);
+    printf(" %x ", arr[len-1-i]);
   }
   printf("\n\r");
 }
@@ -160,14 +161,16 @@ void loop(){
 	cf = 0;
 	cr = 0;
 #endif
+  icount = 0;
 	meassure_start_bank1();
-	//meassure_start_bank2();
+	meassure_start_bank2();
 	for(i=0;i<12;i++){
 		handle_communications();
 		_delay_ms(15);
 	}
 	meassure_stop_bank1();
-	//meassure_stop_bank2();
+  printf("icount = %u\n\r", icount);
+	meassure_stop_bank2();
 #ifdef DEBUG
 	printf("cf = %d\n\r", cf);
 	printf("crita = %d critb = %d\n\r", tcrita, tcritb);
@@ -190,7 +193,7 @@ void loop(){
 	printf("Bank1: ");
 	interpret(bytearr_bank1);
 	printf("   Bank2: ");
-	//interpret(bytearr_bank2);
+	interpret(bytearr_bank2);
   printf("\n\r");
 	//cels1 = analyze(bytearr_bank1);
 	//cels2 = analyze(bytearr_bank2);
