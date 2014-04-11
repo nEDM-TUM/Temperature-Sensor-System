@@ -9,6 +9,10 @@
 // PB0 - PCINT0
 // PD7 - PCINT23
 
+uint8_t send_buffer[8];
+uint8_t stable_data[8];
+uint8_t bufferpointer;
+
 #ifdef DEBUG
 uint8_t s = 0;
 uint8_t tcrita;
@@ -60,19 +64,46 @@ void twi_init(){
   // set slave address
   // do NOT listen to general call
   TWAR = (SLA << 1);
-  TWCR = (1<<TWEA) | (1<<TWEN)
+  TWCR = (1<<TWEA) | (1<<TWEN);
 }
 
 void handle_communications(){
   if(TWCR & (1<<TWINT)){
     //TWI interrupt
+		printf("TWSR = %x\n\r", TWSR);
     switch (TWSR){
       case 0xa8:
         // own address received, ack has been returned:
-        TWDR = 0xaa; //data :)
-        TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT)
-
+				// prepare data to send:
+				send_buffer[0] = stable_data[0];
+				send_buffer[1] = stable_data[1];
+				send_buffer[2] = stable_data[2];
+				send_buffer[3] = stable_data[3];
+				send_buffer[4] = stable_data[4];
+				send_buffer[5] = stable_data[5];
+				send_buffer[6] = stable_data[6];
+				send_buffer[7] = stable_data[7];
+				bufferpointer = 1;
+        TWDR = send_buffer[0]; //data :)
+        TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+				break;
+      case 0xb8:
+				// data byte has been transmitted, ack has been received
+				// FIXME: this allows master to cause buffer overflow read :P
+        TWDR = send_buffer[bufferpointer]; //data :)
+				bufferpointer++;
+        TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
         break;
+      case 0xc0:
+				// data byte has been transmitted NACK has been received
+        TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+        break;
+			case 0xc8:
+				// last data byte in transmission was transmitted, ACK has been received
+        break;
+			case 0x00:
+				printf("bus error\n\r");
+        TWCR = (1<< TWEA) | (1<<TWSTO) | (1<<TWEN) | (1<<TWINT);
       
     }
 
@@ -80,6 +111,7 @@ void handle_communications(){
 }
 
 void loop(){
+	uint8_t i;
 	//printf("---\n\r");
 	uint16_t cels1;
 	uint16_t cels2;
@@ -94,7 +126,10 @@ void loop(){
 #endif
 	meassure_start_bank1();
 	meassure_start_bank2();
-	_delay_ms(110);
+	for(i=0;i<12;i++){
+		handle_communications();
+		_delay_ms(10);
+	}
 	meassure_stop_bank1();
 	meassure_stop_bank2();
 #ifdef DEBUG
@@ -106,11 +141,21 @@ void loop(){
 	printf("Tf%d = %d\n\r", 11, times[11]);
 #endif
 	
+	stable_data[0] = bytearr_bank1[0];
+	stable_data[1] = bytearr_bank1[1];
+	stable_data[2] = bytearr_bank1[2];
+	stable_data[4] = bytearr_bank2[0];
+	stable_data[5] = bytearr_bank2[1];
+	stable_data[6] = bytearr_bank2[2];
+
 	cels1 = analyze(bytearr_bank1);
 	cels2 = analyze(bytearr_bank2);
 
 	printf("bank1: %d  bank2: %d\n\r", cels1, cels2);
-	_delay_ms(500);
+	for(i=0;i<50;i++){
+		handle_communications();
+		_delay_ms(10);
+	}
 }
 
 
@@ -122,6 +167,7 @@ int main (void)
 
 	uart_init();
 	sei();
+	twi_init();
 
 	DDRB = (1<<PB1);
 	int_init1();
