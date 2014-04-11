@@ -16,9 +16,9 @@
 #define TSHORT 30
 uint8_t ready=1;
 uint8_t capH=0x1a;
-uint8_t capL=0x12;
-uint8_t tempH=0x55;
-uint8_t tempL=0x44;
+uint8_t capL=0xad;
+uint8_t tempH=0x62;
+uint8_t tempL=0xff;
 // FIXME converted roughly for test
 uint8_t cap=0xff;
 uint8_t temp=0xff;
@@ -77,7 +77,6 @@ uint8_t readByte(uint8_t ack){
 }
 
 inline void df(){
-  printf("TWSR is %x\n\r", TWSR);
   // printf("Data Fetch\n\r");
   // Start condition
   TWCR = ((1 << TWINT) | (1 << TWSTA) | (1 << TWEN));
@@ -136,19 +135,19 @@ inline void send1(){
 }
 
 inline void sendBYTE(uint8_t byte){
-  uint8_t index = 0;
+  int8_t index = 0;
   for(index=7; index >= 0; index--){
-    if(byte & (1 << index)){
+
+    if(byte & (1 << 7)){
       send1();
     }else{
       send0();
     }
+    byte = (byte<<1);
   }
 }
 
 inline void convertToZAC(){
-  PORTC |= (1<<PC0);
-  _delay_us(2*TSTART);
   sendSTART();
   sendBYTE(capH);
   sendBYTE(capL);
@@ -162,7 +161,7 @@ void loop(){
    // PORTD = PORTD ^ (1<<PD5);
    // _delay_ms(500);
    // PORTD = PORTD ^ (1<<PD5);
-    //mr();
+    mr();
 
     // measurement will be ready after 50...60ms (this value was aquired by experimental meassurement).
     _delay_ms(55);
@@ -170,7 +169,7 @@ void loop(){
     do{
       _delay_us(20);
       counter ++;
-      //df();
+      df();
     }while((capH & ( (1 << STALE))) && counter <1 );
     //printf("Counter is %d\n\r", counter);
     capH = capH & 0x3f;
@@ -180,11 +179,11 @@ void loop(){
     //printf("tempH = %x\n\r", tempH);
     //printf("tempL = %x\n\r", tempL);
 
-    //cap = ((capH*3) >> 1) + (capH >>4);
-    //temp = (tempH >> 1) + (tempH >> 3) + (tempH >> 6);
+    cap = ((capH*3) >> 1) + (capH >>4);
+    temp = (tempH >> 1) + (tempH >> 3) + (tempH >> 6);
 
-    //printf("converted cap = %u\n\r", cap);
-    //printf("converted temp = %u - 40 = %d\n\r", temp, temp-40);
+    printf("converted cap = %u\n\r", cap);
+    printf("converted temp = %u - 40 = %d\n\r", temp, temp-40);
 }
 
 int main (void)
@@ -202,6 +201,7 @@ int main (void)
   printf("Start\n\r");
   // PC0 as output port
 	DDRC = (1<<PC0);
+  PORTC |= (1<<PC0);
     // TODO debug, LED blink
 	DDRD = (1<<PD5);
   PORTD = PORTD ^ (1<<PD5);
