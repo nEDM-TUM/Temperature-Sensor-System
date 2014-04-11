@@ -21,7 +21,7 @@
 #undef TEMPL_N_SENSOR_PIN
 #if BANK == 1
 	uint8_t lowtime1;
-	uint8_t bytearr_bank1[3];
+	uint8_t bytearr_bank1[4];
 	uint8_t sensor_pin_mask1 = (1<<PC0);
 	uint8_t nsensor_pin_mask1 = ~(1<<PC0);
 	#define TEMPL_TMR_OVF_VECT TIMER2_OVF_vect
@@ -49,7 +49,7 @@
   #define TEMPL_TIMSK_TOIE TOIE2
 #elif BANK == 2
 	uint8_t lowtime2;
-	uint8_t bytearr_bank2[3];
+	uint8_t bytearr_bank2[4];
 	uint8_t sensor_pin_mask2 = (1<<PB0);
 	uint8_t nsensor_pin_mask2 = ~(1<<PB0);
 	#define TEMPL_TMR_OVF_VECT TIMER0_OVF_vect
@@ -101,7 +101,7 @@ ISR(TEMPL_TMR_OVF_VECT){
 #ifdef DEBUG
 	printf ("%x %x %x %d\n\r", TEMPL_BYTE_ARRAY [2], TEMPL_BYTE_ARRAY [1], TEMPL_BYTE_ARRAY [0], s);
 #endif
-	if (!(TEMPL_BYTE_ARRAY [2] & (1<<2))){
+	if (!(TEMPL_BYTE_ARRAY [2] & (1<<2)) || !(TEMPL_BYTE_ARRAY [3] & (1<<7))){
 		// we have seen a start bit AND are finished with transmission
 		// => stop measurement
 		// disable interrupt for this pin
@@ -115,6 +115,7 @@ ISR(TEMPL_TMR_OVF_VECT){
 		// we will receive the rest of the data in the next iteration
 		// hence we have to clean up the buffer, as we have to have a defined state
 		// to distinguish between humidity and temperature sensor
+		TEMPL_BYTE_ARRAY [3] = 0xff;
 		TEMPL_BYTE_ARRAY [2] = 0xff;
 		TEMPL_BYTE_ARRAY [1] = 0xff;
 		TEMPL_BYTE_ARRAY [0] = 0xff;
@@ -176,6 +177,7 @@ ISR(TEMPL_PCINT_VECT){
 			// use "rol" to shift the other two bits with carry
 			asm("rol %0" : "=r" (TEMPL_BYTE_ARRAY [1]) : "0" (TEMPL_BYTE_ARRAY [1]));
 			asm("rol %0" : "=r" (TEMPL_BYTE_ARRAY [2]) : "0" (TEMPL_BYTE_ARRAY [2]));
+			asm("rol %0" : "=r" (TEMPL_BYTE_ARRAY [3]) : "0" (TEMPL_BYTE_ARRAY [3]));
 			// now we write the received bit:
 			// if this (rising) edge happened before the critical time,
 			// we extracted from the start bit, we are dealing with a '1',
@@ -221,6 +223,7 @@ void TEMPL_START_MEASSURE (){
 	TEMPL_LOWTIME = 0;
 	// this will be shifted through and help us to determine
 	// if we have received enough bits
+	TEMPL_BYTE_ARRAY [3] = 0xff;
 	TEMPL_BYTE_ARRAY [2] = 0xff;
 	TEMPL_BYTE_ARRAY [1] = 0xff;
 	TEMPL_BYTE_ARRAY [0] = 0xff;
@@ -243,6 +246,7 @@ void TEMPL_STOP_MEASSURE (){
 		TEMPL_PCMSK &= TEMPL_N_SENSOR_PIN; // PCINT8 -> PC0
 		//PCICR &= ~(1<< PCIE1);
 		// return error:
+		TEMPL_BYTE_ARRAY [3] =0xff;
 		TEMPL_BYTE_ARRAY [2] =0xff;
 		TEMPL_BYTE_ARRAY [1] =0xff;
 		TEMPL_BYTE_ARRAY [0] =0xff;

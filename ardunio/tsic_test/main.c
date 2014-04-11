@@ -60,6 +60,18 @@ uint16_t analyze(uint8_t * buf){
 
 }
 
+uint16_t analyze_hum_temp(uint8_t * buf){
+	uint8_t tempH = buf[1];
+	uint8_t tempL = buf[0];
+	return (tempH >> 1) + (tempH >> 3) + (tempH >> 6);
+}
+
+uint16_t analyze_hum_hum(uint8_t * buf){
+	uint8_t capH = buf[3] & ~((1<<7)|(1<<6));
+	uint8_t capL = buf[2];
+	return ((capH*3) >> 1) + (capH >>4);
+}
+
 void twi_init(){
   // set slave address
   // do NOT listen to general call
@@ -110,6 +122,22 @@ void handle_communications(){
   }
 }
 
+void interpret(uint8_t * data){
+	if (!(data[3] & (1<<7))){
+		// this is a humidity sensor
+		uint16_t cels = analyze_hum_temp(data);
+		uint16_t hum = analyze_hum_hum(data);
+		printf(" T = %d, H = %d", cels, hum);
+
+	}else{
+		// this is a temperature sensor
+		uint16_t cels = analyze(bytearr_bank1);
+		printf("T = %d", cels);
+
+	}
+
+}
+
 void loop(){
 	uint8_t i;
 	//printf("---\n\r");
@@ -148,10 +176,15 @@ void loop(){
 	stable_data[5] = bytearr_bank2[1];
 	stable_data[6] = bytearr_bank2[2];
 
-	cels1 = analyze(bytearr_bank1);
-	cels2 = analyze(bytearr_bank2);
 
-	printf("bank1: %d  bank2: %d\n\r", cels1, cels2);
+	printf("Bank1: ");
+	interpret(bytearr_bank1);
+	interpret(bytearr_bank2);
+	printf("   Bank2: \n\r");
+	//cels1 = analyze(bytearr_bank1);
+	//cels2 = analyze(bytearr_bank2);
+
+	//printf("bank1: %d  bank2: %d\n\r", cels1, cels2);
 	for(i=0;i<50;i++){
 		handle_communications();
 		_delay_ms(10);
