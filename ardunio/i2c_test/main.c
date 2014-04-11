@@ -55,7 +55,7 @@ inline void mr(){
   }
   // Stop condition
   TWCR = ((1 << TWINT) | (1 << TWSTO) | (1 << TWEN));
-  printf("Required\n\r");
+  // printf("Required\n\r");
   // TODO what happend???
   // waitUntilFinished();
 }
@@ -116,10 +116,14 @@ void loop(){
     _delay_ms(500);
     mr();
     counter=0;
+    // measurement will be ready after 50...60ms (this value was aquired by experimental meassurement).
+    _delay_ms(50);
     do{
-      //counter ++;
+      counter ++;
+      _delay_us(20);
       df();
     }while((capH & ( (1 << STALE))) && counter <100 );
+
     printf("Counter is %d\n\r", counter);
   
     capH = capH & 0x3f;
