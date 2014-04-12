@@ -15,10 +15,13 @@
 #define TSTART 60
 #define TLONG 90
 #define TSHORT 30
+#define CRC8 49
 uint8_t capH=0xff;
 uint8_t capL=0xff;
 uint8_t tempH=0xff;
 uint8_t tempL=0xff;
+uint8_t crc=0xff;
+uint8_t result=0xff;
 // FIXME converted roughly for test
 uint8_t cap=0xff;
 uint8_t temp=0xff;
@@ -164,12 +167,73 @@ void sendBYTE(uint8_t byte){
   sendBYTE(tempL);\
 /*}*/
 
+#define DO_COMPUTING(byte, index) \
+/*{*/\
+  if(crc & (1<<7)){\
+    crc = crc << 1;\
+    crc |= ((byte >> index) & 1);\
+    crc ^= CRC8;\
+  } else  {\
+    crc = crc << 1;\
+    crc |= ((byte >> index) & 1);\
+  }\
+/*}*/
+
+#define COMPUTE_CRC\
+/*{*/\
+  crc = capH;\
+  int8_t index = 7;\
+  for(index=7; index >= 0; index--){\
+    DO_COMPUTING(capL, index)\
+  }\
+  for(index=7; index >= 0; index--){\
+    DO_COMPUTING(tempH, index)\
+  }\
+  for(index=7; index >= 0; index--){\
+    DO_COMPUTING(tempL, index)\
+  }\
+  for(index=7; index >= 0; index--){\
+    DO_COMPUTING(0, index)\
+  }\
+  printf("\t\t\t!!!CRC is %x\n\r", crc);\
+/*}*/
+
+#define DO_COMPUTING2(byte, index) \
+/*{*/\
+  if(result & (1<<7)){\
+    result = result << 1;\
+    result |= ((byte >> index) & 1);\
+    result ^= CRC8;\
+  } else  {\
+    result = result << 1;\
+    result |= ((byte >> index) & 1);\
+  }\
+/*}*/
+void verifyCRC(){
+  crc++;
+  result = capH;
+  int8_t index = 7;
+  for(index=7; index >= 0; index--){
+    DO_COMPUTING2(capL, index)
+  }
+  for(index=7; index >= 0; index--){
+    DO_COMPUTING2(tempH, index)
+  }
+  for(index=7; index >= 0; index--){
+    DO_COMPUTING2(tempL, index)
+  }
+  for(index=7; index >= 0; index--){
+    DO_COMPUTING2(crc, index)
+  }
+  printf("\t\t\t!!!Result is %x\n\r", result);
+}
+
 void loop(){
   // TODO debug, LED blink
-  //_delay_ms(500);
-  //PORTD = PORTD ^ (1<<PD5);
-  //_delay_ms(500);
-  //PORTD = PORTD ^ (1<<PD5);
+  _delay_ms(500);
+  PORTD = PORTD ^ (1<<PD5);
+  _delay_ms(500);
+  PORTD = PORTD ^ (1<<PD5);
   MEASURINGREQUEST
     // measurement will be ready after 50...60ms (this value was aquired by experimental meassurement).
   _delay_ms(DELAY_AFTER_MR_MS);
@@ -183,6 +247,8 @@ void loop(){
   }while((capH & ( (1 << STALE))) && counter <100 );
   //printf("Counter is %d\n\r", counter);
   capH = capH & 0x3f;
+  COMPUTE_CRC
+  verifyCRC();
   CONVERT_TO_ZAC 
   printf("capH = %x\n\r", capH);
   printf("capL = %x\n\r", capL);
