@@ -111,11 +111,11 @@ uint8_t readByte(uint8_t ack){
   _delay_us(TSTART);\
   PORTC |= (1<<PC0);  \
   _delay_us(TSTART);\
+  PORTC &= ~(1<<PC0);  \
 /*}*/
 
 #define SEND0\
 /*{*/\
-  PORTC &= ~(1<<PC0);  \
   _delay_us(TLONG);\
   PORTC |= (1<<PC0);  \
   _delay_us(TSHORT);\
@@ -123,16 +123,16 @@ uint8_t readByte(uint8_t ack){
 
 #define SEND1\
 /*{*/\
-  PORTC &= ~(1<<PC0);  \
   _delay_us(TSHORT);\
   PORTC |= (1<<PC0);  \
   _delay_us(TLONG);\
 /*}*/
 
-#define SEND_BYTE(byte) {\
+#define SEND_FIRST_BYTE(byte) {\
   int8_t index = 0;\
   int8_t byte_copy = byte;\
   for(index=7; index >= 0; index--){\
+    PORTC &= ~(1<<PC0);  \
     if(byte_copy & (1 << 7)){\
       SEND1\
     }else{\
@@ -145,6 +145,7 @@ uint8_t readByte(uint8_t ack){
 void sendBYTE(uint8_t byte){
   int8_t index = 0;
   for(index=7; index >= 0; index--){
+    PORTC &= ~(1<<PC0);
     if(byte & (1 << 7)){
       SEND1
     }else{
@@ -157,7 +158,7 @@ void sendBYTE(uint8_t byte){
 #define CONVERT_TO_ZAC\
 /*{*/\
   SEND_START\
-  SEND_BYTE(capH);\
+  SEND_FIRST_BYTE(capH)\
   sendBYTE(capL);\
   sendBYTE(tempH);\
   sendBYTE(tempL);\
