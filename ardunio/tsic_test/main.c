@@ -12,6 +12,7 @@
 uint8_t send_buffer[8];
 uint8_t stable_data[8];
 uint8_t bufferpointer;
+uint8_t icount;
 
 #ifdef DEBUG
 uint8_t s = 0;
@@ -63,7 +64,7 @@ uint16_t analyze(uint8_t * buf){
 uint16_t analyze_hum_temp(uint8_t * buf){
 	uint8_t tempH = buf[1];
 	uint8_t tempL = buf[0];
-	return (tempH >> 1) + (tempH >> 3) + (tempH >> 6);
+	return (tempH >> 1) + (tempH >> 3) + (tempH >> 6) - 40;
 }
 
 uint16_t analyze_hum_hum(uint8_t * buf){
@@ -127,15 +128,23 @@ void interpret(uint8_t * data){
 		// this is a humidity sensor
 		uint16_t cels = analyze_hum_temp(data);
 		uint16_t hum = analyze_hum_hum(data);
-		printf(" T = %d, H = %d", cels, hum);
+		printf(" T = %u, H = %u", cels, hum);
 
 	}else{
 		// this is a temperature sensor
-		uint16_t cels = analyze(bytearr_bank1);
-		printf("T = %d", cels);
+		uint16_t cels = analyze(data);
+		printf("T = %u", cels);
 
 	}
 
+}
+
+void printarray(uint8_t * arr, uint8_t len){
+  uint8_t i;
+  for (i=0;i<len;i++){
+    printf(" %x ", arr[len-1-i]);
+  }
+  printf("\n\r");
 }
 
 void loop(){
@@ -152,13 +161,15 @@ void loop(){
 	cf = 0;
 	cr = 0;
 #endif
+  icount = 0;
 	meassure_start_bank1();
 	meassure_start_bank2();
 	for(i=0;i<12;i++){
 		handle_communications();
-		_delay_ms(10);
+		_delay_ms(15);
 	}
 	meassure_stop_bank1();
+  printf("icount = %u\n\r", icount);
 	meassure_stop_bank2();
 #ifdef DEBUG
 	printf("cf = %d\n\r", cf);
@@ -176,11 +187,14 @@ void loop(){
 	stable_data[5] = bytearr_bank2[1];
 	stable_data[6] = bytearr_bank2[2];
 
+  printarray(bytearr_bank1, 4);
+  printarray(bytearr_bank2, 4);
 
 	printf("Bank1: ");
 	interpret(bytearr_bank1);
+	printf("   Bank2: ");
 	interpret(bytearr_bank2);
-	printf("   Bank2: \n\r");
+  printf("\n\r");
 	//cels1 = analyze(bytearr_bank1);
 	//cels2 = analyze(bytearr_bank2);
 

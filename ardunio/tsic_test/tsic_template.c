@@ -131,6 +131,7 @@ ISR(TEMPL_TMR_OVF_VECT){
 // Interrupt handler
 // IDEA: use OCRnA/B for TEMPL_TCRIT / TEMPL_TVAL storage to reduce stack usage
 ISR(TEMPL_PCINT_VECT){
+  icount++;
 	// start timer 2: enable with prescaler 64
 	// the order AND position of the following 3 instructions
 	// is highly important for propper timing
