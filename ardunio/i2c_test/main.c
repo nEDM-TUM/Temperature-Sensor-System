@@ -16,12 +16,13 @@
 #define TLONG 90
 #define TSHORT 30
 #define CRC8 49
-uint8_t capH=0xff;
-uint8_t capL=0xff;
-uint8_t tempH=0xff;
-uint8_t tempL=0xff;
-uint8_t crc=0xff;
+uint8_t capH=0;
+uint8_t capL=0;
+uint8_t tempH=0;
+uint8_t tempL=0;
+uint8_t crc=0;
 uint8_t result=0xff;
+uint8_t counter_sent = 0;
 // FIXME converted roughly for test
 uint8_t cap=0xff;
 uint8_t temp=0xff;
@@ -165,6 +166,7 @@ void sendBYTE(uint8_t byte){
   sendBYTE(capL);\
   sendBYTE(tempH);\
   sendBYTE(tempL);\
+  sendBYTE(crc);\
 /*}*/
 
 #define DO_COMPUTING(byte, index) \
@@ -228,6 +230,56 @@ void verifyCRC(){
   printf("\t\t\t!!!Result is %x\n\r", result);
 }
 
+// interrupt handler for output compare register A
+ISR(TIMER0_COMPA_vect){
+  if (counter_sent < 40){
+    if(capH & (1<<7)){
+    // send 1
+      OCR0B = TSHORT;
+    }else{
+    // send 0
+      OCR0B = TLONG;
+    }
+    // enable compare match B interrupt
+    TIMSK0 |= ( 1 << OCIE0B ); 
+    // shift
+    crc = crc << 1;
+    // use "rol" to shift the other two bits with carry
+    asm("rol %0" : "=r" (tempL) : "0" (tempL));
+    asm("rol %0" : "=r" (tempH) : "0" (tempH));
+    asm("rol %0" : "=r" (capL) : "0" (capL));
+    asm("rol %0" : "=r" (capH) : "0" (capH));
+  } else{
+    // Set OC0B at the beginning
+    TCCR0A |= (3 << COM0B0); 
+    TCCR0B = (1 << FOC0B);
+    // stop sending
+    TCCR0A &= ~(3 << COM0B0); 
+    TIMSK0 &= ~( 1 << OCIE0A); 
+    TIMSK0 &= ~( 1 << OCIE0B); 
+  }
+}
+
+// interrupt handler for output compare register B
+ISR(TIMER0_COMPB_vect){
+	TIMSK0 &= ~( 1 << OCIE0B); 
+  OCR0B = 0;
+}
+
+void convertToZAC(){
+  // send START bit
+  counter_sent = 0;
+  OCR0B = 0;
+  TCCR0A |= (1 << COM0B0); 
+  TCNT0=0;
+  // enable compare match A interrupt
+	TIMSK0 |= ( 1 << OCIE0A ); 
+  OCR0B = TSTART;
+  // enable compare match B interrupt
+	TIMSK0 |= ( 1 << OCIE0B ); 
+  
+}
+
 void loop(){
   // TODO debug, LED blink
   _delay_ms(500);
@@ -249,7 +301,7 @@ void loop(){
   capH = capH & 0x3f;
   COMPUTE_CRC
   verifyCRC();
-  CONVERT_TO_ZAC 
+
   printf("capH = %x\n\r", capH);
   printf("capL = %x\n\r", capL);
   printf("tempH = %x\n\r", tempH);
@@ -260,6 +312,10 @@ void loop(){
 
   printf("converted cap = %u\n\r", cap);
   printf("converted temp = %u - 40 = %d\n\r", temp, temp-40);
+
+  CONVERT_TO_ZAC 
+  // Use timer
+  convertToZAC();
 }
 
 int main (void)
@@ -290,12 +346,21 @@ int main (void)
     _delay_ms(500);
   PORTD = PORTD ^ (1<<PD5);
 
-	// enable timer overflow interrupt
-	//TIMSK0 = ( 1 << TOIE0 ); 
+  // Clear timer TCNT0 on compare match register A: OCR0A
+  TCCR0A |= (1 << WGM01); 
+  // Set prescaling clk/8
+  TCCR0B |= (1 << CS01);
+  // Every 120 us will clear the timer 
+  OCR0A = 120;
+	// enable timer output compare match A interrupt when sending bits
+	TIMSK0 &= ~( 1 << OCIE0A ); 
   // Timer init 
-	//TCCR0A = 0;
   //START_TIMER 
   //TCNT0 = 0;
+  // Set OC0B at the beginning
+  TCCR0A |= (3 << COM0B0); 
+  TCCR0B = (1 << FOC0B);
+  TCCR0A &= ~(3 << COM0B0); 
   while(1){
     loop();
   }
