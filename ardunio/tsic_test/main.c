@@ -145,7 +145,7 @@ uint8_t verifyCRC(uint8_t * data, uint8_t len){
 }
 
 void interpret(uint8_t * data){
-	if (!(data[3] & (1<<7))){
+	if (!(data[4] & (1<<7))){
 		// this is a humidity sensor
     // check crc checksum:
     if (!verifyCRC(data, 4)){
@@ -212,8 +212,8 @@ void loop(){
 	stable_data[5] = bytearr_bank2[1];
 	stable_data[6] = bytearr_bank2[2];
 
-  printarray(bytearr_bank1, 4);
-  printarray(bytearr_bank2, 4);
+  printarray(bytearr_bank1, 5);
+  printarray(bytearr_bank2, 5);
 
 	printf("Bank1: ");
 	interpret(bytearr_bank1);
