@@ -124,9 +124,9 @@ void handle_communications(){
   }
 }
 
-uint8_t verifyCRC(uint8_t * data, uint8_t len){
+uint8_t verifyCRC(uint8_t * data, int8_t len){
   uint8_t result = data[len - 1];
-  uint8_t i;
+  int8_t i;
   for (i=len-2; i>=0; i--){
     uint8_t index;
     for(index=7; index >= 0; index--){
@@ -148,9 +148,11 @@ void interpret(uint8_t * data){
 	if (!(data[4] & (1<<7))){
 		// this is a humidity sensor
     // check crc checksum:
+		//printf("verify crc...\n\r");
     if (!verifyCRC(data, 4)){
       printf("CRC error\n\r");
     }
+		//printf("done\n\r");
 		uint16_t cels = analyze_hum_temp(data);
 		uint16_t hum = analyze_hum_hum(data);
 		printf(" T = %u, H = %u", cels, hum);
