@@ -212,7 +212,6 @@ void sendBYTE(uint8_t byte){
   }\
 /*}*/
 void verifyCRC(){
-  crc++;
   result = capH;
   int8_t index = 7;
   for(index=7; index >= 0; index--){
@@ -282,10 +281,10 @@ void convertToZAC(){
 
 void loop(){
   // TODO debug, LED blink
-  _delay_ms(500);
-  PORTD = PORTD ^ (1<<PD5);
-  _delay_ms(500);
-  PORTD = PORTD ^ (1<<PD5);
+ // _delay_ms(500);
+ // PORTD = PORTD ^ (1<<PD6);
+ // _delay_ms(500);
+ // PORTD = PORTD ^ (1<<PD6);
   MEASURINGREQUEST
     // measurement will be ready after 50...60ms (this value was aquired by experimental meassurement).
   _delay_ms(DELAY_AFTER_MR_MS);
@@ -335,16 +334,16 @@ int main (void)
 	DDRC = (1<<PC0);
   PORTC |= (1<<PC0);
     // TODO debug, LED blink
-	DDRD = (1<<PD5);
-  PORTD = PORTD ^ (1<<PD5);
+	DDRD = (1<<PD6);
+  PORTD = PORTD ^ (1<<PD6);
     _delay_ms(500);
-  PORTD = PORTD ^ (1<<PD5);
+  PORTD = PORTD ^ (1<<PD6);
     _delay_ms(500);
-  PORTD = PORTD ^ (1<<PD5);
+  PORTD = PORTD ^ (1<<PD6);
     _delay_ms(500);
-  PORTD = PORTD ^ (1<<PD5);
+  PORTD = PORTD ^ (1<<PD6);
     _delay_ms(500);
-  PORTD = PORTD ^ (1<<PD5);
+  PORTD = PORTD ^ (1<<PD6);
 
   // Clear timer TCNT0 on compare match register A: OCR0A
   TCCR0A |= (1 << WGM01); 
