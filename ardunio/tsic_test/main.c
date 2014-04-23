@@ -4,6 +4,7 @@
 #include "usart.h"
 
 #define SLA 0x77
+#define CRC8 49
 // sensors connected at:
 // PC0 - PCINT8
 // PB0 - PCINT0
@@ -123,9 +124,33 @@ void handle_communications(){
   }
 }
 
+uint8_t verifyCRC(uint8_t * data, uint8_t len){
+  uint8_t result = data[len - 1];
+  uint8_t i;
+  for (i=len-2; i>=0; i--){
+    uint8_t index;
+    for(index=7; index >= 0; index--){
+      if(result & (1<<7)){
+        result = result << 1;
+        result |= ((data[i] >> index) & 1);
+        result ^= CRC8;
+      } else  {
+        result = result << 1;
+        result |= ((data[i] >> index) & 1);
+      }
+    }
+  }
+  printf("\t\t\t!!!Result is %x\n\r", result);
+  return result == 0;
+}
+
 void interpret(uint8_t * data){
 	if (!(data[3] & (1<<7))){
 		// this is a humidity sensor
+    // check crc checksum:
+    if (!verifyCRC(data, 4)){
+      printf("CRC error\n\r");
+    }
 		uint16_t cels = analyze_hum_temp(data);
 		uint16_t hum = analyze_hum_hum(data);
 		printf(" T = %u, H = %u", cels, hum);
