@@ -63,14 +63,14 @@ uint16_t analyze(uint8_t * buf){
 }
 
 uint16_t analyze_hum_temp(uint8_t * buf){
-	uint8_t tempH = buf[1];
-	uint8_t tempL = buf[0];
+	uint8_t tempH = buf[2];
+	uint8_t tempL = buf[1];
 	return (tempH >> 1) + (tempH >> 3) + (tempH >> 6) - 40;
 }
 
 uint16_t analyze_hum_hum(uint8_t * buf){
-	uint8_t capH = buf[3] & ~((1<<7)|(1<<6));
-	uint8_t capL = buf[2];
+	uint8_t capH = buf[4] & ~((1<<7)|(1<<6));
+	uint8_t capL = buf[3];
 	return ((capH*3) >> 1) + (capH >>4);
 }
 
