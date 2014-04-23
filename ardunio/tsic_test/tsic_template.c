@@ -180,7 +180,7 @@ ISR(TEMPL_PCINT_VECT){
 			asm("rol %0" : "=r" (TEMPL_BYTE_ARRAY [1]) : "0" (TEMPL_BYTE_ARRAY [1]));
 			asm("rol %0" : "=r" (TEMPL_BYTE_ARRAY [2]) : "0" (TEMPL_BYTE_ARRAY [2]));
 			asm("rol %0" : "=r" (TEMPL_BYTE_ARRAY [3]) : "0" (TEMPL_BYTE_ARRAY [3]));
-			asm("rol %0" : "=r" (TEMPL_BYTE_ARRAY [4]) : "0" (TEMPL_BYTE_ARRAY [3]));
+			asm("rol %0" : "=r" (TEMPL_BYTE_ARRAY [4]) : "0" (TEMPL_BYTE_ARRAY [4]));
 			// now we write the received bit:
 			// if this (rising) edge happened before the critical time,
 			// we extracted from the start bit, we are dealing with a '1',
