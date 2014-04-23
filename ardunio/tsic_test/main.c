@@ -128,7 +128,7 @@ uint8_t verifyCRC(uint8_t * data, int8_t len){
   uint8_t result = data[len - 1];
   int8_t i;
   for (i=len-2; i>=0; i--){
-    uint8_t index;
+    int8_t index;
     for(index=7; index >= 0; index--){
       if(result & (1<<7)){
         result = result << 1;
