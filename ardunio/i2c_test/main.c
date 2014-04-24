@@ -319,48 +319,87 @@ void loop(){
 
 int main (void)
 {
-	static FILE usart_stdout = FDEV_SETUP_STREAM( mputc, 0, _FDEV_SETUP_WRITE);
-	stdout = &usart_stdout;
+	//          ppp static FILE usart_stdout = FDEV_SETUP_STREAM( mputc, 0, _FDEV_SETUP_WRITE);
+	//          ppp stdout = &usart_stdout;
 
-	uart_init();
-	sei();
+	//          ppp uart_init();
+	//          ppp sei();
 
-  // init registers for i2c
-  // Set Fscl 100 kHz
-  TWBR = 32; 
+  //          ppp // init registers for i2c
+  //          ppp // Set Fscl 100 kHz
+  //          ppp TWBR = 32; 
 
-  printf("Start\n\r");
-  // PC0 as output port
-	DDRC = (1<<PC0);
-  PORTC |= (1<<PC0);
-    // TODO debug, LED blink
-	DDRD = (1<<PD6);
-  PORTD = PORTD ^ (1<<PD6);
-    _delay_ms(500);
-  PORTD = PORTD ^ (1<<PD6);
-    _delay_ms(500);
-  PORTD = PORTD ^ (1<<PD6);
-    _delay_ms(500);
-  PORTD = PORTD ^ (1<<PD6);
-    _delay_ms(500);
-  PORTD = PORTD ^ (1<<PD6);
+  //          ppp printf("Start\n\r");
+  //          ppp printf("OC0B = %d\n\r", PORTD);
+  //          ppp // PC0 as output port
+	//          ppp DDRC |= (1<<PC0);
+  //          ppp   // TODO debug, LED blink
+	//          ppp DDRD |= (1<<PD6);
+  //          ppp PORTD = PORTD ^ (1<<PD6);
+  //          ppp   _delay_ms(500);
+  //          ppp PORTD = PORTD ^ (1<<PD6);
+  //          ppp   _delay_ms(500);
+  //          ppp PORTD = PORTD ^ (1<<PD6);
+  //          ppp   _delay_ms(500);
+  //          ppp PORTD = PORTD ^ (1<<PD6);
+  //          ppp   _delay_ms(500);
+  //          ppp PORTD = PORTD ^ (1<<PD6);
 
+  //          ppp   // TODO debug, LED blink
+	//          ppp DDRD |= (1<<PD5);
+  //          ppp PORTD = PORTD ^ (1<<PD5);
+  //          ppp   _delay_ms(500);
+  //          ppp PORTD = PORTD ^ (1<<PD5);
+  //          ppp   _delay_ms(500);
+  //          ppp PORTD = PORTD ^ (1<<PD5);
+  //          ppp   _delay_ms(500);
+  //          ppp PORTD = PORTD ^ (1<<PD5);
+  //          ppp   _delay_ms(500);
   // Clear timer TCNT0 on compare match register A: OCR0A
-  TCCR0A |= (1 << WGM01); 
+  //TCCR0A |= (1 << WGM01); 
   // Set prescaling clk/8
-  TCCR0B |= (1 << CS01);
+  //TCCR0B |= (1 << CS01);
   // Every 120 us will clear the timer 
-  OCR0A = 120;
+  //OCR0B = 120;
 	// enable timer output compare match A interrupt when sending bits
-	TIMSK0 &= ~( 1 << OCIE0A ); 
+	// TIMSK0 |= ( 1 << OCIE0A ); 
   // Timer init 
   //START_TIMER 
   //TCNT0 = 0;
+  // Set PD5 as output port
+  //DDRD |= (1<<PD5);
+  //printf("OC0B = %d\n\r", PORTD);
+  // Clear OC0B at the beginning
+
+  //TCCR0A |= (1 << COM0B1); 
+  //TCCR0A &= ~(1 << COM0B0); 
+  //TCCR0B = (1 << FOC0B);
+
+
+
+  //printf("OC0B = %d\n\r", PORTD);
+  //TCCR0A |= ((1 << COM0B0) | (1 << COM0B1)); 
+  DDRD = (1<<PD5);
+  OCR0B = 120;
+  //TCCR0B = (1 << CS01);
   // Set OC0B at the beginning
-  TCCR0A |= (3 << COM0B0); 
-  TCCR0B = (1 << FOC0B);
-  TCCR0A &= ~(3 << COM0B0); 
+  TCCR0A |= (1<<COM0B0);
+  TCCR0A |= (1<<COM0B1);
+  TCCR0B |= (1 << FOC0B);
+  _delay_ms(500);
+  // clear
+  TCCR0A &= ~(1<<COM0B0);
+  TCCR0A |= (1<<COM0B1);
+  TCCR0B |= (1 << FOC0B);
+  _delay_ms(500);
+  // set
+  TCCR0A |= (1<<COM0B0);
+  TCCR0A |= (1<<COM0B1);
+  TCCR0B |= (1 << FOC0B);
+  //TCCR0B = (1 << FOC0B);
+  //TCCR0A &= ~(3 << COM0B0); 
+  //printf("OC0B = %d\n\r", PORTD);
   while(1){
-    loop();
+   // loop();
   }
 }
