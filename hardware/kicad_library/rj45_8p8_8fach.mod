@@ -1,553 +1,553 @@
-PCBNEW-LibModule-V1  Thu 24 Apr 2014 10:50:00 PM CEST
+PCBNEW-LibModule-V1  Thu 24 Apr 2014 11:48:58 PM CEST
 # encoding utf-8
 Units mm
 $INDEX
 8P8C
 $EndINDEX
 $MODULE 8P8C
-Po 0 0 0 15 535978D4 00000000 ~~
+Po 0 0 0 15 535986AB 00000000 ~~
 Li 8P8C
 Sc 0
 AR 
 Op 0 0 0
 T0 0 0 1 1 0 0.15 N V 21 N "8P8C"
 T1 0 0 1 1 0 0.15 N V 21 N "VAL**"
-DS 0 4 115.57 4 0.15 21
-DS 0 -15.05 115.57 -15.05 0.15 21
-DS 115.597 -15.05 115.597 7.81 0.15 21
-DS 115.57 7.81 0 7.81 0.15 21
-DS -0.027 7.81 -0.027 -15.05 0.15 21
+DS 0 7.7856 115.2 7.7856 0.15 21
+DS 0 3.9956 115.2 3.9956 0.15 21
+DS 0 -15.0544 115.2 -15.0544 0.15 21
+DS 115.2 -15.0544 115.2 7.8056 0.15 21
+DS 0 7.8056 0 -15.0544 0.15 21
 $PAD
 Sh "a1" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 111.58 -13.8
+Po 110.94 -13.8044
 $EndPAD
 $PAD
 Sh "" C 3.8 3.8 0 0 0
 Dr 3.2 0 0
 At HOLE N 00E0FFFF
 Ne 0 ""
-Po 54.61 -0.53
+Po 57.6 -5.2544
 $EndPAD
 $PAD
 Sh "" C 3.8 3.8 0 0 0
 Dr 3.2 0 0
 At HOLE N 00E0FFFF
 Ne 0 ""
-Po 112.415 -5.25
+Po 112.2 -5.2544
 $EndPAD
 $PAD
 Sh "" C 3.8 3.8 0 0 0
 Dr 3.2 0 0
 At HOLE N 00E0FFFF
 Ne 0 ""
-Po 3.155 -5.25
+Po 3 -5.2544
 $EndPAD
 $PAD
 Sh "a3" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 203.17 -27.79
+Po 108.4 -13.8044
 $EndPAD
 $PAD
 Sh "a5" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 198.17 -27.79
+Po 105.86 -13.8044
 $EndPAD
 $PAD
 Sh "a7" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 104.08 -13.8
+Po 103.32 -13.8044
 $EndPAD
 $PAD
 Sh "a2" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 110.33 -11.3
+Po 109.67 -11.2644
 $EndPAD
 $PAD
 Sh "a4" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 107.83 -11.3
+Po 107.13 -11.2644
 $EndPAD
 $PAD
 Sh "a6" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 195.67 -22.79
+Po 104.59 -11.2644
 $EndPAD
 $PAD
 Sh "a8" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 102.83 -11.3
+Po 102.05 -11.2644
 $EndPAD
 $PAD
 Sh "s0" C 2.4 2.4 0 0 0
 Dr 1.4 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 115.6 0
+Po 115.2 -0.0044
 $EndPAD
 $PAD
 Sh "s1" C 2.4 2.4 0 0 0
 Dr 1.4 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 100.08 -15.05
+Po 99.51 -15.0544
 $EndPAD
 $PAD
 Sh "s2" C 2.4 2.4 0 0 0
 Dr 1.4 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 85.98 -15.05
+Po 85.54 -15.0544
 $EndPAD
 $PAD
 Sh "s3" C 2.4 2.4 0 0 0
 Dr 1.4 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 71.88 -15.05
+Po 71.57 -15.0544
 $EndPAD
 $PAD
 Sh "s4" C 2.4 2.4 0 0 0
 Dr 1.4 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 57.78 -15.05
+Po 57.6 -15.0344
 $EndPAD
 $PAD
 Sh "s5" C 2.4 2.4 0 0 0
 Dr 1.4 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 43.68 -15.05
+Po 43.63 -15.0544
 $EndPAD
 $PAD
 Sh "s6" C 2.4 2.4 0 0 0
 Dr 1.4 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 29.58 -15.05
+Po 29.66 -15.0544
 $EndPAD
 $PAD
 Sh "s7" C 2.4 2.4 0 0 0
 Dr 1.4 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 15.48 -15.05
+Po 13.15 -18.8444
 $EndPAD
 $PAD
 Sh "s8" C 2.4 2.4 0 0 0
 Dr 1.4 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 0 0
+Po 0 -0.0044
 $EndPAD
 $PAD
 Sh "b1" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 97.58 -13.8
+Po 96.97 -13.8044
 $EndPAD
 $PAD
 Sh "b3" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 95.08 -13.8
+Po 94.43 -13.8044
 $EndPAD
 $PAD
 Sh "b5" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 92.58 -13.8
+Po 91.89 -13.8044
 $EndPAD
 $PAD
 Sh "b7" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 90.08 -13.8
+Po 89.35 -13.8044
 $EndPAD
 $PAD
 Sh "b2" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 96.33 -11.3
+Po 95.7 -11.2644
 $EndPAD
 $PAD
 Sh "b4" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 93.83 -11.3
+Po 93.16 -11.2644
 $EndPAD
 $PAD
 Sh "b6" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 91.33 -11.3
+Po 90.62 -11.2644
 $EndPAD
 $PAD
 Sh "b8" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 88.83 -11.3
+Po 88.08 -11.2644
 $EndPAD
 $PAD
 Sh "c1" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 83.48 -13.8
+Po 83 -13.8044
 $EndPAD
 $PAD
 Sh "c3" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 80.98 -13.8
+Po 80.46 -13.8044
 $EndPAD
 $PAD
 Sh "c5" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 78.48 -13.8
+Po 77.92 -13.8044
 $EndPAD
 $PAD
 Sh "c7" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 75.98 -13.8
+Po 75.38 -13.8044
 $EndPAD
 $PAD
 Sh "c2" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 82.23 -11.3
+Po 81.73 -11.2644
 $EndPAD
 $PAD
 Sh "c4" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 79.73 -11.3
+Po 79.19 -11.2644
 $EndPAD
 $PAD
 Sh "c6" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 77.23 -11.3
+Po 76.65 -11.2644
 $EndPAD
 $PAD
 Sh "c8" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 74.73 -11.3
+Po 74.11 -11.2644
 $EndPAD
 $PAD
 Sh "d1" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 69.38 -13.8
+Po 69.03 -13.8044
 $EndPAD
 $PAD
 Sh "d3" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 66.88 -13.8
+Po 66.49 -13.8044
 $EndPAD
 $PAD
 Sh "d5" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 64.38 -13.8
+Po 63.95 -13.8044
 $EndPAD
 $PAD
 Sh "d7" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 61.88 -13.8
+Po 61.41 -13.8044
 $EndPAD
 $PAD
 Sh "d2" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 68.13 -11.3
+Po 67.76 -11.2644
 $EndPAD
 $PAD
 Sh "d4" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 65.63 -11.3
+Po 65.22 -11.2644
 $EndPAD
 $PAD
 Sh "d6" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 63.13 -11.3
+Po 62.68 -11.2644
 $EndPAD
 $PAD
 Sh "d8" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 60.63 -11.3
+Po 60.14 -11.2644
 $EndPAD
 $PAD
 Sh "e1" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 55.28 -13.8
+Po 55.06 -13.8044
 $EndPAD
 $PAD
 Sh "e3" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 52.78 -13.8
+Po 52.52 -13.8044
 $EndPAD
 $PAD
 Sh "e5" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 50.28 -13.8
+Po 49.98 -13.8044
 $EndPAD
 $PAD
 Sh "e7" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 47.78 -13.8
+Po 47.44 -13.8044
 $EndPAD
 $PAD
 Sh "e2" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 54.03 -11.3
+Po 53.79 -11.2644
 $EndPAD
 $PAD
 Sh "e4" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 51.53 -11.3
+Po 51.25 -11.2644
 $EndPAD
 $PAD
 Sh "e6" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 49.03 -11.3
+Po 48.71 -11.2644
 $EndPAD
 $PAD
 Sh "e8" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 46.53 -11.3
+Po 46.17 -11.2644
 $EndPAD
 $PAD
 Sh "f1" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 41.18 -13.8
+Po 41.09 -13.8044
 $EndPAD
 $PAD
 Sh "f3" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 38.68 -13.8
+Po 38.55 -13.8044
 $EndPAD
 $PAD
 Sh "f5" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 36.18 -13.8
+Po 36.01 -13.8044
 $EndPAD
 $PAD
 Sh "f7" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 33.68 -13.8
+Po 33.47 -13.8044
 $EndPAD
 $PAD
 Sh "f2" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 39.93 -11.3
+Po 39.82 -11.2644
 $EndPAD
 $PAD
 Sh "f4" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 37.43 -11.3
+Po 37.28 -11.2644
 $EndPAD
 $PAD
 Sh "f6" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 34.93 -11.3
+Po 34.74 -11.2644
 $EndPAD
 $PAD
 Sh "f8" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 32.43 -11.3
+Po 32.2 -11.2644
 $EndPAD
 $PAD
 Sh "g1" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 27.08 -13.8
+Po 27.12 -13.8044
 $EndPAD
 $PAD
 Sh "g3" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 24.58 -13.8
+Po 24.58 -13.8044
 $EndPAD
 $PAD
 Sh "g5" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 22.08 -13.8
+Po 22.04 -13.8044
 $EndPAD
 $PAD
 Sh "g7" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 19.58 -13.8
+Po 19.5 -13.8044
 $EndPAD
 $PAD
 Sh "g2" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 25.83 -11.3
+Po 25.85 -11.2644
 $EndPAD
 $PAD
 Sh "g4" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 23.33 -11.3
+Po 23.31 -11.2644
 $EndPAD
 $PAD
 Sh "g6" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 20.83 -11.3
+Po 20.77 -11.2644
 $EndPAD
 $PAD
 Sh "g8" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 18.33 -11.3
+Po 18.23 -11.2644
 $EndPAD
 $PAD
 Sh "h1" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 12.98 -13.8
+Po 13.15 -13.8044
 $EndPAD
 $PAD
 Sh "h3" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 10.48 -13.8
+Po 10.61 -13.8044
 $EndPAD
 $PAD
 Sh "h5" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 7.98 -13.8
+Po 8.07 -13.8044
 $EndPAD
 $PAD
 Sh "h7" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 5.48 -13.8
+Po 5.53 -13.8044
 $EndPAD
 $PAD
 Sh "h2" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 11.73 -11.3
+Po 11.88 -11.2644
 $EndPAD
 $PAD
 Sh "h4" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 9.23 -11.3
+Po 9.34 -11.2644
 $EndPAD
 $PAD
 Sh "h6" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 6.73 -11.3
+Po 6.8 -11.2644
 $EndPAD
 $PAD
 Sh "h8" C 1.9 1.9 0 0 0
 Dr 0.8 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 4.23 -11.3
+Po 4.26 -11.2644
 $EndPAD
 $EndMODULE 8P8C
 $EndLIBRARY
