@@ -1,0 +1,114 @@
+PCBNEW-LibModule-V1  Thu 24 Apr 2014 07:49:14 PM CEST
+# encoding utf-8
+Units mm
+$INDEX
+RJ45_8P8_simple
+$EndINDEX
+$MODULE RJ45_8P8_simple
+Po 0 0 0 15 53594E91 00000000 ~~
+Li RJ45_8P8_simple
+Kw RJ45
+Sc 0
+AR 
+Op 0 0 0
+T0 0 -21.5 1.524 1.524 0 0.3048 N V 21 N "RJ45_8P8_simple"
+T1 0.14224 -0.1016 1.00076 1.00076 0 0.2032 N V 21 N "VAL**"
+DS 5.5 -20 5.5 -9 0.15 21
+DS -5.5 -9 5.5 -9 0.15 21
+DS -5.5 -20 -5.5 -9 0.15 21
+DS -8 -20 8 -20 0.15 21
+DS 8 -20 8 1.5 0.15 21
+DS 8 1.5 -8 1.5 0.15 21
+DS -8 1.5 -8 -20 0.15 21
+$PAD
+Sh "" C 3.4 3.4 0 0 1800
+Dr 3.4 0 0
+At HOLE N 00F0FFFF
+Ne 0 ""
+Po -5.715 -8.9
+$EndPAD
+$PAD
+Sh "" C 3.4 3.4 0 0 1800
+Dr 3.4 0 0
+At HOLE N 00F0FFFF
+Ne 0 ""
+Po 5.715 -8.9
+$EndPAD
+$PAD
+Sh "1" R 1.9 1.9 0 0 1800
+Dr 0.8 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po 4.445 -2.54
+$EndPAD
+$PAD
+Sh "2" C 1.9 1.9 0 0 1800
+Dr 0.8 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po 3.175 0
+$EndPAD
+$PAD
+Sh "3" C 1.9 1.9 0 0 1800
+Dr 0.8 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po 1.905 -2.54
+$EndPAD
+$PAD
+Sh "4" C 1.9 1.9 0 0 1800
+Dr 0.8 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po 0.63 0
+$EndPAD
+$PAD
+Sh "5" C 1.9 1.9 0 0 1800
+Dr 0.8 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po -0.635 -2.54
+$EndPAD
+$PAD
+Sh "6" C 1.9 1.9 0 0 1800
+Dr 0.8 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po -1.905 0
+$EndPAD
+$PAD
+Sh "7" C 1.9 1.9 0 0 1800
+Dr 0.8 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po -3.175 -2.54
+$EndPAD
+$PAD
+Sh "8" C 1.9 1.9 0 0 1800
+Dr 0.8 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po -4.445 0
+$EndPAD
+$PAD
+Sh "9" C 3 3 0 0 1800
+Dr 1.6 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po 7.9 -12
+$EndPAD
+$PAD
+Sh "9" C 3 3 0 0 1800
+Dr 1.6 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po -7.9 -12
+$EndPAD
+$SHAPE3D
+Na "connectors/RJ45_8.wrl"
+Sc 0.4 0.4 0.4
+Of 0 0 0
+Ro 0 0 0
+$EndSHAPE3D
+$EndMODULE RJ45_8P8_simple
+$EndLIBRARY
