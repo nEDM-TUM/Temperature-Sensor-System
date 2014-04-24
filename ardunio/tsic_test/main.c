@@ -4,6 +4,7 @@
 #include "usart.h"
 
 #define SLA 0x77
+#define CRC8 49
 // sensors connected at:
 // PC0 - PCINT8
 // PB0 - PCINT0
@@ -62,14 +63,14 @@ uint16_t analyze(uint8_t * buf){
 }
 
 uint16_t analyze_hum_temp(uint8_t * buf){
-	uint8_t tempH = buf[1];
-	uint8_t tempL = buf[0];
+	uint8_t tempH = buf[2];
+	uint8_t tempL = buf[1];
 	return (tempH >> 1) + (tempH >> 3) + (tempH >> 6) - 40;
 }
 
 uint16_t analyze_hum_hum(uint8_t * buf){
-	uint8_t capH = buf[3] & ~((1<<7)|(1<<6));
-	uint8_t capL = buf[2];
+	uint8_t capH = buf[4] & ~((1<<7)|(1<<6));
+	uint8_t capL = buf[3];
 	return ((capH*3) >> 1) + (capH >>4);
 }
 
@@ -123,9 +124,35 @@ void handle_communications(){
   }
 }
 
+uint8_t verifyCRC(uint8_t * data, int8_t len){
+  uint8_t result = data[len - 1];
+  int8_t i;
+  for (i=len-2; i>=0; i--){
+    int8_t index;
+    for(index=7; index >= 0; index--){
+      if(result & (1<<7)){
+        result = result << 1;
+        result |= ((data[i] >> index) & 1);
+        result ^= CRC8;
+      } else  {
+        result = result << 1;
+        result |= ((data[i] >> index) & 1);
+      }
+    }
+  }
+  printf("\t\t\t!!!Result is %x\n\r", result);
+  return result == 0;
+}
+
 void interpret(uint8_t * data){
-	if (!(data[3] & (1<<7))){
+	if (!(data[4] & (1<<7))){
 		// this is a humidity sensor
+    // check crc checksum:
+		//printf("verify crc...\n\r");
+    if (!verifyCRC(data, 4)){
+      printf("CRC error\n\r");
+    }
+		//printf("done\n\r");
 		uint16_t cels = analyze_hum_temp(data);
 		uint16_t hum = analyze_hum_hum(data);
 		printf(" T = %u, H = %u", cels, hum);
@@ -187,8 +214,8 @@ void loop(){
 	stable_data[5] = bytearr_bank2[1];
 	stable_data[6] = bytearr_bank2[2];
 
-  printarray(bytearr_bank1, 4);
-  printarray(bytearr_bank2, 4);
+  printarray(bytearr_bank1, 5);
+  printarray(bytearr_bank2, 5);
 
 	printf("Bank1: ");
 	interpret(bytearr_bank1);
