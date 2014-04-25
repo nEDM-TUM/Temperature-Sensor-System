@@ -1,11 +1,11 @@
-PCBNEW-LibModule-V1  Thu 24 Apr 2014 09:05:37 PM CEST
+PCBNEW-LibModule-V1  Fri 25 Apr 2014 02:59:22 PM CEST
 # encoding utf-8
 Units mm
 $INDEX
 LPV_Stiftleiste_2pol
 $EndINDEX
 $MODULE LPV_Stiftleiste_2pol
-Po 0 0 0 15 5359607B 00000000 ~~
+Po 0 0 0 15 535A5B88 00000000 ~~
 Li LPV_Stiftleiste_2pol
 Sc 0
 AR 
@@ -20,14 +20,14 @@ DS 2.54 2.54 2.54 -2.921 0.15 21
 DS 2.54 -2.921 -2.54 -2.921 0.15 21
 DS -2.54 -2.921 -2.54 2.54 0.15 21
 $PAD
-Sh "1" R 1.8 1.8 0 0 0
+Sh "1" R 2 2 0 0 0
 Dr 1 0 0
 At STD N 00E0FFFF
 Ne 0 ""
 Po -1.27 0
 $EndPAD
 $PAD
-Sh "2" C 1.8 1.8 0 0 0
+Sh "2" C 2 2 0 0 0
 Dr 1 0 0
 At STD N 00E0FFFF
 Ne 0 ""
