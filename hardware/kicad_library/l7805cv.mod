@@ -1,17 +1,17 @@
-PCBNEW-LibModule-V1  Sat 26 Apr 2014 11:43:16 AM CEST
+PCBNEW-LibModule-V1  Sat 26 Apr 2014 12:53:47 PM CEST
 # encoding utf-8
 Units mm
 $INDEX
 l7805cv
 $EndINDEX
 $MODULE l7805cv
-Po 0 0 0 15 535B7FAA 00000000 ~~
+Po 0 0 0 15 535B9031 00000000 ~~
 Li l7805cv
 Sc 0
 AR 
 Op 0 0 0
-T0 0 0 1 1 0 0.15 N V 21 N "l7805cv"
-T1 0 0 1 1 0 0.15 N V 21 N "VAL**"
+T0 0 5.842 1 1 0 0.15 N V 21 N "l7805cv"
+T1 0 -1.27 1 1 0 0.15 N V 21 N "VAL**"
 DA 4.6 4.4 4.8 4.4 900 0.15 21
 DA -4.6 4.4 -4.6 4.6 900 0.15 21
 DS 5.2 0 4.8 4.4 0.15 21
@@ -19,25 +19,25 @@ DS -5.2 0 -4.8 4.4 0.15 21
 DS 4.6 4.6 -4.6 4.6 0.15 21
 DS -5.2 0 5.2 0 0.15 21
 $PAD
-Sh "2" O 1.8 2 0 0 0
+Sh "2" O 2 2 0 0 0
 Dr 1 0 0
 At STD N 00E0FFFF
 Ne 0 ""
 Po 0 2.85
 $EndPAD
 $PAD
-Sh "1" T 1.8 2 0 0 0
+Sh "1" T 2 2 0 0 0
 Dr 1 0 0
 At STD N 00E0FFFF
 Ne 0 ""
 Po -2.54 2.85
 $EndPAD
 $PAD
-Sh "3" O 1.8 2 0 0 0
+Sh "3" O 2 2 0 0 0
 Dr 1 0 0
 At STD N 00E0FFFF
 Ne 0 ""
-Po 5.08 5.7
+Po 2.54 2.85
 $EndPAD
 $EndMODULE l7805cv
 $EndLIBRARY
