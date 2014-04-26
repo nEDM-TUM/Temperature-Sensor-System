@@ -1,4 +1,4 @@
-update=Sat 26 Apr 2014 03:28:19 PM CEST
+update=Sat 26 Apr 2014 03:31:31 PM CEST
 version=1
 last_client=eeschema
 [cvpcb]
@@ -98,6 +98,6 @@ LibName28=atmel
 LibName29=contrib
 LibName30=valves
 LibName31=hohlbuchse
-LibName32=rj45_8p8c
-LibName33=schalter_2pol
-LibName34=ST485
+LibName32=schalter_2pol
+LibName33=ST485
+LibName34=rj45_8p8c_8fach
