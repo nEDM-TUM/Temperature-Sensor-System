@@ -1,11 +1,11 @@
-EESchema-LIBRARY Version 2.3  Date: Fri 25 Apr 2014 10:31:28 PM CEST
+EESchema-LIBRARY Version 2.3  Date: Sat 26 Apr 2014 03:30:27 PM CEST
 #encoding utf-8
 #
-# RJ45_8p8c
+# RJ45_8p8c_8fach
 #
-DEF RJ45_8p8c J 0 40 Y Y 1 F N
+DEF RJ45_8p8c_8fach J 0 40 Y Y 1 F N
 F0 "J" -2350 350 60 H V C CNN
-F1 "RJ45_8p8c" 0 350 60 H V C CNN
+F1 "RJ45_8p8c_8fach" 0 350 60 H V C CNN
 F2 "~" 0 0 60 H V C CNN
 F3 "~" 0 0 60 H V C CNN
 DRAW
