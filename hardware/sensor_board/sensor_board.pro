@@ -1,11 +1,6 @@
-update=Sun 27 Apr 2014 11:41:33 AM CEST
+update=Sun 27 Apr 2014 05:06:37 PM CEST
 version=1
 last_client=eeschema
-[cvpcb]
-version=1
-NetIExt=net
-[cvpcb/libraries]
-EquName1=devcms
 [general]
 version=1
 [pcbnew]
@@ -28,7 +23,6 @@ DrawSegmentWidth="    0.200000"
 BoardOutlineThickness="    0.100000"
 ModuleOutlineThickness="    0.150000"
 [pcbnew/libraries]
-LibDir=../kicad_library
 LibName1=sockets
 LibName2=connect
 LibName3=discret
@@ -45,23 +39,38 @@ LibName13=led
 LibName14=dip_sockets
 LibName15=pga_sockets
 LibName16=valves
-LibName17=rj45_8p8_simple_single
-LibName18=dip_schalter_2pol
-LibName19=hc49_quarz_big
-LibName20=hohlbuchse_475_17
-LibName21=LPV_Stiftleiste_2pol
-LibName22=rj45_8p8_8fach
-LibName23=sm0603_big
-LibName24=sm0805_big
-LibName25=Stiftleiste_2x1
-LibName26=Stiftleiste_3x1
-LibName27=Stiftleiste_4x1
-LibName28=taster_6mm
-LibName29=wannenstecker
+LibName17=dip_schalter_2pol
+LibName18=hc49_quarz_big
+LibName19=hohlbuchse_475_17
+LibName20=hyt271
+LibName21=l7805cv
+LibName22=l7805cv_lay
+LibName23=lm7805_lying
+LibName24=LPV_Stiftleiste_2pol
+LibName25=m3_loch
+LibName26=m3_scheibe
+LibName27=rj45_8p8_8fach
+LibName28=rj45_8p8_simple_single
+LibName29=sm0603_big
+LibName30=sm0805_big
+LibName31=st485
+LibName32=Stiftleiste_2x1
+LibName33=Stiftleiste_3x1
+LibName34=Stiftleiste_4x1
+LibName35=taster_6mm
+LibName36=tsic_to92
+LibName37=wannenstecker_2x3_rm254
+LibName38=wannenstecker_2x5_rm254
+LibDir=../kicad_library
+[cvpcb]
+version=1
+NetIExt=net
+[cvpcb/libraries]
+EquName1=devcms
 [eeschema]
 version=1
 LibDir=../kicad_library
-NetFmtName=
+NetFmtName=PcbnewAdvanced
 RptD_X=0
 RptD_Y=100
 RptLab=1
@@ -99,6 +108,6 @@ LibName29=contrib
 LibName30=valves
 LibName31=hohlbuchse
 LibName32=schalter_2pol
-LibName33=ST485
-LibName34=rj45_8p8c_8fach
-LibName35=7805_correct_pins
+LibName33=7805_correct_pins
+LibName34=ST485
+LibName35=rj45_8p8c_8fach
