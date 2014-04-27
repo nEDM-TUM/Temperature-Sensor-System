@@ -1,4 +1,4 @@
-update=Sat 26 Apr 2014 08:16:53 PM CEST
+update=Sun 27 Apr 2014 11:41:33 AM CEST
 version=1
 last_client=eeschema
 [cvpcb]
@@ -101,3 +101,4 @@ LibName31=hohlbuchse
 LibName32=schalter_2pol
 LibName33=ST485
 LibName34=rj45_8p8c_8fach
+LibName35=7805_correct_pins
