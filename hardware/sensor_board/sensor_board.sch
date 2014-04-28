@@ -2955,7 +2955,7 @@ z8b
 Text Label 18050 8800 0    60   ~ 0
 z8a
 Wire Wire Line
-	18150 3400 18600 3400
+	18125 3400 18600 3400
 Wire Wire Line
 	18600 3500 18125 3500
 Wire Wire Line
