@@ -38,7 +38,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "12 apr 2014"
+Date "28 apr 2014"
 Rev ""
 Comp ""
 Comment1 ""
@@ -363,4 +363,6 @@ F 3 "" H 9700 3600 60  0000 C CNN
 $EndComp
 Wire Wire Line
 	9700 3450 9700 3600
+Text Notes 9150 2300 0    60   ~ 0
+SWAP A AND B\nA=1\nB=2
 $EndSCHEMATC
