@@ -1,0 +1,150 @@
+Cmp-Mod V01 Created by CvPcb (2013-may-18)-stable date = Tue 29 Apr 2014 09:57:01 PM CEST
+
+BeginCmp
+TimeStamp = /535FF5D8;
+Reference = C1;
+ValeurCmp = 100nF;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /535FF5D2;
+Reference = C2;
+ValeurCmp = 10uF;
+IdModule  = SM0805_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /535FF4F4;
+Reference = C3;
+ValeurCmp = 100nF;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /532DDC2C;
+Reference = C4;
+ValeurCmp = 10uF;
+IdModule  = SM0805_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /534938E9;
+Reference = C5;
+ValeurCmp = 100nF;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /532DDC6A;
+Reference = C6;
+ValeurCmp = 100nF;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /53302A6A;
+Reference = D1;
+ValeurCmp = LED;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /53302E6F;
+Reference = D2;
+ValeurCmp = LED;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /533024BD;
+Reference = IC1;
+ValeurCmp = ATMEGA88-A;
+IdModule  = TQFP32;
+EndCmp
+
+BeginCmp
+TimeStamp = /532DDDA3;
+Reference = J1;
+ValeurCmp = RJ45;
+IdModule  = RJ45_8P8_simple;
+EndCmp
+
+BeginCmp
+TimeStamp = /53302A79;
+Reference = P1;
+ValeurCmp = ISP;
+IdModule  = wannenstecker_2x5_rm254;
+EndCmp
+
+BeginCmp
+TimeStamp = /535FFDDB;
+Reference = P2;
+ValeurCmp = UART;
+IdModule  = Stiftleiste_4x1;
+EndCmp
+
+BeginCmp
+TimeStamp = /53303458;
+Reference = R1;
+ValeurCmp = 150;
+IdModule  = SM0805_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /5330345E;
+Reference = R2;
+ValeurCmp = 150;
+IdModule  = SM0805_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /535FFA0A;
+Reference = R3;
+ValeurCmp = 150;
+IdModule  = SM0805_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /535D7B1E;
+Reference = R4;
+ValeurCmp = 22k;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /535D7B2D;
+Reference = R5;
+ValeurCmp = 22k;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /532DDB70;
+Reference = R6;
+ValeurCmp = 120;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /535FFA17;
+Reference = SW1;
+ValeurCmp = SW_RESET;
+IdModule  = Taster_6mm;
+EndCmp
+
+BeginCmp
+TimeStamp = /532DDB2F;
+Reference = U1;
+ValeurCmp = ST485;
+IdModule  = st485;
+EndCmp
+
+BeginCmp
+TimeStamp = /532DEF53;
+Reference = U2;
+ValeurCmp = HYT271;
+IdModule  = HYT271;
+EndCmp
+
+EndListe

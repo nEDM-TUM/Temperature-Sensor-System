@@ -1,0 +1,80 @@
+Cmp-Mod V01 Created by CvPcb (2013-may-18)-stable date = Tue 29 Apr 2014 09:47:54 PM CEST
+
+BeginCmp
+TimeStamp = /532DDC6A;
+Reference = C1;
+ValeurCmp = 100nF;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /535FF48E;
+Reference = C2;
+ValeurCmp = 100nF;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /532DDC2C;
+Reference = C3;
+ValeurCmp = 10uF;
+IdModule  = SM0805_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /534839D5;
+Reference = C4;
+ValeurCmp = 100nF;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /532DDDA3;
+Reference = J1;
+ValeurCmp = RJ45;
+IdModule  = RJ45_8P8_simple;
+EndCmp
+
+BeginCmp
+TimeStamp = /532DDC9D;
+Reference = R1;
+ValeurCmp = 220;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /53483A7B;
+Reference = R2;
+ValeurCmp = 22k;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /53483A81;
+Reference = R3;
+ValeurCmp = 22k;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /532DDB70;
+Reference = R4;
+ValeurCmp = 120;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /532DDB20;
+Reference = U1;
+ValeurCmp = TSIC50XF;
+IdModule  = Tsic_TO92;
+EndCmp
+
+BeginCmp
+TimeStamp = /532DDB2F;
+Reference = U2;
+ValeurCmp = ST485;
+IdModule  = st485;
+EndCmp
+
+EndListe
