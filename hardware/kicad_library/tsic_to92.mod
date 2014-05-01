@@ -1,11 +1,11 @@
-PCBNEW-LibModule-V1  Sat 26 Apr 2014 09:38:46 PM CEST
+PCBNEW-LibModule-V1  Thu 01 May 2014 10:33:04 PM CEST
 # encoding utf-8
 Units mm
 $INDEX
 Tsic_TO92
 $EndINDEX
 $MODULE Tsic_TO92
-Po 0 0 0 15 535C0B38 00000000 ~~
+Po 0 0 0 15 5362AF76 00000000 ~~
 Li Tsic_TO92
 Sc 0
 AR 
@@ -19,21 +19,21 @@ DS 2.4 0.762 2.4 2.762 0.15 21
 DS 1.9 3.262 -1.9 3.262 0.15 21
 DS -2.4 2.762 -2.4 0.762 0.15 21
 $PAD
-Sh "2" O 0.8 1.7 0 0 0
+Sh "2" O 1 1.7 0 0 0
 Dr 0.6 0 0
 At STD N 00E0FFFF
 Ne 0 ""
 Po 0 1.912
 $EndPAD
 $PAD
-Sh "1" T 0.8 1.7 0 0 0
+Sh "1" T 1 1.7 0 0 0
 Dr 0.6 0 0
 At STD N 00E0FFFF
 Ne 0 ""
 Po -1.27 1.912
 $EndPAD
 $PAD
-Sh "3" O 0.8 1.7 0 0 0
+Sh "3" O 1 1.7 0 0 0
 Dr 0.6 0 0
 At STD N 00E0FFFF
 Ne 0 ""
