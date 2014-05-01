@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPcb (2013-may-18)-stable date = Sun 27 Apr 2014 02:36:12 PM CEST
+Cmp-Mod V01 Created by CvPcb (2013-may-18)-stable date = Wed 30 Apr 2014 07:14:08 PM CEST
 
 BeginCmp
 TimeStamp = /535CD5D9;
@@ -155,6 +155,76 @@ IdModule  = SM0603_big;
 EndCmp
 
 BeginCmp
+TimeStamp = /53612D56;
+Reference = C23;
+ValeurCmp = 10u;
+IdModule  = SM0805_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /5361310D;
+Reference = C24;
+ValeurCmp = 10u;
+IdModule  = SM0805_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /53612CB1;
+Reference = C25;
+ValeurCmp = 100n;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /53612CC5;
+Reference = C26;
+ValeurCmp = 100n;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /53612CD9;
+Reference = C27;
+ValeurCmp = 100n;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /53612CED;
+Reference = C28;
+ValeurCmp = 100n;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /53612D01;
+Reference = C29;
+ValeurCmp = 100n;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /53612D15;
+Reference = C30;
+ValeurCmp = 100n;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /53612D29;
+Reference = C31;
+ValeurCmp = 100n;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /53612D3D;
+Reference = C32;
+ValeurCmp = 100n;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
 TimeStamp = /532E0BA2;
 Reference = D1;
 ValeurCmp = LED1;
@@ -171,14 +241,14 @@ EndCmp
 BeginCmp
 TimeStamp = /535CDF0F;
 Reference = D3;
-ValeurCmp = LED1;
+ValeurCmp = LED3;
 IdModule  = SM0603_big;
 EndCmp
 
 BeginCmp
 TimeStamp = /535CDF1C;
 Reference = D4;
-ValeurCmp = LED2;
+ValeurCmp = LED4;
 IdModule  = SM0603_big;
 EndCmp
 
@@ -255,7 +325,7 @@ EndCmp
 BeginCmp
 TimeStamp = /53495DD3;
 Reference = P7;
-ValeurCmp = 5Vin;
+ValeurCmp = Vccin;
 IdModule  = LPV_Stiftleiste_2pol;
 EndCmp
 
@@ -502,6 +572,13 @@ TimeStamp = /535C0629;
 Reference = R33;
 ValeurCmp = 120;
 IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /53613048;
+Reference = R34;
+ValeurCmp = 0;
+IdModule  = SM0805_big;
 EndCmp
 
 BeginCmp
