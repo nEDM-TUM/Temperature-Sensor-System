@@ -1,7 +1,7 @@
 (export (version D)
   (design
     (source /home/wenwen/uni/s56/idp/idp/hardware/humidity/humidity_board.sch)
-    (date "Thu 01 May 2014 01:24:41 PM CEST")
+    (date "Tue 06 May 2014 12:30:57 PM CEST")
     (tool "eeschema (2013-may-18)-stable"))
   (components
     (comp (ref R6)
