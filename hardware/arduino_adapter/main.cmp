@@ -1,0 +1,108 @@
+Cmp-Mod V01 Created by CvPcb (2013-may-18)-stable date = Wed 07 May 2014 07:25:11 PM CEST
+
+BeginCmp
+TimeStamp = /534D8DCA;
+Reference = D1;
+ValeurCmp = LED;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /534D8A4D;
+Reference = P1;
+ValeurCmp = CONN_8;
+IdModule  = Stiftleiste_8x1;
+EndCmp
+
+BeginCmp
+TimeStamp = /534D8A5C;
+Reference = P2;
+ValeurCmp = CONN_6;
+IdModule  = Stiftleiste_6x1;
+EndCmp
+
+BeginCmp
+TimeStamp = /534D8F83;
+Reference = P3;
+ValeurCmp = CONN_6;
+IdModule  = Stiftleiste_6x1;
+EndCmp
+
+BeginCmp
+TimeStamp = /534D8FA2;
+Reference = P4;
+ValeurCmp = CONN_8;
+IdModule  = Stiftleiste_8x1;
+EndCmp
+
+BeginCmp
+TimeStamp = /534D8B3A;
+Reference = P5;
+ValeurCmp = POW;
+IdModule  = Stiftleiste_2x1;
+EndCmp
+
+BeginCmp
+TimeStamp = /534D9C21;
+Reference = P6;
+ValeurCmp = TWI;
+IdModule  = wannenstecker_2x3_rm254;
+EndCmp
+
+BeginCmp
+TimeStamp = /534D8B0A;
+Reference = P7;
+ValeurCmp = TWI_POW;
+IdModule  = wannenstecker_2x3_rm254;
+EndCmp
+
+BeginCmp
+TimeStamp = /534D935D;
+Reference = P8;
+ValeurCmp = CONN_10;
+IdModule  = Stiftleiste_10x1;
+EndCmp
+
+BeginCmp
+TimeStamp = /534D937F;
+Reference = P9;
+ValeurCmp = CONN_8;
+IdModule  = Stiftleiste_8x1;
+EndCmp
+
+BeginCmp
+TimeStamp = /534D8A2F;
+Reference = P10;
+ValeurCmp = CONN_10;
+IdModule  = Stiftleiste_10x1;
+EndCmp
+
+BeginCmp
+TimeStamp = /534D8A3E;
+Reference = P11;
+ValeurCmp = CONN_8;
+IdModule  = Stiftleiste_8x1;
+EndCmp
+
+BeginCmp
+TimeStamp = /534D8DBC;
+Reference = R1;
+ValeurCmp = 150;
+IdModule  = SM0805_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /534D8B65;
+Reference = R2;
+ValeurCmp = 2k2;
+IdModule  = SM0603_big;
+EndCmp
+
+BeginCmp
+TimeStamp = /534D8B72;
+Reference = R3;
+ValeurCmp = 2k2;
+IdModule  = SM0603_big;
+EndCmp
+
+EndListe

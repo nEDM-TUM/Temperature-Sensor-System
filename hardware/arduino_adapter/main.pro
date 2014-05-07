@@ -1,11 +1,6 @@
-update=Wed 23 Apr 2014 06:12:23 PM CEST
+update=Wed 07 May 2014 07:21:37 PM CEST
 version=1
-last_client=pcbnew
-[cvpcb]
-version=1
-NetIExt=net
-[cvpcb/libraries]
-EquName1=devcms
+last_client=cvpcb
 [eeschema]
 version=1
 LibDir=
@@ -67,7 +62,6 @@ DrawSegmentWidth="    0.200000"
 BoardOutlineThickness="    0.100000"
 ModuleOutlineThickness="    0.150000"
 [pcbnew/libraries]
-LibDir=
 LibName1=sockets
 LibName2=connect
 LibName3=discret
@@ -84,4 +78,34 @@ LibName13=led
 LibName14=dip_sockets
 LibName15=pga_sockets
 LibName16=valves
-LibName17=/home/rainer/uni12/idp/hardware/kicad_library/idp_modules
+LibName17=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/dip_schalter_2pol
+LibName18=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/hc49_quarz_big
+LibName19=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/hohlbuchse_475_17
+LibName20=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/hyt271
+LibName21=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/l7805cv
+LibName22=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/l7805cv_lay
+LibName23=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/lm7805_lying
+LibName24=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/LPV_Stiftleiste_2pol
+LibName25=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/m3_loch
+LibName26=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/m3_scheibe
+LibName27=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/rj45_8p8_8fach
+LibName28=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/rj45_8p8_simple_single
+LibName29=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/sm0603_big
+LibName30=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/sm0805_big
+LibName31=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/st485
+LibName32=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/Stiftleiste_2x1
+LibName33=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/Stiftleiste_3x1
+LibName34=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/Stiftleiste_4x1
+LibName35=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/taster_6mm
+LibName36=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/tsic_to92
+LibName37=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/wannenstecker_2x3_rm254
+LibName38=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/wannenstecker_2x5_rm254
+LibName39=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/Stiftleiste_6x1
+LibName40=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/Stiftleiste_8x1
+LibName41=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/Stiftleiste_10x1
+LibDir=../kicad_library
+[cvpcb]
+version=1
+NetIExt=net
+[cvpcb/libraries]
+EquName1=devcms
