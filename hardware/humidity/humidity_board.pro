@@ -1,4 +1,4 @@
-update=Tue 29 Apr 2014 09:59:40 PM CEST
+update=Wed 07 May 2014 05:26:47 PM CEST
 last_client=eeschema
 [cvpcb]
 version=1
@@ -11,8 +11,8 @@ LastNetListRead=humidity_board.net
 UseCmpFile=1
 PadDrill="    0.600000"
 PadDrillOvalY="    0.600000"
-PadSizeH="    1.500000"
-PadSizeV="    1.500000"
+PadSizeH="    1.000000"
+PadSizeV="    1.700000"
 PcbTextSizeV="    1.500000"
 PcbTextSizeH="    1.500000"
 PcbTextThickness="    0.300000"
@@ -25,7 +25,7 @@ DrawSegmentWidth="    0.200000"
 BoardOutlineThickness="    0.100000"
 ModuleOutlineThickness="    0.150000"
 [pcbnew/libraries]
-LibDir=
+LibDir=../kicad_library
 LibName1=sockets
 LibName2=connect
 LibName3=discret
@@ -66,7 +66,7 @@ LibName37=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/wannenstecker_2x3_
 LibName38=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/wannenstecker_2x5_rm254
 [eeschema]
 version=1
-LibDir=
+LibDir=../kicad_library
 NetFmtName=PcbnewAdvanced
 RptD_X=0
 RptD_Y=100
@@ -105,4 +105,4 @@ LibName29=contrib
 LibName30=valves
 LibName31=TSic50xF
 LibName32=HYT271
-LibName33=/home/wenwen/uni/s56/idp/idp/hardware/kicad_library/ST485
+LibName33=/home/rainer/uni12/idp/hardware/kicad_library/ST485

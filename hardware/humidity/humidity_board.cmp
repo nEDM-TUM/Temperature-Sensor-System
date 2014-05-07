@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPcb (2013-may-18)-stable date = Tue 29 Apr 2014 09:57:01 PM CEST
+Cmp-Mod V01 Created by CvPcb (2013-may-18)-stable date = Wed 07 May 2014 05:24:36 PM CEST
 
 BeginCmp
 TimeStamp = /535FF5D8;
@@ -101,8 +101,8 @@ EndCmp
 BeginCmp
 TimeStamp = /535FFA0A;
 Reference = R3;
-ValeurCmp = 150;
-IdModule  = SM0805_big;
+ValeurCmp = 10k;
+IdModule  = SM0603_big;
 EndCmp
 
 BeginCmp
@@ -134,7 +134,7 @@ IdModule  = Taster_6mm;
 EndCmp
 
 BeginCmp
-TimeStamp = /532DDB2F;
+TimeStamp = /53600A20;
 Reference = U1;
 ValeurCmp = ST485;
 IdModule  = st485;

@@ -1,7 +1,7 @@
 (export (version D)
   (design
-    (source /home/wenwen/uni/s56/idp/idp/hardware/humidity/humidity_board.sch)
-    (date "Tue 06 May 2014 12:30:57 PM CEST")
+    (source /home/rainer/uni12/idp/hardware/humidity/humidity_board.sch)
+    (date "Wed 07 May 2014 05:27:09 PM CEST")
     (tool "eeschema (2013-may-18)-stable"))
   (components
     (comp (ref R6)
@@ -91,7 +91,7 @@
       (sheetpath (names /) (tstamps /))
       (tstamp 535FF5D8))
     (comp (ref R3)
-      (value 150)
+      (value 10k)
       (libsource (lib device) (part R))
       (sheetpath (names /) (tstamps /))
       (tstamp 535FFA0A))
@@ -289,9 +289,9 @@
     (library (logical atmel)
       (uri /usr/share/kicad/library/atmel.lib))
     (library (logical HYT271)
-      (uri /usr/share/kicad/library/HYT271.lib))
+      (uri ../kicad_library/HYT271.lib))
     (library (logical ST485)
-      (uri /home/wenwen/uni/s56/idp/idp/hardware/kicad_library/ST485.lib)))
+      (uri /home/rainer/uni12/idp/hardware/kicad_library/ST485.lib)))
   (nets
     (net (code 1) (name /SCL)
       (node (ref U2) (pin 4))
