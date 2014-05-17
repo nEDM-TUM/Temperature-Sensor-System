@@ -3,6 +3,7 @@
 *.hex
 *.map
 /build
+*.as
 
 *~
 *.swp
@@ -13,3 +14,9 @@
 main.pdf
 *.log
 *.aux
+
+plan.pdf
+
+*.ps
+*.tmp
+*.pho
