@@ -12,11 +12,14 @@
 // PB0 - PCINT0
 // PD7 - PCINT23
 
-uint8_t send_buffer[8];
-uint8_t stable_data[8];
+uint8_t send_buffer[8*5];
+//uint8_t stable_data[8];
 uint8_t connected;
 uint8_t connected_previous;
+
 uint8_t measurement_data[8][5];
+uint8_t stable_data[8][5];
+
 uint8_t bufferpointer;
 uint8_t icount;
 
@@ -95,21 +98,22 @@ void twi_init(){
 }
 
 void handle_communications(){
+	uint8_t s, i;
   if(TWCR & (1<<TWINT)){
     //TWI interrupt
-		printf("TWSR = %x\n\r", TWSR);
+		//printf("TWSR = %x\n\r", TWSR);
     switch (TWSR){
       case 0xa8:
         // own address received, ack has been returned:
 				// prepare data to send:
-				send_buffer[0] = stable_data[0];
-				send_buffer[1] = stable_data[1];
-				send_buffer[2] = stable_data[2];
-				send_buffer[3] = stable_data[3];
-				send_buffer[4] = stable_data[4];
-				send_buffer[5] = stable_data[5];
-				send_buffer[6] = stable_data[6];
-				send_buffer[7] = stable_data[7];
+				
+				// TODO do this with memcpy
+				// TODO also send information about connected state
+				for(s = 0; s<8; s++){
+					for(i=0;i<5;i++){
+						send_buffer[s*5 + i] = measurement_data[s][i];
+					}
+				}
 				bufferpointer = 1;
         TWDR = send_buffer[0]; //data :)
         TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
@@ -213,9 +217,9 @@ void loop(){
 		nsensor_pin_mask2 = ~(1<< (PD2+s));
 		meassure_start_bank1();
 		meassure_start_bank2();
-		for(i=0;i<12;i++){
+		for(i=0;i<60;i++){
 			handle_communications();
-			_delay_ms(10);
+			_delay_ms(2);
 		}
 		if(meassure_stop_bank1()){
 			connected |= (1<<s);
@@ -238,12 +242,12 @@ void loop(){
 	printf("Tf%d = %d\n\r", 11, times[11]);
 #endif
 	
-	stable_data[0] = measurement_data[2][0];
-	stable_data[1] = measurement_data[2][1];
-	stable_data[2] = measurement_data[2][2];
-	stable_data[4] = measurement_data[5][0];
-	stable_data[5] = measurement_data[5][1];
-	stable_data[6] = measurement_data[5][2];
+	// TODO do this with memcpy
+	for(s = 0; s<8; s++){
+		for(i=0;i<5;i++){
+			stable_data[s][i] = measurement_data[s][i];
+		}
+	}
 
   //printarray(bytearr_bank1, 5);
   //printarray(bytearr_bank2, 5);
@@ -270,7 +274,7 @@ void loop(){
 	//cels2 = analyze(bytearr_bank2);
 
 	//printf("bank1: %d  bank2: %d\n\r", cels1, cels2);
-	for(i=0;i<50;i++){
+	for(i=0;i<80;i++){
 		handle_communications();
 		_delay_ms(1);
 	}
