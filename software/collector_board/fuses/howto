@@ -1,0 +1,6 @@
+
+read fuses:
+sudo avrdude -p atmega88p -c usbasp -U hfuse:r:high2:b -U lfuse:r:low2:b
+
+set chip to 20mhz:
+sudo avrdude -p atmega88p -c usbasp -U lfuse:w:0b11110111:m
