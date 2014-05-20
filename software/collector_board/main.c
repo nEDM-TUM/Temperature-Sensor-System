@@ -14,7 +14,9 @@
 
 uint8_t send_buffer[8];
 uint8_t stable_data[8];
-uint8_t measurement_data[8][6];
+uint8_t connected;
+uint8_t connected_previous;
+uint8_t measurement_data[8][5];
 uint8_t bufferpointer;
 uint8_t icount;
 
@@ -201,6 +203,7 @@ void loop(){
 #endif
   icount = 0;
 	uint8_t s;
+	connected = 0;
 	for(s = 0; s<4; s++){
 		// FIXME give the measurement routine a direct pointer
 		// to the data. this will save ram ans one copy operation
@@ -214,9 +217,13 @@ void loop(){
 			handle_communications();
 			_delay_ms(10);
 		}
-		measurement_data[s][5] = meassure_stop_bank1();
+		if(meassure_stop_bank1()){
+			connected |= (1<<s);
+		}
 		//printf("icount = %u\n\r", icount);
-		measurement_data[4+s][5] = meassure_stop_bank2();
+		if(meassure_stop_bank2()){
+			connected |= (1<<4+s);
+		}
 		for(i=0;i<5;i++){
 			measurement_data[s][i] = bytearr_bank1[i];
 			measurement_data[4+s][i] = bytearr_bank2[i];
@@ -241,9 +248,17 @@ void loop(){
   //printarray(bytearr_bank1, 5);
   //printarray(bytearr_bank2, 5);
 
+	if(connected_previous != connected){
+		LED4_PORT &= ~(1<<LED4);
+	}else{
+		LED4_PORT |= (1<<LED4);
+	}
+
+	connected_previous = connected;
+
 	for(s = 0; s<8; s++){
 		printf("P%u: ", s+1);
-		if(measurement_data[s][5]){
+		if(connected & (1<<s) ){
 			interpret(measurement_data[s]);
 		}else{
 			printf("X = xxxx");
