@@ -141,6 +141,14 @@ void handle_communications(){
   }
 }
 
+void printarray(uint8_t * arr, uint8_t len){
+  uint8_t i;
+  for (i=0;i<len;i++){
+    printf(" %x ", arr[len-1-i]);
+  }
+  printf("\n\r");
+}
+
 uint8_t verifyCRC(uint8_t * data, int8_t len){
   uint8_t result = data[len - 1];
   int8_t i;
@@ -157,16 +165,19 @@ uint8_t verifyCRC(uint8_t * data, int8_t len){
       }
     }
   }
-  printf("\t\t\t!!!Result is %x\n\r", result);
+  //printf("\t\t\t!!!Result is %x\n\r", result);
   return result == 0;
 }
 
 void interpret(uint8_t * data){
 	if (!(data[4] & (1<<7))){
+		//printf("received: \n\r");
+		//printarray(data, 5);
+		//printf("\n\r");
 		// this is a humidity sensor
     // check crc checksum:
 		//printf("verify crc...\n\r");
-    if (!verifyCRC(data, 4)){
+    if (!verifyCRC(data, 5)){
       printf("CRC error\n\r");
     }
 		//printf("done\n\r");
@@ -181,14 +192,6 @@ void interpret(uint8_t * data){
 
 	}
 
-}
-
-void printarray(uint8_t * arr, uint8_t len){
-  uint8_t i;
-  for (i=0;i<len;i++){
-    printf(" %x ", arr[len-1-i]);
-  }
-  printf("\n\r");
 }
 
 void loop(){
