@@ -14,6 +14,7 @@
 
 uint8_t send_buffer[8];
 uint8_t stable_data[8];
+uint8_t measurement_data[8][6];
 uint8_t bufferpointer;
 uint8_t icount;
 
@@ -45,22 +46,30 @@ uint8_t check_parity(uint8_t value, uint8_t parity){
 
 uint16_t analyze(uint8_t * buf){
 	uint16_t result;
+	uint8_t err = 0;
 	uint8_t resth = ((buf[2]<<5) | (buf[1]>>3));
 	uint8_t restl = ((buf[1]<<7) | (buf[0]>>1));
 	if (!check_parity(restl, buf[0] & 0x1) ){
-		printf("PARITY ERROR low\n\r");
+		err = 1;
+		//printf("PARITY ERROR low\n\r");
 	}
 	if (!check_parity(resth, (buf[1]>>2) & 0x1 ) ){
-		printf("PARITY ERROR high\n\r");
+		err = 1;
+		//printf("PARITY ERROR high\n\r");
 	}
 	if (resth & ~(0x7)){
-		printf("FORMAT ERROR\n\r");
+		err = 1;
+		//printf("FORMAT ERROR\n\r");
 	}
   //result = (((buf[2]<<5) | (buf[1]>>3)) <<8) | ((buf[1]<<7) | (buf[0]>>1));
   result =( resth <<8)|restl;
   uint16_t cels = ((result * 25)>>8)*35-1000;
 
-	return cels;
+	if(err){
+		return 0;
+	}else{
+		return cels;
+	}
 
 }
 
@@ -181,7 +190,7 @@ void loop(){
 	//printf("---\n\r");
 	uint16_t cels1;
 	uint16_t cels2;
-	// start meassurement:
+	// start measurement:
 	//meassure_start_bank1();
 	//_delay_ms(150);
 	//meassure_stop_bank1();
@@ -191,19 +200,28 @@ void loop(){
 	cr = 0;
 #endif
   icount = 0;
-	sensor_pin_mask1 = (1<< PC2);
-	nsensor_pin_mask1 = ~(1<< PC2);
-	sensor_pin_mask2 = (1<< PD3);
-	nsensor_pin_mask2 = ~(1<< PD3);
-	meassure_start_bank1();
-	meassure_start_bank2();
-	for(i=0;i<12;i++){
-		handle_communications();
-		_delay_ms(15);
+	uint8_t s;
+	for(s = 0; s<4; s++){
+		// FIXME give the measurement routine a direct pointer
+		// to the data. this will save ram ans one copy operation
+		sensor_pin_mask1 = (1<< (PC0+s));
+		nsensor_pin_mask1 = ~(1<< (PC0+s));
+		sensor_pin_mask2 = (1<< (PD2+s));
+		nsensor_pin_mask2 = ~(1<< (PD2+s));
+		meassure_start_bank1();
+		meassure_start_bank2();
+		for(i=0;i<12;i++){
+			handle_communications();
+			_delay_ms(10);
+		}
+		measurement_data[s][5] = meassure_stop_bank1();
+		//printf("icount = %u\n\r", icount);
+		measurement_data[4+s][5] = meassure_stop_bank2();
+		for(i=0;i<5;i++){
+			measurement_data[s][i] = bytearr_bank1[i];
+			measurement_data[4+s][i] = bytearr_bank2[i];
+		}
 	}
-	uint8_t res_m1 = meassure_stop_bank1();
-  //printf("icount = %u\n\r", icount);
-	uint8_t res_m2 = meassure_stop_bank2();
 #ifdef DEBUG
 	printf("cf = %d\n\r", cf);
 	printf("crita = %d critb = %d\n\r", tcrita, tcritb);
@@ -213,27 +231,24 @@ void loop(){
 	printf("Tf%d = %d\n\r", 11, times[11]);
 #endif
 	
-	stable_data[0] = bytearr_bank1[0];
-	stable_data[1] = bytearr_bank1[1];
-	stable_data[2] = bytearr_bank1[2];
-	stable_data[4] = bytearr_bank2[0];
-	stable_data[5] = bytearr_bank2[1];
-	stable_data[6] = bytearr_bank2[2];
+	stable_data[0] = measurement_data[2][0];
+	stable_data[1] = measurement_data[2][1];
+	stable_data[2] = measurement_data[2][2];
+	stable_data[4] = measurement_data[5][0];
+	stable_data[5] = measurement_data[5][1];
+	stable_data[6] = measurement_data[5][2];
 
   //printarray(bytearr_bank1, 5);
   //printarray(bytearr_bank2, 5);
 
-	printf("Bank1: ");
-	if(res_m1){
-		interpret(bytearr_bank1);
-	}else{
-		printf("T = xxxx");
-	}
-	printf("   Bank2: ");
-	if(res_m2){
-		interpret(bytearr_bank2);
-	}else{
-		printf("T = xxxx");
+	for(s = 0; s<8; s++){
+		printf("P%u: ", s+1);
+		if(measurement_data[s][5]){
+			interpret(measurement_data[s]);
+		}else{
+			printf("X = xxxx");
+		}
+		printf(" | ");
 	}
   printf("\n\r");
 	//cels1 = analyze(bytearr_bank1);
@@ -242,7 +257,7 @@ void loop(){
 	//printf("bank1: %d  bank2: %d\n\r", cels1, cels2);
 	for(i=0;i<50;i++){
 		handle_communications();
-		_delay_ms(10);
+		_delay_ms(1);
 	}
 }
 
