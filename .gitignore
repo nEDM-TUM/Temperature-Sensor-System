@@ -3,9 +3,20 @@
 *.hex
 *.map
 /build
+*.as
 
 *~
 *.swp
 *.swo
 
 *.bak
+
+main.pdf
+*.log
+*.aux
+
+plan.pdf
+
+*.ps
+*.tmp
+*.pho
