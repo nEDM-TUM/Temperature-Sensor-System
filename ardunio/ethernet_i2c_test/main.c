@@ -80,7 +80,7 @@ void interpret(uint8_t * data){
 		// this is a humidity sensor
     // check crc checksum:
 		//printf("verify crc...\n\r");
-    if (!verifyCRC(data, 4)){
+    if (!verifyCRC(data, 5)){
       printf("CRC error\n\r");
     }
 		//printf("done\n\r");
