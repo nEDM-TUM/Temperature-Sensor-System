@@ -263,6 +263,7 @@ ISR(TIMER0_COMPA_vect){
 }
 
 void convertToZAC(){
+  printf("Start sending: capH = %x\n\r", capH);
   // Set OC0A at the beginning
   TCCR0A |= ((1 << COM0A0) | (1 << COM0A1)); 
   TCCR0B |= (1 << FOC0A);
@@ -387,16 +388,16 @@ int main (void)
     _delay_ms(100);
 
   // Clear timer TCNT0 on compare match register A: OCR0A
-  TCCR0A |= (1 << WGM01); 
+  //TCCR0A |= (1 << WGM01); 
   // Every 120 us will clear the timer 
-  OCR0A = 120;
+  //OCR0A = 120;
 
 	// enable timer output compare match A interrupt when sending bits
-  TIMSK0 |= ( 1 << OCIE0A ); 
+  //TIMSK0 |= ( 1 << OCIE0A ); 
   // Timer init 
-  START_TIMER 
-  TCNT0 = 0;
-  printf("\t\t\t!!!TCNTO is %d\n\r", TCNT0);
+  //START_TIMER 
+  //TCNT0 = 0;
+  //printf("\t\t\t!!!TCNTO is %d\n\r", TCNT0);
   while(1){
     //loop();
   }
