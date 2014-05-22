@@ -1,9 +1,6 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
-//#include <stdint.h>
-//#include <stdlib.h>
 #include <util/delay.h>
-//#include "strfun.h"
 #include "usart.h"
 #define DELAY_AFTER_MR_MS 55
 #define DELAY_BEFORE_DF_US 20
@@ -28,53 +25,48 @@ uint8_t cap=0xff;
 uint8_t temp=0xff;
 uint8_t counter=0;
 
-void waitUntilFinished(){
+void uint8_t waitUntilFinished(uint8_t status){
   while(!(TWCR & (1 << TWINT))){
+    // FIXME do break 
     asm("nop");
-    // Sorry, I'm busy wating!!
+    // printf("TWSR is %x\n\r", TWSR);
+    // sorry, i'm busy wating!!
   }
-}
-void waitUntil(){
-  while(!(TWCR & (1 << TWINT))){
-    printf("TWSR is %x\n\r", TWSR);
-    asm("nop");
-    // Sorry, I'm busy wating!!
+  if (TWSR == status){
+    return 1;  
   }
+  return 0;
 }
+
 #define  MEASURINGREQUEST\
 /*{*/\
   /*printf("Measurement Request\n\r");*/\
   /* Start condition*/\
   TWCR = ((1 << TWINT) | (1 << TWSTA) | (1 << TWEN));\
-  waitUntilFinished();\
   /*printf("TWCR out= %x\n\r", TWCR);*/\
   /*printf("TWSR= %x\n\r", TWSR);*/\
-  if (TWSR != 0x8){\
+  if (!waitUntilFinished(0x8)){\
     return;  \
   }\
   /*printf("Started\n\r");*/\
   /* SLA + W (bit 0)*/\
   TWDR = (SLA << 1);\
   TWCR = ((1 << TWINT) | (1 << TWEN));\
-  waitUntilFinished();\
   /* TWSR = 0x18 means SLA+W has been transmitted; ACK has been received*/\
-  if (TWSR != 0x18){\
+  if (!waitUntilFinished(0x18)){\
     return;\
   }\
   /* Stop condition*/\
   TWCR = ((1 << TWINT) | (1 << TWSTO) | (1 << TWEN));\
  /* printf("Required\n\r");*/\
-  /* TODO what happend???*/\
-  /* waitUntilFinished();*/\
 /*}*/
 
 uint8_t readByte(uint8_t ack){
   //printf("TWDR SLA + R = 0x%x\n\r", TWDR);
   TWCR = ((1 << TWINT) | (ack << TWEA) | (1 << TWEN));
   //printf("TWDR already received ??? = 0x%x\n\r", TWDR);
-  waitUntilFinished();
   // TWSR = 0x50 means Data byte has been received; ACK has been returned
-  if (TWSR != 0x50){
+  if (!waitUntilFinished(0x50)){
     return 0xff;
   }
   //printf("Read finished\n\r");
@@ -87,15 +79,14 @@ uint8_t readByte(uint8_t ack){
   /* Start condition*/\
   TWCR = ((1 << TWINT) | (1 << TWSTA) | (1 << TWEN));\
   waitUntilFinished();\
-  if (TWSR != 0x8){\
+  if (!waitUntilFinished(0x8)){\
     return;  \
   }\
   /* SLA + R (bit 1)*/\
   TWDR = (SLA << 1) | (1 << 0);\
   TWCR = ((1 << TWINT) | (1 << TWEN));\
-  waitUntilFinished();\
   /* TWSR = 0x40 means SLA+R has been transmitted; ACK has been received*/\
-  if (TWSR != 0x40){\
+  if (!waitUntilFinished(0x40)){\
     return;\
   }\
 \
@@ -278,20 +269,6 @@ void convertToZAC(){
 	TIMSK0 |= ( 1 << OCIE0B ); 
   
 }
-void led0(){
-  // TODO debug, LED blink
-  _delay_ms(500);
-  PORTC = PORTC ^ (1<<PC0);
-  _delay_ms(500);
-  PORTC = PORTC ^ (1<<PC0);
-}
-void led1(){
-  // TODO debug, LED blink
-  _delay_ms(500);
-  PORTC = PORTC ^ (1<<PC1);
-  _delay_ms(500);
-  PORTC = PORTC ^ (1<<PC1);
-}
 
 void loop(){
   MEASURINGREQUEST
@@ -339,9 +316,9 @@ int main (void)
   // Set Fscl 50 kHz
   // TWBR = 72; 
   // Set Fscl 100 kHz
-   //TWBR = 32; 
+  TWBR = 32; 
   // Set Fscl 200 kHz
-   TWBR = 12; 
+  // TWBR = 12; 
 
   printf("Start\n\r");
   // printf("OC0B = %d\n\r", PORTD);
@@ -418,4 +395,18 @@ int main (void)
   while(1){
     loop();
   }
+}
+void led0(){
+  // TODO debug, LED blink
+  _delay_ms(500);
+  PORTC = PORTC ^ (1<<PC0);
+  _delay_ms(500);
+  PORTC = PORTC ^ (1<<PC0);
+}
+void led1(){
+  // TODO debug, LED blink
+  _delay_ms(500);
+  PORTC = PORTC ^ (1<<PC1);
+  _delay_ms(500);
+  PORTC = PORTC ^ (1<<PC1);
 }
