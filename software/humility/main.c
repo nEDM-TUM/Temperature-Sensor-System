@@ -1,13 +1,10 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
-//#include <stdint.h>
-//#include <stdlib.h>
 #include <util/delay.h>
-//#include "strfun.h"
 #include "usart.h"
 #define DELAY_AFTER_MR_MS 55
 #define DELAY_BEFORE_DF_US 20
-#define START_TIMER TCCR0B = (1<< CS02 | 1 << CS00);
+#define START_TIMER TCCR0B |= (1<< CS01);
 #define STOP_TIMER TCCR0B = 0; //disable timer
 #define SLA 0x28
 #define CMODE 7
@@ -22,59 +19,55 @@ uint8_t tempH=0;
 uint8_t tempL=0;
 uint8_t crc=0;
 uint8_t result=0xff;
-uint8_t counter_sent = 0;
+int8_t counter_sent = 0;
 // FIXME converted roughly for test
 uint8_t cap=0xff;
 uint8_t temp=0xff;
 uint8_t counter=0;
+uint8_t tmp_time=0;
 
-void waitUntilFinished(){
+uint8_t waitUntilFinished(uint8_t status){
   while(!(TWCR & (1 << TWINT))){
+    // FIXME do break 
     asm("nop");
-    // Sorry, I'm busy wating!!
+    // printf("TWSR is %x\n\r", TWSR);
+    // sorry, i'm busy wating!!
   }
-}
-void waitUntil(){
-  while(!(TWCR & (1 << TWINT))){
-    printf("TWSR is %x\n\r", TWSR);
-    asm("nop");
-    // Sorry, I'm busy wating!!
+  if (TWSR == status){
+    return 1;  
   }
+  return 0;
 }
+
 #define  MEASURINGREQUEST\
 /*{*/\
   /*printf("Measurement Request\n\r");*/\
   /* Start condition*/\
   TWCR = ((1 << TWINT) | (1 << TWSTA) | (1 << TWEN));\
-  waitUntilFinished();\
   /*printf("TWCR out= %x\n\r", TWCR);*/\
   /*printf("TWSR= %x\n\r", TWSR);*/\
-  if (TWSR != 0x8){\
+  if (!waitUntilFinished(0x8)){\
     return;  \
   }\
   /*printf("Started\n\r");*/\
   /* SLA + W (bit 0)*/\
   TWDR = (SLA << 1);\
   TWCR = ((1 << TWINT) | (1 << TWEN));\
-  waitUntilFinished();\
   /* TWSR = 0x18 means SLA+W has been transmitted; ACK has been received*/\
-  if (TWSR != 0x18){\
+  if (!waitUntilFinished(0x18)){\
     return;\
   }\
   /* Stop condition*/\
   TWCR = ((1 << TWINT) | (1 << TWSTO) | (1 << TWEN));\
  /* printf("Required\n\r");*/\
-  /* TODO what happend???*/\
-  /* waitUntilFinished();*/\
 /*}*/
 
 uint8_t readByte(uint8_t ack){
   //printf("TWDR SLA + R = 0x%x\n\r", TWDR);
   TWCR = ((1 << TWINT) | (ack << TWEA) | (1 << TWEN));
   //printf("TWDR already received ??? = 0x%x\n\r", TWDR);
-  waitUntilFinished();
   // TWSR = 0x50 means Data byte has been received; ACK has been returned
-  if (TWSR != 0x50){
+  if (!waitUntilFinished(0x50)){
     return 0xff;
   }
   //printf("Read finished\n\r");
@@ -86,16 +79,14 @@ uint8_t readByte(uint8_t ack){
   /* printf("Data Fetch\n\r");*/\
   /* Start condition*/\
   TWCR = ((1 << TWINT) | (1 << TWSTA) | (1 << TWEN));\
-  waitUntilFinished();\
-  if (TWSR != 0x8){\
+  if (!waitUntilFinished(0x8)){\
     return;  \
   }\
   /* SLA + R (bit 1)*/\
   TWDR = (SLA << 1) | (1 << 0);\
   TWCR = ((1 << TWINT) | (1 << TWEN));\
-  waitUntilFinished();\
   /* TWSR = 0x40 means SLA+R has been transmitted; ACK has been received*/\
-  if (TWSR != 0x40){\
+  if (!waitUntilFinished(0x40)){\
     return;\
   }\
 \
@@ -231,66 +222,64 @@ void verifyCRC(){
 
 // interrupt handler for output compare register A
 ISR(TIMER0_COMPA_vect){
-  if (counter_sent < 40){
-    if(capH & (1<<7)){
-    // send 1
-      OCR0B = TSHORT;
-    }else{
-    // send 0
-      OCR0B = TLONG;
+  if (counter_sent >=0){
+    if(counter_sent < 80){
+      if(counter_sent%2 == 0){
+        if(capH & (1<<7)){
+        // send 1
+          OCR0A = TSHORT;
+        }else{
+        // send 0
+          OCR0A = TLONG;
+        }
+      } else { 
+        if(capH & (1<<7)){
+        // send 1
+          OCR0A = TLONG;
+        }else{
+        // send 0
+          OCR0A = TSHORT;
+        }
+        // shift
+        crc = crc << 1;
+        // use "rol" to shift the other two bits with carry
+        asm("rol %0" : "=r" (tempL) : "0" (tempL));
+        asm("rol %0" : "=r" (tempH) : "0" (tempH));
+        asm("rol %0" : "=r" (capL) : "0" (capL));
+        asm("rol %0" : "=r" (capH) : "0" (capH));
+      }
+    } else{
+      STOP_TIMER
+      // Disable timer output compare match A interrupt when sending bits
+      TIMSK0 &= ~( 1 << OCIE0A ); 
+      // Disable clear timer TCNT0 on compare match register A: OCR0A
+      TCCR0A &= ~(1 << WGM01); 
+      // Set OC0A at the beginning
+      TCCR0A |= ((1 << COM0A0) | (1 << COM0A1)); 
+      TCCR0B |= (1 << FOC0A);
     }
-    // enable compare match B interrupt
-    TIMSK0 |= ( 1 << OCIE0B ); 
-    // shift
-    crc = crc << 1;
-    // use "rol" to shift the other two bits with carry
-    asm("rol %0" : "=r" (tempL) : "0" (tempL));
-    asm("rol %0" : "=r" (tempH) : "0" (tempH));
-    asm("rol %0" : "=r" (capL) : "0" (capL));
-    asm("rol %0" : "=r" (capH) : "0" (capH));
-  } else{
-    // Set OC0B at the beginning
-    TCCR0A |= (3 << COM0B0); 
-    TCCR0B = (1 << FOC0B);
-    // stop sending
-    TCCR0A &= ~(3 << COM0B0); 
-    TIMSK0 &= ~( 1 << OCIE0A); 
-    TIMSK0 &= ~( 1 << OCIE0B); 
   }
-}
-
-// interrupt handler for output compare register B
-ISR(TIMER0_COMPB_vect){
-	TIMSK0 &= ~( 1 << OCIE0B); 
-  OCR0B = 0;
+  counter++;
 }
 
 void convertToZAC(){
+  printf("Start sending: capH = %x\n\r", capH);
+  // Set OC0A at the beginning
+  TCCR0A |= ((1 << COM0A0) | (1 << COM0A1)); 
+  TCCR0B |= (1 << FOC0A);
+
+	// enable timer output compare match A interrupt when sending bits
+  TIMSK0 |= ( 1 << OCIE0A ); 
+  // Clear timer TCNT0 on compare match register A: OCR0A
+  TCCR0A |= (1 << WGM01); 
+
   // send START bit
-  counter_sent = 0;
-  OCR0B = 0;
-  TCCR0A |= (1 << COM0B0); 
-  TCNT0=0;
-  // enable compare match A interrupt
-	TIMSK0 |= ( 1 << OCIE0A ); 
-  OCR0B = TSTART;
-  // enable compare match B interrupt
-	TIMSK0 |= ( 1 << OCIE0B ); 
-  
-}
-void led0(){
-  // TODO debug, LED blink
-  _delay_ms(500);
-  PORTC = PORTC ^ (1<<PC0);
-  _delay_ms(500);
-  PORTC = PORTC ^ (1<<PC0);
-}
-void led1(){
-  // TODO debug, LED blink
-  _delay_ms(500);
-  PORTC = PORTC ^ (1<<PC1);
-  _delay_ms(500);
-  PORTC = PORTC ^ (1<<PC1);
+  OCR0A = TSTART;
+  counter_sent = -2;
+
+  // Timer init 
+  START_TIMER 
+  TCNT0 = 0;
 }
 
 void loop(){
@@ -321,9 +310,9 @@ void loop(){
   //printf("converted cap = %u\n\r", cap);
   //printf("converted temp = %u - 40 = %d\n\r", temp, temp-40);
 
-  CONVERT_TO_ZAC 
+  //CONVERT_TO_ZAC 
   // Use timer
- // convertToZAC();
+  convertToZAC();
 }
 
 int main (void)
@@ -332,16 +321,16 @@ int main (void)
 	stdout = &usart_stdout;
 
 	uart_init();
-	// sei();
+	sei();
 
   // init registers for i2c
   // Fscl = CPU clock frequency/(16 + 2(TWBR))
   // Set Fscl 50 kHz
   // TWBR = 72; 
   // Set Fscl 100 kHz
-   //TWBR = 32; 
+  TWBR = 32; 
   // Set Fscl 200 kHz
-   TWBR = 12; 
+  // TWBR = 12; 
 
   printf("Start\n\r");
   // printf("OC0B = %d\n\r", PORTD);
@@ -371,51 +360,59 @@ int main (void)
     _delay_ms(500);
   PORTC = PORTC ^ (1<<PC1);
     _delay_ms(500);
+  PORTC = PORTC ^ (1<<PC1);
+
+
+
+  printf("OC0A = %d\n\r", PORTD);
+    _delay_us(500);
+
+  // Clear OC0A at the beginning
+  TCCR0A |= (1 << COM0A1); 
+  TCCR0A &= ~(1 << COM0A0); 
+  TCCR0B |= (1 << FOC0A);
+  printf("clear OC0A = %d\n\r", PORTD);
+    _delay_us(500);
+
+  // Set OC0A at the beginning
+  TCCR0A |= ((1 << COM0A0) | (1 << COM0A1)); 
+  TCCR0B |= (1 << FOC0A);
+  printf("Set OC0A = %d\n\r", PORTD);
+    _delay_ms(100);
+
+  // Toggle OC0A on compare match
+  TCCR0A |= (1 << COM0A0); 
+  TCCR0A &= ~(1 << COM0A1); 
+  //TCCR0B |= (1 << FOC0A);
+  printf("Set OC0A = %d\n\r", PORTD);
+    _delay_ms(100);
+
   // Clear timer TCNT0 on compare match register A: OCR0A
   //TCCR0A |= (1 << WGM01); 
-  // Set prescaling clk/8
-  //TCCR0B |= (1 << CS01);
   // Every 120 us will clear the timer 
-  //OCR0B = 120;
+  //OCR0A = 120;
+
 	// enable timer output compare match A interrupt when sending bits
-	// TIMSK0 |= ( 1 << OCIE0A ); 
+  //TIMSK0 |= ( 1 << OCIE0A ); 
   // Timer init 
   //START_TIMER 
   //TCNT0 = 0;
-  // Set PD5 as output port
-  //DDRD |= (1<<PD5);
-  //printf("OC0B = %d\n\r", PORTD);
-  // Clear OC0B at the beginning
-
-  //TCCR0A |= (1 << COM0B1); 
-  //TCCR0A &= ~(1 << COM0B0); 
-  //TCCR0B = (1 << FOC0B);
-
-// Set up method 2
-
-  //printf("OC0B = %d\n\r", PORTD);
-  //TCCR0A |= ((1 << COM0B0) | (1 << COM0B1)); 
-//  DDRD = (1<<PD5);
-//  OCR0B = 120;
-//  //TCCR0B = (1 << CS01);
-//  // Set OC0B at the beginning
-//  TCCR0A |= (1<<COM0B0);
-//  TCCR0A |= (1<<COM0B1);
-//  TCCR0B |= (1 << FOC0B);
-//  _delay_ms(500);
-//  // clear
-//  TCCR0A &= ~(1<<COM0B0);
-//  TCCR0A |= (1<<COM0B1);
-//  TCCR0B |= (1 << FOC0B);
-//  _delay_ms(500);
-//  // set
-//  TCCR0A |= (1<<COM0B0);
-//  TCCR0A |= (1<<COM0B1);
-//  TCCR0B |= (1 << FOC0B);
-  //TCCR0B = (1 << FOC0B);
-  //TCCR0A &= ~(3 << COM0B0); 
-  //printf("OC0B = %d\n\r", PORTD);
+  //printf("\t\t\t!!!TCNTO is %d\n\r", TCNT0);
   while(1){
-    loop();
+    //loop();
   }
+}
+void led0(){
+  // TODO debug, LED blink
+  _delay_ms(500);
+  PORTC = PORTC ^ (1<<PC0);
+  _delay_ms(500);
+  PORTC = PORTC ^ (1<<PC0);
+}
+void led1(){
+  // TODO debug, LED blink
+  _delay_ms(500);
+  PORTC = PORTC ^ (1<<PC1);
+  _delay_ms(500);
+  PORTC = PORTC ^ (1<<PC1);
 }
