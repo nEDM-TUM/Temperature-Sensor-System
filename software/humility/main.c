@@ -4,7 +4,7 @@
 #include "usart.h"
 #define DELAY_AFTER_MR_MS 55
 #define DELAY_BEFORE_DF_US 20
-#define START_TIMER TCCR0B = (1<< CS02 | 1 << CS00);
+#define START_TIMER TCCR0B |= (1<< CS01);
 #define STOP_TIMER TCCR0B = 0; //disable timer
 #define SLA 0x28
 #define CMODE 7
@@ -19,11 +19,12 @@ uint8_t tempH=0;
 uint8_t tempL=0;
 uint8_t crc=0;
 uint8_t result=0xff;
-uint8_t counter_sent = 0;
+int8_t counter_sent = 0;
 // FIXME converted roughly for test
 uint8_t cap=0xff;
 uint8_t temp=0xff;
 uint8_t counter=0;
+uint8_t tmp_time=0;
 
 uint8_t waitUntilFinished(uint8_t status){
   while(!(TWCR & (1 << TWINT))){
@@ -221,52 +222,63 @@ void verifyCRC(){
 
 // interrupt handler for output compare register A
 ISR(TIMER0_COMPA_vect){
-  if (counter_sent < 40){
-    if(capH & (1<<7)){
-    // send 1
-      OCR0B = TSHORT;
-    }else{
-    // send 0
-      OCR0B = TLONG;
+  if (counter_sent >=0){
+    if(counter_sent < 80){
+      if(counter_sent%2 == 0){
+        if(capH & (1<<7)){
+        // send 1
+          OCR0A = TSHORT;
+        }else{
+        // send 0
+          OCR0A = TLONG;
+        }
+      } else { 
+        if(capH & (1<<7)){
+        // send 1
+          OCR0A = TLONG;
+        }else{
+        // send 0
+          OCR0A = TSHORT;
+        }
+        // shift
+        crc = crc << 1;
+        // use "rol" to shift the other two bits with carry
+        asm("rol %0" : "=r" (tempL) : "0" (tempL));
+        asm("rol %0" : "=r" (tempH) : "0" (tempH));
+        asm("rol %0" : "=r" (capL) : "0" (capL));
+        asm("rol %0" : "=r" (capH) : "0" (capH));
+      }
+    } else{
+      STOP_TIMER
+      // Disable timer output compare match A interrupt when sending bits
+      TIMSK0 &= ~( 1 << OCIE0A ); 
+      // Disable clear timer TCNT0 on compare match register A: OCR0A
+      TCCR0A &= ~(1 << WGM01); 
+      // Set OC0A at the beginning
+      TCCR0A |= ((1 << COM0A0) | (1 << COM0A1)); 
+      TCCR0B |= (1 << FOC0A);
     }
-    // enable compare match B interrupt
-    TIMSK0 |= ( 1 << OCIE0B ); 
-    // shift
-    crc = crc << 1;
-    // use "rol" to shift the other two bits with carry
-    asm("rol %0" : "=r" (tempL) : "0" (tempL));
-    asm("rol %0" : "=r" (tempH) : "0" (tempH));
-    asm("rol %0" : "=r" (capL) : "0" (capL));
-    asm("rol %0" : "=r" (capH) : "0" (capH));
-  } else{
-    // Set OC0B at the beginning
-    TCCR0A |= (3 << COM0B0); 
-    TCCR0B = (1 << FOC0B);
-    // stop sending
-    TCCR0A &= ~(3 << COM0B0); 
-    TIMSK0 &= ~( 1 << OCIE0A); 
-    TIMSK0 &= ~( 1 << OCIE0B); 
   }
-}
-
-// interrupt handler for output compare register B
-ISR(TIMER0_COMPB_vect){
-	TIMSK0 &= ~( 1 << OCIE0B); 
-  OCR0B = 0;
+  counter++;
 }
 
 void convertToZAC(){
+  // Set OC0A at the beginning
+  TCCR0A |= ((1 << COM0A0) | (1 << COM0A1)); 
+  TCCR0B |= (1 << FOC0A);
+
+	// enable timer output compare match A interrupt when sending bits
+  TIMSK0 |= ( 1 << OCIE0A ); 
+  // Clear timer TCNT0 on compare match register A: OCR0A
+  TCCR0A |= (1 << WGM01); 
+
   // send START bit
-  counter_sent = 0;
-  OCR0B = 0;
-  TCCR0A |= (1 << COM0B0); 
-  TCNT0=0;
-  // enable compare match A interrupt
-	TIMSK0 |= ( 1 << OCIE0A ); 
-  OCR0B = TSTART;
-  // enable compare match B interrupt
-	TIMSK0 |= ( 1 << OCIE0B ); 
-  
+  OCR0A = TSTART;
+  counter_sent = -2;
+
+  // Timer init 
+  START_TIMER 
+  TCNT0 = 0;
 }
 
 void loop(){
@@ -297,9 +309,9 @@ void loop(){
   //printf("converted cap = %u\n\r", cap);
   //printf("converted temp = %u - 40 = %d\n\r", temp, temp-40);
 
-  CONVERT_TO_ZAC 
+  //CONVERT_TO_ZAC 
   // Use timer
- // convertToZAC();
+  convertToZAC();
 }
 
 int main (void)
@@ -308,7 +320,7 @@ int main (void)
 	stdout = &usart_stdout;
 
 	uart_init();
-	// sei();
+	sei();
 
   // init registers for i2c
   // Fscl = CPU clock frequency/(16 + 2(TWBR))
@@ -347,52 +359,46 @@ int main (void)
     _delay_ms(500);
   PORTC = PORTC ^ (1<<PC1);
     _delay_ms(500);
+  PORTC = PORTC ^ (1<<PC1);
+
+
+
+  printf("OC0A = %d\n\r", PORTD);
+    _delay_us(500);
+
+  // Clear OC0A at the beginning
+  TCCR0A |= (1 << COM0A1); 
+  TCCR0A &= ~(1 << COM0A0); 
+  TCCR0B |= (1 << FOC0A);
+  printf("clear OC0A = %d\n\r", PORTD);
+    _delay_us(500);
+
+  // Set OC0A at the beginning
+  TCCR0A |= ((1 << COM0A0) | (1 << COM0A1)); 
+  TCCR0B |= (1 << FOC0A);
+  printf("Set OC0A = %d\n\r", PORTD);
+    _delay_ms(100);
+
+  // Toggle OC0A on compare match
+  TCCR0A |= (1 << COM0A0); 
+  TCCR0A &= ~(1 << COM0A1); 
+  //TCCR0B |= (1 << FOC0A);
+  printf("Set OC0A = %d\n\r", PORTD);
+    _delay_ms(100);
+
   // Clear timer TCNT0 on compare match register A: OCR0A
-  //TCCR0A |= (1 << WGM01); 
-  // Set prescaling clk/8
-  //TCCR0B |= (1 << CS01);
+  TCCR0A |= (1 << WGM01); 
   // Every 120 us will clear the timer 
-  //OCR0B = 120;
+  OCR0A = 120;
+
 	// enable timer output compare match A interrupt when sending bits
-	// TIMSK0 |= ( 1 << OCIE0A ); 
+  TIMSK0 |= ( 1 << OCIE0A ); 
   // Timer init 
-  //START_TIMER 
-  //TCNT0 = 0;
-  // Set PD5 as output port
-  //DDRD |= (1<<PD5);
-  //printf("OC0B = %d\n\r", PORTD);
-  // Clear OC0B at the beginning
-
-  //TCCR0A |= (1 << COM0B1); 
-  //TCCR0A &= ~(1 << COM0B0); 
-  //TCCR0B = (1 << FOC0B);
-
-// Set up method 2
-
-  //printf("OC0B = %d\n\r", PORTD);
-  //TCCR0A |= ((1 << COM0B0) | (1 << COM0B1)); 
-//  DDRD = (1<<PD5);
-//  OCR0B = 120;
-//  //TCCR0B = (1 << CS01);
-//  // Set OC0B at the beginning
-//  TCCR0A |= (1<<COM0B0);
-//  TCCR0A |= (1<<COM0B1);
-//  TCCR0B |= (1 << FOC0B);
-//  _delay_ms(500);
-//  // clear
-//  TCCR0A &= ~(1<<COM0B0);
-//  TCCR0A |= (1<<COM0B1);
-//  TCCR0B |= (1 << FOC0B);
-//  _delay_ms(500);
-//  // set
-//  TCCR0A |= (1<<COM0B0);
-//  TCCR0A |= (1<<COM0B1);
-//  TCCR0B |= (1 << FOC0B);
-  //TCCR0B = (1 << FOC0B);
-  //TCCR0A &= ~(3 << COM0B0); 
-  //printf("OC0B = %d\n\r", PORTD);
+  START_TIMER 
+  TCNT0 = 0;
+  printf("\t\t\t!!!TCNTO is %d\n\r", TCNT0);
   while(1){
-    loop();
+    //loop();
   }
 }
 void led0(){
