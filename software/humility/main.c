@@ -25,7 +25,7 @@ uint8_t cap=0xff;
 uint8_t temp=0xff;
 uint8_t counter=0;
 
-void uint8_t waitUntilFinished(uint8_t status){
+uint8_t waitUntilFinished(uint8_t status){
   while(!(TWCR & (1 << TWINT))){
     // FIXME do break 
     asm("nop");
@@ -78,7 +78,6 @@ uint8_t readByte(uint8_t ack){
   /* printf("Data Fetch\n\r");*/\
   /* Start condition*/\
   TWCR = ((1 << TWINT) | (1 << TWSTA) | (1 << TWEN));\
-  waitUntilFinished();\
   if (!waitUntilFinished(0x8)){\
     return;  \
   }\
