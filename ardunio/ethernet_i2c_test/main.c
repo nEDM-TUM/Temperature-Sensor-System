@@ -3,7 +3,8 @@
 #include <util/delay.h>
 #include "usart.h"
 
-#define SLA 0x77
+#define SLA1 0x77
+#define SLA2 0x78
 #define CRC8 49
 
 uint8_t check_parity(uint8_t value, uint8_t parity){
@@ -13,8 +14,7 @@ uint8_t check_parity(uint8_t value, uint8_t parity){
 	return parity == 0;
 }
 
-
-uint16_t analyze(uint8_t * buf){
+int16_t analyze(uint8_t * buf){
 	uint16_t result;
 	uint8_t err = 0;
 	uint8_t resth = ((buf[2]<<5) | (buf[1]>>3));
@@ -33,15 +33,31 @@ uint16_t analyze(uint8_t * buf){
 	}
   //result = (((buf[2]<<5) | (buf[1]>>3)) <<8) | ((buf[1]<<7) | (buf[0]>>1));
   result =( resth <<8)|restl;
-  uint16_t cels = ((result * 25)>>8)*35-1000;
+  //uint32_t result32 = (uint32_t)result;
+
+
+  int32_t result32 = (int32_t)(result);
+  //for (i =0;i<25;i++){
+  //  result32 += result32;
+  //}
+  //result32 = result32 << 2;
+  //result32 = result32 * 100UL * 70UL;
+  //printf("3ff = %lu\n\r", result32/2047UL - 1000UL);
+  //int32_t c100 = 100;
+  //printf("3ff = %d\n\r", result32*c100);
+
+  int32_t cels = result32*100L*70L/2047L - 1000L;
+
+  //uint16_t cels = ((result * 25)>>8)*35-1000;
 
 	if(err){
 		return 0;
 	}else{
-		return cels;
+		return (int16_t)cels;
 	}
 
 }
+
 
 uint16_t analyze_hum_temp(uint8_t * buf){
 	uint8_t tempH = buf[2];
@@ -90,21 +106,21 @@ void interpret(uint8_t * data){
 
 	}else{
 		// this is a temperature sensor
-		uint16_t cels = analyze(data);
-		printf("T = %u", cels);
+		int16_t cels = analyze(data);
+		printf("T = %d", cels);
 
 	}
 
 }
 
-void receive_data(uint8_t * buffer, uint8_t len){
+void receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 	// send start condition:
 	TWBR = 20;
 	TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
 	while(!(TWCR & (1<<TWINT))){
 		// wait for interrupt
 	}
-	TWDR = (SLA<<1) | 1;
+	TWDR = (address<<1) | 1;
 	// send read request:
 	TWCR = (1<<TWINT) | (1<<TWEN);
 	while(!(TWCR & (1<<TWINT))){
@@ -149,9 +165,20 @@ void loop(){
 
 	uint8_t received[8][5];
 
-	receive_data(received[0],40);
+	printf("receive from 0x77..\n\r");
+	receive_data(SLA1, received[0],40);
 
 	uint8_t s;
+	for(s = 0; s<8; s++){
+		printf("P%u: ", s+1);
+		interpret(received[s]);
+		printf(" | ");
+	}
+	printf("\n\r");
+
+	printf("receive from 0x78..\n\r");
+	receive_data(SLA2, received[0],40);
+
 	for(s = 0; s<8; s++){
 		printf("P%u: ", s+1);
 		interpret(received[s]);

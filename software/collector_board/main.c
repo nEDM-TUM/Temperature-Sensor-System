@@ -6,7 +6,7 @@
 
 #include "board_support.h"
 
-#define SLA 0x77
+#define SLA 0x78
 #define CRC8 49
 // sensors connected at:
 // PC0 - PCINT8
