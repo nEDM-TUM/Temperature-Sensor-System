@@ -2,6 +2,7 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include "usart.h"
+#include <inttypes.h>
 
 #include "board_support.h"
 
@@ -49,7 +50,7 @@ uint8_t check_parity(uint8_t value, uint8_t parity){
 }
 
 
-uint16_t analyze(uint8_t * buf){
+int16_t analyze(uint8_t * buf){
 	uint16_t result;
 	uint8_t err = 0;
 	uint8_t resth = ((buf[2]<<5) | (buf[1]>>3));
@@ -68,12 +69,27 @@ uint16_t analyze(uint8_t * buf){
 	}
   //result = (((buf[2]<<5) | (buf[1]>>3)) <<8) | ((buf[1]<<7) | (buf[0]>>1));
   result =( resth <<8)|restl;
-  uint16_t cels = ((result * 25)>>8)*35-1000;
+  //uint32_t result32 = (uint32_t)result;
+
+
+  int32_t result32 = (int32_t)(result);
+  //for (i =0;i<25;i++){
+  //  result32 += result32;
+  //}
+  //result32 = result32 << 2;
+  //result32 = result32 * 100UL * 70UL;
+  //printf("3ff = %lu\n\r", result32/2047UL - 1000UL);
+  //int32_t c100 = 100;
+  //printf("3ff = %d\n\r", result32*c100);
+
+  int32_t cels = result32*100L*70L/2047L - 1000L;
+
+  //uint16_t cels = ((result * 25)>>8)*35-1000;
 
 	if(err){
 		return 0;
 	}else{
-		return cels;
+		return (int16_t)cels;
 	}
 
 }
@@ -187,8 +203,8 @@ void interpret(uint8_t * data){
 
 	}else{
 		// this is a temperature sensor
-		uint16_t cels = analyze(data);
-		printf("T = %u", cels);
+		int16_t cels = analyze(data);
+		printf("T = %d", cels);
 
 	}
 
@@ -197,8 +213,6 @@ void interpret(uint8_t * data){
 void loop(){
 	uint8_t i;
 	//printf("---\n\r");
-	uint16_t cels1;
-	uint16_t cels2;
 	// start measurement:
 	//meassure_start_bank1();
 	//_delay_ms(150);
@@ -229,7 +243,7 @@ void loop(){
 		}
 		//printf("icount = %u\n\r", icount);
 		if(meassure_stop_bank2()){
-			connected |= (1<<4+s);
+			connected |= (1<<(4+s));
 		}
 		for(i=0;i<5;i++){
 			measurement_data[s][i] = bytearr_bank1[i];
