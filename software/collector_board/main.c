@@ -96,13 +96,13 @@ int16_t analyze(uint8_t * buf){
 
 uint16_t analyze_hum_temp(uint8_t * buf){
 	uint8_t tempH = buf[2];
-	uint8_t tempL = buf[1];
+	//uint8_t tempL = buf[1];
 	return (tempH >> 1) + (tempH >> 3) + (tempH >> 6) - 40;
 }
 
 uint16_t analyze_hum_hum(uint8_t * buf){
 	uint8_t capH = buf[4] & ~((1<<7)|(1<<6));
-	uint8_t capL = buf[3];
+	//uint8_t capL = buf[3];
 	return ((capH*3) >> 1) + (capH >>4);
 }
 
@@ -210,24 +210,13 @@ void interpret(uint8_t * data){
 
 }
 
-void loop(){
-	uint8_t i;
-	//printf("---\n\r");
-	// start measurement:
-	//meassure_start_bank1();
-	//_delay_ms(150);
-	//meassure_stop_bank1();
-
-#ifdef DEBUG
-	cf = 0;
-	cr = 0;
-#endif
-  icount = 0;
+void do_meassurement(){
 	uint8_t s;
+	uint8_t i;
 	connected = 0;
 	for(s = 0; s<4; s++){
 		// FIXME give the measurement routine a direct pointer
-		// to the data. this will save ram ans one copy operation
+		// to the data. this will save ram and one copy operation
 		sensor_pin_mask1 = (1<< (PC0+s));
 		nsensor_pin_mask1 = ~(1<< (PC0+s));
 		sensor_pin_mask2 = (1<< (PD2+s));
@@ -250,25 +239,6 @@ void loop(){
 			measurement_data[4+s][i] = bytearr_bank2[i];
 		}
 	}
-#ifdef DEBUG
-	printf("cf = %d\n\r", cf);
-	printf("crita = %d critb = %d\n\r", tcrita, tcritb);
-	printf("Tr%d = %d\n\r", 0, timesr[0]);
-	printf("Tf%d = %d\n\r", 1, times[1]);
-	printf("Tr%d = %d\n\r", 10, timesr[10]);
-	printf("Tf%d = %d\n\r", 11, times[11]);
-#endif
-	
-	// TODO do this with memcpy
-	for(s = 0; s<8; s++){
-		for(i=0;i<5;i++){
-			stable_data[s][i] = measurement_data[s][i];
-		}
-	}
-
-  //printarray(bytearr_bank1, 5);
-  //printarray(bytearr_bank2, 5);
-
 	if(connected_previous != connected){
 		LED4_PORT &= ~(1<<LED4);
 	}else{
@@ -277,24 +247,25 @@ void loop(){
 
 	connected_previous = connected;
 
+}
+
+void print_interpreted_data(uint8_t ** data){
+	uint8_t s;
 	for(s = 0; s<8; s++){
 		printf("P%u: ", s+1);
 		if(connected & (1<<s) ){
-			interpret(measurement_data[s]);
+			interpret(data[s]);
 		}else{
 			printf("X = xxxx");
 		}
 		printf(" | ");
 	}
   printf("\n\r");
-	//cels1 = analyze(bytearr_bank1);
-	//cels2 = analyze(bytearr_bank2);
 
-	//printf("bank1: %d  bank2: %d\n\r", cels1, cels2);
-	for(i=0;i<80;i++){
-		handle_communications();
-		_delay_ms(1);
-	}
+}
+
+void loop(){
+	handle_communications();
 }
 
 void io_init(void){
