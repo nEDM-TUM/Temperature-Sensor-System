@@ -27,8 +27,12 @@ uint8_t icount;
 
 #define IDLE 0
 #define CMD 1
+#define WAIT_ADDRESS 2
 
 uint8_t cstate = IDLE;
+
+#define CMD_START_MEASSURE 1;
+#define CMD_SET_ADDRESS 2;
 
 
 #ifdef DEBUG
@@ -167,8 +171,29 @@ void handle_communications(){
 					case COMMAND:
 						// Data byte will be received and ACK will be returned
 						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
-						cstate = COMMAND;
+						switch (TWDR){
+							case CMD_START_MEASSURE:
+								// Data byte will be received and NOT ACK will be returned
+								TWCR = (1<<TWEN) | (1<<TWINT);
+								cstate = IDLE;
+
+								// Start meassuring process. this will block
+								// no new twi activity will be processed, clock will
+								// be extenden, until measurement is completed
+								do_measurement();
+								break;
+							case CMD_SET_ADDRESS:
+								// Data byte will be received and ACK will be returned
+								TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+								cstate = WAIT_ADDRESS;
+								break;
+						}
 						break;
+
+					case WAIT_ADDRESS:
+						// Data byte will be received and NOT ACK will be returned
+						TWCR = (1<<TWEN) | (1<<TWINT);
+
 					default:
 						// Data byte will be received and NOT ACK will be returned
 						TWCR = (1<<TWEN) | (1<<TWINT);
@@ -297,7 +322,7 @@ void interpret(uint8_t * data){
 
 }
 
-void do_meassurement(){
+void do_measurement(){
 	uint8_t s;
 	uint8_t i;
 	connected = 0;
