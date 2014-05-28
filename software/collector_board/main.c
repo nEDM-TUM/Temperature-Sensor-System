@@ -26,8 +26,9 @@ uint8_t icount;
 
 
 #define IDLE 0
-#define CMD 1
+#define COMMAND 1
 #define WAIT_ADDRESS 2
+#define TRANSMIT 3
 
 uint8_t cstate = IDLE;
 
@@ -169,23 +170,25 @@ void handle_communications(){
 				// ACK has been returned
 				switch (cstate){
 					case COMMAND:
-						// Data byte will be received and ACK will be returned
-						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
 						switch (TWDR){
-							case CMD_START_MEASSURE:
-								// Data byte will be received and NOT ACK will be returned
-								TWCR = (1<<TWEN) | (1<<TWINT);
-								cstate = IDLE;
+							// -- case CMD_START_MEASSURE:
+							// -- 	// Data byte will be received and NOT ACK will be returned
+							// -- 	TWCR = (1<<TWEN) | (1<<TWINT);
+							// -- 	cstate = IDLE;
 
-								// Start meassuring process. this will block
-								// no new twi activity will be processed, clock will
-								// be extenden, until measurement is completed
-								do_measurement();
-								break;
+							// -- 	// Start meassuring process. this will block
+							// -- 	// no new twi activity will be processed, clock will
+							// -- 	// be extended, until measurement is completed
+							// -- 	do_measurement();
+							// -- 	break;
 							case CMD_SET_ADDRESS:
 								// Data byte will be received and ACK will be returned
 								TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
 								cstate = WAIT_ADDRESS;
+								break;
+							default:
+								// Data byte will be received and ACK will be returned
+								TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
 								break;
 						}
 						break;
@@ -205,6 +208,9 @@ void handle_communications(){
 				// Previously addressed with own
 				// SLA+W; data has been received;
 				// NOT ACK has been returned
+				cstate = IDLE;
+				// Switched to the not addressed Slave mode; own SLA will be recognized;
+				TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
 
 				break;
 			case 0x90:
@@ -226,40 +232,73 @@ void handle_communications(){
 				// received while still addressed as
 				// Slave
 				cstate = IDLE;
+				// Switched to the not addressed Slave mode; own SLA will be recognized;
+				TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
 
 				break;
 
 	
 			// slave transmitter:
-      case 0xa8:
-        // -- // own address received, ack has been returned:
-				// -- // prepare data to send:
-				// -- 
-				// -- // TODO do this with memcpy
-				// -- // TODO also send information about connected state
-				// -- for(s = 0; s<8; s++){
-				// -- 	for(i=0;i<5;i++){
-				// -- 		send_buffer[s*5 + i] = measurement_data[s][i];
-				// -- 	}
-				// -- }
-				// -- bufferpointer = 1;
-        // -- TWDR = send_buffer[0]; //data :)
-        // -- TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+			case 0xa8:
+				// Own SLA+R has been received;
+				// ACK has been returned
+				switch (cstate){
+					case IDLE:
+						
+						do_measurement();
+						// this is the first byte of the transmission
+						bufferpointer = 1;
+						TWDR = ((uint8_t*)measurement_data )[0];
+						// Data byte will be transmitted and ACK should be received
+						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+						cstate = TRANSMIT;
+
+						break;
+					default:
+						TWDR = 0xff;
+						// Last data byte will be transmitted and NOT ACK should be received
+						TWCR = (1<<TWEN) | (1<<TWINT);
+
+						break;
+				}
+
 				break;
-      case 0xb8:
-				// -- // data byte has been transmitted, ack has been received
-				// -- // FIXME: this allows master to cause buffer overflow read :P
-        // -- TWDR = send_buffer[bufferpointer]; //data :)
-				// -- bufferpointer++;
-        // -- TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
-        break;
-      case 0xc0:
-				// -- // data byte has been transmitted NACK has been received
-        // -- TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
-        break;
+			case 0xb0:
+				// Arbitration lost in SLA+R/W as
+				// Master; own SLA+R has been
+				// received; ACK has been returned
+
+				break;
+			case 0xb8:
+				// Data byte in TWDR has been
+				// transmitted; ACK has been
+				// received
+				TWDR = ((uint8_t*)measurement_data)[bufferpointer]; //data :)
+				bufferpointer++;
+				// Data byte will be transmitted and ACK should be received
+				TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+
+				break;
+			case 0xc0:
+				// Data byte in TWDR has been
+				// transmitted; NOT ACK has been
+				// received
+
+				// Switched to the not addressed Slave mode; own SLA will be recognized;
+				TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+				cstate = IDLE;
+				break;
 			case 0xc8:
-				// last data byte in transmission was transmitted, ACK has been received
-        break;
+				// Last data byte in TWDR has been
+				// transmitted (TWEA = “0”); ACK
+				// has been received
+
+				// Switched to the not addressed Slave mode; own SLA will be recognized;
+				TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+				break;
+
+
+
 			case 0x00:
 				printf("bus error\n\r");
         TWCR = (1<< TWEA) | (1<<TWSTO) | (1<<TWEN) | (1<<TWINT);
