@@ -24,6 +24,13 @@ uint8_t stable_data[8][5];
 uint8_t bufferpointer;
 uint8_t icount;
 
+
+#define IDLE 0
+#define CMD 1
+
+uint8_t cstate = IDLE;
+
+
 #ifdef DEBUG
 uint8_t s = 0;
 uint8_t tcrita;
@@ -119,31 +126,111 @@ void handle_communications(){
     //TWI interrupt
 		//printf("TWSR = %x\n\r", TWSR);
     switch (TWSR){
-      case 0xa8:
-        // own address received, ack has been returned:
-				// prepare data to send:
-				
-				// TODO do this with memcpy
-				// TODO also send information about connected state
-				for(s = 0; s<8; s++){
-					for(i=0;i<5;i++){
-						send_buffer[s*5 + i] = measurement_data[s][i];
-					}
+			// slave receiver:
+			case 0x60:
+				// Own SLA+W has been received;
+				// ACK has been returned
+				switch (cstate){
+					case IDLE:
+						// Data byte will be received and ACK will be returned
+						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+						cstate = COMMAND;
+						break;
+					default:
+						// Data byte will be received and NOT ACK will be returned
+						TWCR = (1<<TWEN) | (1<<TWINT);
 				}
-				bufferpointer = 1;
-        TWDR = send_buffer[0]; //data :)
-        TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+				break;
+			case 0x68:
+				// Arbitration lost in SLA+R/W as
+				// Master; own SLA+W has been
+				// received; ACK has been returned
+
+				break;
+			case 0x70:
+				// General call address has been
+				// received; ACK has been returned
+
+				break;
+			case 0x78:
+				// Arbitration lost in SLA+R/W as
+				// Master; General call address has
+				// been received; ACK has been
+				// returned
+
+				break;
+			case 0x80:
+				// Previously addressed with own
+				// SLA+W; data has been received;
+				// ACK has been returned
+				switch (cstate){
+					case COMMAND:
+						// Data byte will be received and ACK will be returned
+						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+						cstate = COMMAND;
+						break;
+					default:
+						// Data byte will be received and NOT ACK will be returned
+						TWCR = (1<<TWEN) | (1<<TWINT);
+				}
+				break;
+
+				break;
+			case 0x88:
+				// Previously addressed with own
+				// SLA+W; data has been received;
+				// NOT ACK has been returned
+
+				break;
+			case 0x90:
+				// Previously addressed with
+				// general call; data has been re-
+				// ceived; ACK has been returned
+
+				break;
+			case 0x98:
+				// Previously addressed with
+				// general call; data has been
+				// received; NOT ACK has been
+				// returned
+
+				break;
+			case 0xa0:
+				// A STOP condition or repeated
+				// START condition has been
+				// received while still addressed as
+				// Slave
+				cstate = IDLE;
+
+				break;
+
+	
+			// slave transmitter:
+      case 0xa8:
+        // -- // own address received, ack has been returned:
+				// -- // prepare data to send:
+				// -- 
+				// -- // TODO do this with memcpy
+				// -- // TODO also send information about connected state
+				// -- for(s = 0; s<8; s++){
+				// -- 	for(i=0;i<5;i++){
+				// -- 		send_buffer[s*5 + i] = measurement_data[s][i];
+				// -- 	}
+				// -- }
+				// -- bufferpointer = 1;
+        // -- TWDR = send_buffer[0]; //data :)
+        // -- TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
 				break;
       case 0xb8:
-				// data byte has been transmitted, ack has been received
-				// FIXME: this allows master to cause buffer overflow read :P
-        TWDR = send_buffer[bufferpointer]; //data :)
-				bufferpointer++;
-        TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+				// -- // data byte has been transmitted, ack has been received
+				// -- // FIXME: this allows master to cause buffer overflow read :P
+        // -- TWDR = send_buffer[bufferpointer]; //data :)
+				// -- bufferpointer++;
+        // -- TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
         break;
       case 0xc0:
-				// data byte has been transmitted NACK has been received
-        TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+				// -- // data byte has been transmitted NACK has been received
+        // -- TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
         break;
 			case 0xc8:
 				// last data byte in transmission was transmitted, ACK has been received
