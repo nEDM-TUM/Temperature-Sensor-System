@@ -1096,7 +1096,7 @@
     )
   )
 
-  (gr_text V1.1 (at 192 154) (layer F.Cu)
+  (gr_text V1.1 (at 257.5 145.3) (layer F.Cu)
     (effects (font (size 1.5 1.5) (thickness 0.3)))
   )
   (gr_line (start 268 164) (end 268 144) (angle 90) (layer Edge.Cuts) (width 0.1))
