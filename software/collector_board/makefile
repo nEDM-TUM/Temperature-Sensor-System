@@ -8,6 +8,16 @@
 #ARDUINO_PATH = /usr/share/Arduino-master
 #----------------------------------------------------------
 # Project settings
+#
+#
+
+DIRAVR = /usr
+DIRAVRBIN = $(DIRAVR)/bin
+DIRAVRUTILS = $(DIRAVR)/utils/bin
+DIRINC = $(DIRAVR)/avr/include
+DIRLIB = $(DIRAVR)/avr/lib
+
+
 MCU = atmega88p
 F_CPU = 20000000UL
 
@@ -53,7 +63,8 @@ LDFLAGS += -Wl,--gc-sections
 # -ffunction-sections -fdata-sections are needed to place
 #  functions in separate sections, to be able to remove
 #  unneeded functions during linking
-C_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
+C_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) -Wall -Os -Datmega88p -I$(DIRINC)
+#C_FLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) $(INCLUDE_FLAGS) -Os
 C_FLAGS += -ffunction-sections -fdata-sections
 C_FLAGS += -g
 
