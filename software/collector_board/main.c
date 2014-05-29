@@ -4,10 +4,9 @@
 #include "usart.h"
 #include <inttypes.h>
 
-#include "board_support.h"
+#include "main.h"
 
-#define SLA 0x78
-#define CRC8 49
+#include "board_support.h"
 // sensors connected at:
 // PC0 - PCINT8
 // PB0 - PCINT0
@@ -25,16 +24,9 @@ uint8_t bufferpointer;
 uint8_t icount;
 
 
-#define IDLE 0
-#define COMMAND 1
-#define WAIT_ADDRESS 2
-#define TRANSMIT 3
-#define START_MEASUREMENT 4
 
 uint8_t cstate = IDLE;
 
-#define CMD_START_MEASUREMENT 1;
-#define CMD_SET_ADDRESS 2;
 
 
 #ifdef DEBUG
@@ -127,7 +119,6 @@ void twi_init(){
 }
 
 void handle_communications(){
-	uint8_t s, i;
   if(TWCR & (1<<TWINT)){
     //TWI interrupt
 		//printf("TWSR = %x\n\r", TWSR);
@@ -227,7 +218,7 @@ void handle_communications(){
 				// START condition has been
 				// received while still addressed as
 				// Slave
-				switch (state){
+				switch (cstate){
 					case START_MEASUREMENT:
 						// Switched to the not addressed Slave mode; own SLA will be recognized;
 						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
