@@ -5,14 +5,21 @@
 #define DELAY_AFTER_MR_MS 55
 #define DELAY_BEFORE_DF_US 20
 //#define START_TIMER TCCR0B |= (1<< CS02 | 1<<CS00);// TODO 
-#define START_TIMER TCCR0B |= (1<< CS01);// 8mHz/8  
+#define START_TIMER TCCR0B |= (1<< CS01);\
+                    TCCR0B &= ~(1<< CS00);\
+                    TCCR0B &= ~(1<< CS02);\
+                    // 8mHz/8
+//#define START_TIMER TCCR0B |= (1<< CS01 | 1<<CS00);// 8mHz/64  
 #define STOP_TIMER TCCR0B = 0; //disable timer
 #define SLA 0x28
 #define CMODE 7
 #define STALE 6
-#define TSTART 60
-#define TLONG 90
-#define TSHORT 30
+#define TSTART_8US 8
+#define TLONG_8US 12
+#define TSHORT_8US 4
+#define TSTART_US 64
+#define TLONG_US 96
+#define TSHORT_US 32
 #define CRC8 49
 uint8_t capH=0;
 uint8_t capL=0;
@@ -27,7 +34,7 @@ uint8_t cap=0xff;
 uint8_t temp=0xff;
 uint8_t counter=0;
 uint8_t tmp_time=0;
-
+uint8_t tempCounter=0;
 uint8_t waitUntilFinished(uint8_t status){
   while(!(TWCR & (1 << TWINT))){
     // FIXME do break 
@@ -105,24 +112,24 @@ uint8_t readByte(uint8_t ack){
 #define SEND_START\
 /*{*/\
   PORTD &= ~(1<<PD6);  \
-  _delay_us(TSTART);\
+  _delay_us(TSTART_US);\
   PORTD |= (1<<PD6);  \
-  _delay_us(TSTART);\
+  _delay_us(TSTART_US);\
   PORTD &= ~(1<<PD6);  \
 /*}*/
 
 #define SEND0\
 /*{*/\
-  _delay_us(TLONG);\
+  _delay_us(TLONG_US);\
   PORTD |= (1<<PD6);  \
-  _delay_us(TSHORT);\
+  _delay_us(TSHORT_US);\
 /*}*/
 
 #define SEND1\
 /*{*/\
-  _delay_us(TSHORT);\
+  _delay_us(TSHORT_US);\
   PORTD |= (1<<PD6);  \
-  _delay_us(TLONG);\
+  _delay_us(TLONG_US);\
 /*}*/
 
 #define SEND_FIRST_BYTE(byte) {\
@@ -190,7 +197,6 @@ void sendBYTE(uint8_t byte){
   for(index=7; index >= 0; index--){\
     DO_COMPUTING(0, index)\
   }\
-  //printf("\t\t\t!!!CRC is %x\n\r", crc);\
 /*}*/
 
 #define DO_COMPUTING2(byte, index) \
@@ -225,23 +231,25 @@ void verifyCRC(){
 // interrupt handler for output compare register A
 ISR(TIMER0_COMPA_vect){
   if (counter_sent >=0){
-    if(counter_sent < 80){
+    if(counter_sent < 79){
       if(counter_sent%2 == 0){
         if(capH & (1<<7)){
+          // TODO
+          tempCounter++;
         // send 1
-          OCR0A = TSHORT;
+          OCR0A = TSHORT_US;
         }else{
         // send 0
-          OCR0A = TLONG;
+          OCR0A = TLONG_US;
         }
         //printf("OCROA = %d\n\r", OCR0A);
       } else { 
         if(capH & (1<<7)){
         // send 1
-          OCR0A = TLONG;
+          OCR0A = TLONG_US;
         }else{
         // send 0
-          OCR0A = TSHORT;
+          OCR0A = TSHORT_US;
         }
         //printf("OCROA = %d\n\r", OCR0A);
         // shift
@@ -258,9 +266,6 @@ ISR(TIMER0_COMPA_vect){
       TIMSK0 &= ~( 1 << OCIE0A ); 
       // Disable clear timer TCNT0 on compare match register A: OCR0A
       TCCR0A &= ~(1 << WGM01); 
-      // Set OC0A at the beginning
-      TCCR0A |= ((1 << COM0A0) | (1 << COM0A1)); 
-      TCCR0B |= (1 << FOC0A);
       sending = 0;
     }
   }
@@ -268,33 +273,38 @@ ISR(TIMER0_COMPA_vect){
 }
 
 void convertToZAC(){
-  //printf("Start sending: capH = %x\n\r", capH);
+ // printf("Start sending: capH = %x\n\r", capH);
   // Set OC0A at the beginning
   TCCR0A |= ((1 << COM0A0) | (1 << COM0A1)); 
   TCCR0B |= (1 << FOC0A);
   //printf("Set OC0A = %d\n\r", PIND&(1<<PD6));
   //printf("2. Set OC0A = %d\n\r", PIND&(1<<PD6));
 
-  // send START bit
-  OCR0A = TSTART;
+  // prepare for sending START bit
+  TCNT0 = 0;
+  OCR0A = TSTART_US;
   counter_sent = -2;
-  
-  TCCR0A &= ~(1 << COM0A1); 
-  TCCR0A |= (1 << COM0A0); 
 
 	// Enable timer output compare match A interrupt when sending bits
   TIMSK0 |= ( 1 << OCIE0A ); 
   // Enable clear timer TCNT0 on compare match register A: OCR0A
   TCCR0A |= (1 << WGM01); 
-  
+  // Toggle OC0A on compare match
+  TCCR0A &= ~(1 << COM0A1); 
+  TCCR0A |= (1 << COM0A0); 
+  //TODO
+  tempCounter = 0;
   sending = 1;
   // Timer init 
   START_TIMER 
-  TCNT0 = 0;
   while(sending){
     // busy wating
     asm("nop");
   }
+  // Set OC0A at the end 
+  TCCR0A |= ((1 << COM0A0) | (1 << COM0A1)); 
+  TCCR0B |= (1 << FOC0A);
+  //printf("tempCounter: %d\n", tempCounter);
 }
 
 void loop(){
@@ -311,7 +321,10 @@ void loop(){
   }while((capH & ( (1 << STALE))) && counter <100 );
   //printf("Counter is %d\n\r", counter);
   capH = capH & 0x3f;
+  
+
   COMPUTE_CRC
+  //printf("crc=%x\n", crc);
   //verifyCRC();
 
   //printf("capH = %x\n\r", capH);
@@ -319,13 +332,13 @@ void loop(){
   //printf("tempH = %x\n\r", tempH);
   //printf("tempL = %x\n\r", tempL);
 
-  //cap = ((capH*3) >> 1) + (capH >>4);
-  //temp = (tempH >> 1) + (tempH >> 3) + (tempH >> 6);
+  cap = ((capH*3) >> 1) + (capH >>4);
+  temp = (tempH >> 1) + (tempH >> 3) + (tempH >> 6) ;
 
   //printf("converted cap = %u\n\r", cap);
   //printf("converted temp = %u - 40 = %d\n\r", temp, temp-40);
 
-  //CONVERT_TO_ZAC 
+ //CONVERT_TO_ZAC 
   // Use timer
   convertToZAC();
 }
@@ -348,14 +361,14 @@ int main (void)
   // TWBR = 12; 
 
   printf("Start\n\r");
-	 DDRD |= (1<<PD6);
+	DDRD |= (1<<PD6);
   _delay_ms(1000);
   // Set internal pull-ups
   PORTC |= (1<<PC4);
   PORTC |= (1<<PC5);
 
   printf("OC0A = %d\n\r", PIND&(1<<PD6));
-    _delay_us(500);
+  _delay_us(500);
 
   // Clear OC0A at the beginning
   TCCR0A |= (1 << COM0A1); 
@@ -365,8 +378,10 @@ int main (void)
   _delay_us(500);
 
   // Set OC0A at the beginning
-  TCCR0A |= ((1 << COM0A0) | (1 << COM0A1)); 
+  TCCR0A |= ((1 << COM0A0) ); 
+  TCCR0A &= (~ (1 << COM0A1)); 
   TCCR0B |= (1 << FOC0A);
+  _delay_us(1);
   printf("Set OC0A = %d\n\r", PIND&(1<<PD6));
   printf("Set OC0A = %d\n\r", PIND&(1<<PD6));
 
