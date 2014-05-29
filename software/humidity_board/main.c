@@ -268,7 +268,7 @@ ISR(TIMER0_COMPA_vect){
 }
 
 void convertToZAC(){
- // printf("Start sending: capH = %x\n\r", capH);
+  //printf("Start sending: capH = %x\n\r", capH);
   // Set OC0A at the beginning
   TCCR0A |= ((1 << COM0A0) | (1 << COM0A1)); 
   TCCR0B |= (1 << FOC0A);
