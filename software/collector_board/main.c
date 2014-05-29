@@ -362,6 +362,7 @@ void interpret(uint8_t * data){
 }
 
 void do_measurement(){
+	LED4_PORT |= (1<<LED4);
 	uint8_t s;
 	uint8_t i;
 	connected = 0;
@@ -397,6 +398,7 @@ void do_measurement(){
 	}
 
 	connected_previous = connected;
+	LED4_PORT &= ~(1<<LED4);
 
 }
 
