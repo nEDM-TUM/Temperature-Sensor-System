@@ -4,37 +4,34 @@
 #include "usart.h"
 #define DELAY_AFTER_MR_MS 55
 #define DELAY_BEFORE_DF_US 20
-//#define START_TIMER TCCR0B |= (1<< CS02 | 1<<CS00);// TODO 
-#define START_TIMER TCCR0B |= (1<< CS01);\
-                    TCCR0B &= ~(1<< CS00);\
-                    TCCR0B &= ~(1<< CS02);\
-                    // 8mHz/8
+#define START_TIMER TCCR0B |= (1<< CS01);// 8mHz/8
 //#define START_TIMER TCCR0B |= (1<< CS01 | 1<<CS00);// 8mHz/64  
+//#define START_TIMER TCCR0B |= (1<< CS02 | 1<<CS00);// 8mHz/1024
 #define STOP_TIMER TCCR0B = 0; //disable timer
 #define SLA 0x28
 #define CMODE 7
 #define STALE 6
-#define TSTART_8US 8
-#define TLONG_8US 12
-#define TSHORT_8US 4
 #define TSTART_US 64
 #define TLONG_US 96
 #define TSHORT_US 32
 #define CRC8 49
+//set debug module
+//#define DEBUG
+
 uint8_t capH=0;
 uint8_t capL=0;
 uint8_t tempH=0;
 uint8_t tempL=0;
 uint8_t crc=0;
-uint8_t result=0xff;
-int8_t counter_sent = 0;
-volatile int8_t sending = 0;
+#ifdef DEBUG
+uint8_t crc_verified=0xff;
 // FIXME converted roughly for test
 uint8_t cap=0xff;
 uint8_t temp=0xff;
-uint8_t counter=0;
-uint8_t tmp_time=0;
-uint8_t tempCounter=0;
+#endif
+int8_t counter_sent = 0;
+volatile int8_t sending = 0;
+
 uint8_t waitUntilFinished(uint8_t status){
   while(!(TWCR & (1 << TWINT))){
     // FIXME do break 
@@ -48,185 +45,99 @@ uint8_t waitUntilFinished(uint8_t status){
   return 0;
 }
 
-#define  MEASURINGREQUEST\
-/*{*/\
-  /*printf("Measurement Request\n\r");*/\
-  /* Start condition*/\
-  TWCR = ((1 << TWINT) | (1 << TWSTA) | (1 << TWEN));\
-  /*printf("TWCR out= %x\n\r", TWCR);*/\
-  /*printf("TWSR= %x\n\r", TWSR);*/\
-  if (!waitUntilFinished(0x8)){\
-    return;  \
-  }\
-  /*printf("Started\n\r");*/\
-  /* SLA + W (bit 0)*/\
-  TWDR = (SLA << 1);\
-  TWCR = ((1 << TWINT) | (1 << TWEN));\
-  /* TWSR = 0x18 means SLA+W has been transmitted; ACK has been received*/\
-  if (!waitUntilFinished(0x18)){\
-    return;\
-  }\
-  /* Stop condition*/\
-  TWCR = ((1 << TWINT) | (1 << TWSTO) | (1 << TWEN));\
- /* printf("Required\n\r");*/\
-/*}*/
+void  requestMeasuring(){
+#ifdef DEBUG
+  printf("Measurement Request\n\r");
+#endif
+  /* Start condition*/
+  TWCR = ((1 << TWINT) | (1 << TWSTA) | (1 << TWEN));
+  if (!waitUntilFinished(0x8)){
+    return;  
+  }
+  /* SLA + W (bit 0)*/
+  TWDR = (SLA << 1);
+  TWCR = ((1 << TWINT) | (1 << TWEN));
+  /* TWSR = 0x18 means SLA+W has been transmitted; ACK has been received*/
+  if (!waitUntilFinished(0x18)){
+    return;
+  }
+  /* Stop condition*/
+  TWCR = ((1 << TWINT) | (1 << TWSTO) | (1 << TWEN));
+#ifdef DEBUG
+  printf("Required\n\r");
+#endif
+}
 
 uint8_t readByte(uint8_t ack){
-  //printf("TWDR SLA + R = 0x%x\n\r", TWDR);
   TWCR = ((1 << TWINT) | (ack << TWEA) | (1 << TWEN));
-  //printf("TWDR already received ??? = 0x%x\n\r", TWDR);
   // TWSR = 0x50 means Data byte has been received; ACK has been returned
   if (!waitUntilFinished(0x50)){
-    return 0xff;
+    return 0;
   }
-  //printf("Read finished\n\r");
   return TWDR;
 }
 
-#define DATAFETCH\
-/*{*/\
-  /* printf("Data Fetch\n\r");*/\
-  /* Start condition*/\
-  TWCR = ((1 << TWINT) | (1 << TWSTA) | (1 << TWEN));\
-  if (!waitUntilFinished(0x8)){\
-    return;  \
-  }\
-  /* SLA + R (bit 1)*/\
-  TWDR = (SLA << 1) | (1 << 0);\
-  TWCR = ((1 << TWINT) | (1 << TWEN));\
-  /* TWSR = 0x40 means SLA+R has been transmitted; ACK has been received*/\
-  if (!waitUntilFinished(0x40)){\
-    return;\
-  }\
-\
-  capH = readByte(1);\
-  capL = readByte(1);\
-  tempH = readByte(1);\
-  tempL = readByte(0);\
-\
-  /* Stop condition*/\
-  TWCR = ((1 << TWINT) | (1 << TWSTO) | (1 << TWEN));\
- /* printf("Fetched\n\r");*/\
-/*}*/
-
-#define SEND_START\
-/*{*/\
-  PORTD &= ~(1<<PD6);  \
-  _delay_us(TSTART_US);\
-  PORTD |= (1<<PD6);  \
-  _delay_us(TSTART_US);\
-  PORTD &= ~(1<<PD6);  \
-/*}*/
-
-#define SEND0\
-/*{*/\
-  _delay_us(TLONG_US);\
-  PORTD |= (1<<PD6);  \
-  _delay_us(TSHORT_US);\
-/*}*/
-
-#define SEND1\
-/*{*/\
-  _delay_us(TSHORT_US);\
-  PORTD |= (1<<PD6);  \
-  _delay_us(TLONG_US);\
-/*}*/
-
-#define SEND_FIRST_BYTE(byte) {\
-  int8_t index = 0;\
-  int8_t byte_copy = byte;\
-  for(index=7; index >= 0; index--){\
-    PORTD &= ~(1<<PD6);  \
-    if(byte_copy & (1 << 7)){\
-      SEND1\
-    }else{\
-      SEND0\
-    }\
-    byte_copy = (byte_copy<<1);\
-  }\
-}
-
-void sendBYTE(uint8_t byte){
-  int8_t index = 0;
-  for(index=7; index >= 0; index--){
-    PORTD &= ~(1<<PD6);
-    if(byte & (1 << 7)){
-      SEND1
-    }else{
-      SEND0
-    }
-    byte = (byte<<1);
+void fetchData(){
+#ifdef DEBUG
+  printf("Data Fetch\n\r");
+#endif
+  /* Start condition*/
+  TWCR = ((1 << TWINT) | (1 << TWSTA) | (1 << TWEN));
+  if (!waitUntilFinished(0x8)){
+    return;  
   }
+  /* SLA + R (bit 1)*/
+  TWDR = (SLA << 1) | (1 << 0);
+  TWCR = ((1 << TWINT) | (1 << TWEN));
+  /* TWSR = 0x40 means SLA+R has been transmitted; ACK has been received*/
+  if (!waitUntilFinished(0x40)){
+    return;
+  }
+
+  capH = readByte(1);
+  capL = readByte(1);
+  tempH = readByte(1);
+  tempL = readByte(0);
+
+  /* Stop condition*/
+  TWCR = ((1 << TWINT) | (1 << TWSTO) | (1 << TWEN));
+#ifdef DEBUG
+  printf("Fetched\n\r");
+#endif
 }
 
-#define CONVERT_TO_ZAC\
-/*{*/\
-  SEND_START\
-  SEND_FIRST_BYTE(capH)\
-  sendBYTE(capL);\
-  sendBYTE(tempH);\
-  sendBYTE(tempL);\
-  sendBYTE(crc);\
-/*}*/
-
-#define DO_COMPUTING(byte, index) \
-/*{*/\
-  if(crc & (1<<7)){\
-    crc = crc << 1;\
-    crc |= ((byte >> index) & 1);\
-    crc ^= CRC8;\
-  } else  {\
-    crc = crc << 1;\
-    crc |= ((byte >> index) & 1);\
-  }\
-/*}*/
-
-#define COMPUTE_CRC\
-/*{*/\
-  crc = capH;\
-  int8_t index = 7;\
-  for(index=7; index >= 0; index--){\
-    DO_COMPUTING(capL, index)\
-  }\
-  for(index=7; index >= 0; index--){\
-    DO_COMPUTING(tempH, index)\
-  }\
-  for(index=7; index >= 0; index--){\
-    DO_COMPUTING(tempL, index)\
-  }\
-  for(index=7; index >= 0; index--){\
-    DO_COMPUTING(0, index)\
-  }\
-/*}*/
-
-#define DO_COMPUTING2(byte, index) \
-/*{*/\
-  if(result & (1<<7)){\
-    result = result << 1;\
-    result |= ((byte >> index) & 1);\
-    result ^= CRC8;\
-  } else  {\
-    result = result << 1;\
-    result |= ((byte >> index) & 1);\
-  }\
-/*}*/
-void verifyCRC(){
-  result = capH;
+void computeByteCRC(uint8_t *result, uint8_t byte) {
   int8_t index = 7;
   for(index=7; index >= 0; index--){
-    DO_COMPUTING2(capL, index)
+    if(*result & (1<<7)){
+      *result = *result << 1;
+      *result |= ((byte >> index) & 1);
+      *result ^= CRC8;
+    } else  {
+      *result = *result << 1;
+      *result |= ((byte >> index) & 1);
+    }
   }
-  for(index=7; index >= 0; index--){
-    DO_COMPUTING2(tempH, index)
-  }
-  for(index=7; index >= 0; index--){
-    DO_COMPUTING2(tempL, index)
-  }
-  for(index=7; index >= 0; index--){
-    DO_COMPUTING2(crc, index)
-  }
-  printf("\t\t\t!!!Result is %x\n\r", result);
 }
+
+void computeCRC(){
+  crc = capH;
+  computeByteCRC(&crc, capL);
+  computeByteCRC(&crc, tempH);
+  computeByteCRC(&crc, tempL);
+  computeByteCRC(&crc, 0);
+}
+
+#ifdef DEBUG
+void verifyCRC(){
+  crc_verified = capH;
+  computeByteCRC(&crc_verified, capL);
+  computeByteCRC(&crc_verified, tempH);
+  computeByteCRC(&crc_verified, tempL);
+  computeByteCRC(&crc_verified, crc);
+  printf("Verified Result is %x\n\r", crc_verified);
+}
+#endif
 
 // interrupt handler for output compare register A
 ISR(TIMER0_COMPA_vect){
@@ -234,15 +145,12 @@ ISR(TIMER0_COMPA_vect){
     if(counter_sent < 79){
       if(counter_sent%2 == 0){
         if(capH & (1<<7)){
-          // TODO
-          tempCounter++;
         // send 1
           OCR0A = TSHORT_US;
         }else{
         // send 0
           OCR0A = TLONG_US;
         }
-        //printf("OCROA = %d\n\r", OCR0A);
       } else { 
         if(capH & (1<<7)){
         // send 1
@@ -251,8 +159,7 @@ ISR(TIMER0_COMPA_vect){
         // send 0
           OCR0A = TSHORT_US;
         }
-        //printf("OCROA = %d\n\r", OCR0A);
-        // shift
+        // Roll data 
         crc = crc << 1;
         // use "rol" to shift the other two bits with carry
         asm("rol %0" : "=r" (tempL) : "0" (tempL));
@@ -273,12 +180,12 @@ ISR(TIMER0_COMPA_vect){
 }
 
 void convertToZAC(){
- // printf("Start sending: capH = %x\n\r", capH);
+#ifdef DEBUG
+  printf("Start sending: capH = %x\n\r", capH);
+#endif
   // Set OC0A at the beginning
   TCCR0A |= ((1 << COM0A0) | (1 << COM0A1)); 
   TCCR0B |= (1 << FOC0A);
-  //printf("Set OC0A = %d\n\r", PIND&(1<<PD6));
-  //printf("2. Set OC0A = %d\n\r", PIND&(1<<PD6));
 
   // prepare for sending START bit
   TCNT0 = 0;
@@ -289,57 +196,58 @@ void convertToZAC(){
   TIMSK0 |= ( 1 << OCIE0A ); 
   // Enable clear timer TCNT0 on compare match register A: OCR0A
   TCCR0A |= (1 << WGM01); 
-  // Toggle OC0A on compare match
+  // Enable Toggle OC0A on compare match
   TCCR0A &= ~(1 << COM0A1); 
   TCCR0A |= (1 << COM0A0); 
-  //TODO
-  tempCounter = 0;
+  // Flag of sending
   sending = 1;
   // Timer init 
   START_TIMER 
   while(sending){
-    // busy wating
+    // busy wating until finishing sending
     asm("nop");
   }
   // Set OC0A at the end 
   TCCR0A |= ((1 << COM0A0) | (1 << COM0A1)); 
   TCCR0B |= (1 << FOC0A);
-  //printf("tempCounter: %d\n", tempCounter);
 }
 
 void loop(){
-  MEASURINGREQUEST
-    // measurement will be ready after 50...60ms (this value was aquired by experimental meassurement).
+  uint8_t counter=0;
+  requestMeasuring();
+  // measurement will be ready after 50...60ms (this value was aquired by experimental meassurement).
   _delay_ms(DELAY_AFTER_MR_MS);
   counter=0;
   do{
     _delay_us(DELAY_BEFORE_DF_US);
     counter ++;
-    DATAFETCH
+    fetchData();
     /* Do datafetch until the stale bit is 0 
      * If more than 100 times, give up */
   }while((capH & ( (1 << STALE))) && counter <100 );
-  //printf("Counter is %d\n\r", counter);
+#ifdef DEBUG
+  printf("Fetching counter is %d\n\r", counter);
+#endif
+  // remove status bits
   capH = capH & 0x3f;
   
-
-  COMPUTE_CRC
-  //printf("crc=%x\n", crc);
-  //verifyCRC();
-
-  //printf("capH = %x\n\r", capH);
-  //printf("capL = %x\n\r", capL);
-  //printf("tempH = %x\n\r", tempH);
-  //printf("tempL = %x\n\r", tempL);
+  computeCRC();
+#ifdef DEBUG
+  printf("capH = %x\n\r", capH);
+  printf("capL = %x\n\r", capL);
+  printf("tempH = %x\n\r", tempH);
+  printf("tempL = %x\n\r", tempL);
+  printf("crc=%x\n\r", crc);
 
   cap = ((capH*3) >> 1) + (capH >>4);
   temp = (tempH >> 1) + (tempH >> 3) + (tempH >> 6) ;
 
-  //printf("converted cap = %u\n\r", cap);
-  //printf("converted temp = %u - 40 = %d\n\r", temp, temp-40);
+  printf("converted cap = %u\n\r", cap);
+  printf("converted temp = %u - 40 = %d\n\r", temp, temp-40);
 
- //CONVERT_TO_ZAC 
-  // Use timer
+  verifyCRC();
+#endif
+
   convertToZAC();
 }
 
@@ -367,36 +275,6 @@ int main (void)
   PORTC |= (1<<PC4);
   PORTC |= (1<<PC5);
 
-  printf("OC0A = %d\n\r", PIND&(1<<PD6));
-  _delay_us(500);
-
-  // Clear OC0A at the beginning
-  TCCR0A |= (1 << COM0A1); 
-  TCCR0A &= ~(1 << COM0A0); 
-  TCCR0B |= (1 << FOC0A);
-  printf("clear OC0A = %d\n\r", PIND&(1<<PD6));
-  _delay_us(500);
-
-  // Set OC0A at the beginning
-  TCCR0A |= ((1 << COM0A0) ); 
-  TCCR0A &= (~ (1 << COM0A1)); 
-  TCCR0B |= (1 << FOC0A);
-  _delay_us(1);
-  printf("Set OC0A = %d\n\r", PIND&(1<<PD6));
-  printf("Set OC0A = %d\n\r", PIND&(1<<PD6));
-
-  // Clear timer TCNT0 on compare match register A: OCR0A
-  //TCCR0A |= (1 << WGM01); 
-  // Every 120 us will clear the timer 
-  //OCR0A = 120;
-
-	// enable timer output compare match A interrupt when sending bits
-  //TIMSK0 |= ( 1 << OCIE0A ); 
-  // Timer init 
-  //START_TIMER 
-  //TCNT0 = 0;
-  //printf("\t\t\t!!!TCNTO is %d\n\r", TCNT0);
-  //convertToZAC();
   while(1){
     loop();
   }
