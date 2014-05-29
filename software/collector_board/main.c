@@ -122,6 +122,8 @@ void handle_communications(){
   if(TWCR & (1<<TWINT)){
     //TWI interrupt
 		//printf("TWSR = %x, TWDR = %x, cstate = %x\n\r", TWSR, TWDR, cstate);
+		uint8_t vTWSR = TWSR;
+		uint8_t vTWDR = TWDR;
     switch (TWSR){
 			// slave receiver:
 			case 0x60:
@@ -306,6 +308,7 @@ void handle_communications(){
       
     }
 
+		printf("vTWSR = %x, vTWDR = %x, cstate = %x\n\r", vTWSR, vTWDR, cstate);
   }
 }
 

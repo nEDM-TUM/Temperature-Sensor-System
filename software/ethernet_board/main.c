@@ -251,6 +251,7 @@ uint8_t receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 			break;
 	}
 	twi_wait_timeout(50);
+	printf("TWSR = %x\n\r", TWSR);
 	while(TWSR == 0x50 && len > 0){
 		//printf("byte received!\n\r");
 		*buffer = TWDR;
@@ -262,6 +263,7 @@ uint8_t receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 			TWCR = (1<<TWINT)|(1<<TWEN)|(1<<TWEA);
 		}
 		twi_wait_timeout(50);
+		printf("TWSR = %x\n\r", TWSR);
 	}
 	TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);
 	return (len == 0);
@@ -350,7 +352,7 @@ void loop(){
 	printf("receiving..\n\r");
 	
 	if (state){
-		_delay_us(10);
+		_delay_ms(100);
 		state = receive_data(SLA2, ((uint8_t*)received),40);
 		//state = 0;
 		if (state){
