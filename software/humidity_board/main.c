@@ -4,7 +4,8 @@
 #include "usart.h"
 #define DELAY_AFTER_MR_MS 55
 #define DELAY_BEFORE_DF_US 20
-#define START_TIMER TCCR0B |= (1<< CS01);
+//#define START_TIMER TCCR0B |= (1<< CS02 | 1<<CS00);// TODO 
+#define START_TIMER TCCR0B |= (1<< CS01);// 8mHz/8  
 #define STOP_TIMER TCCR0B = 0; //disable timer
 #define SLA 0x28
 #define CMODE 7
@@ -20,6 +21,7 @@ uint8_t tempL=0;
 uint8_t crc=0;
 uint8_t result=0xff;
 int8_t counter_sent = 0;
+volatile int8_t sending = 0;
 // FIXME converted roughly for test
 uint8_t cap=0xff;
 uint8_t temp=0xff;
@@ -232,6 +234,7 @@ ISR(TIMER0_COMPA_vect){
         // send 0
           OCR0A = TLONG;
         }
+        //printf("OCROA = %d\n\r", OCR0A);
       } else { 
         if(capH & (1<<7)){
         // send 1
@@ -240,6 +243,7 @@ ISR(TIMER0_COMPA_vect){
         // send 0
           OCR0A = TSHORT;
         }
+        //printf("OCROA = %d\n\r", OCR0A);
         // shift
         crc = crc << 1;
         // use "rol" to shift the other two bits with carry
@@ -257,23 +261,19 @@ ISR(TIMER0_COMPA_vect){
       // Set OC0A at the beginning
       TCCR0A |= ((1 << COM0A0) | (1 << COM0A1)); 
       TCCR0B |= (1 << FOC0A);
+      sending = 0;
     }
   }
-  counter++;
+  counter_sent++;
 }
 
 void convertToZAC(){
-  printf("Start sending: capH = %x\n\r", capH);
+ // printf("Start sending: capH = %x\n\r", capH);
   // Set OC0A at the beginning
   TCCR0A |= ((1 << COM0A0) | (1 << COM0A1)); 
   TCCR0B |= (1 << FOC0A);
-  printf("Set OC0A = %d\n\r", PIND&(1<<PD6));
-  printf("2. Set OC0A = %d\n\r", PIND&(1<<PD6));
-
-	// Enable timer output compare match A interrupt when sending bits
-  //TIMSK0 |= ( 1 << OCIE0A ); 
-  // Enable clear timer TCNT0 on compare match register A: OCR0A
-  TCCR0A |= (1 << WGM01); 
+  //printf("Set OC0A = %d\n\r", PIND&(1<<PD6));
+  //printf("2. Set OC0A = %d\n\r", PIND&(1<<PD6));
 
   // send START bit
   OCR0A = TSTART;
@@ -282,9 +282,19 @@ void convertToZAC(){
   TCCR0A &= ~(1 << COM0A1); 
   TCCR0A |= (1 << COM0A0); 
 
+	// Enable timer output compare match A interrupt when sending bits
+  TIMSK0 |= ( 1 << OCIE0A ); 
+  // Enable clear timer TCNT0 on compare match register A: OCR0A
+  TCCR0A |= (1 << WGM01); 
+  
+  sending = 1;
   // Timer init 
   START_TIMER 
   TCNT0 = 0;
+  while(sending){
+    // busy wating
+    asm("nop");
+  }
 }
 
 void loop(){
@@ -317,7 +327,6 @@ void loop(){
 
   //CONVERT_TO_ZAC 
   // Use timer
-  _delay_ms(1000);
   convertToZAC();
 }
 
@@ -341,37 +350,9 @@ int main (void)
   printf("Start\n\r");
 	 DDRD |= (1<<PD6);
   _delay_ms(1000);
-  convertToZAC();
-   // Set internal pull-ups
-   PORTC |= (1<<PC4);
-   PORTC |= (1<<PC5);
-  // TODO debug, LED blink
-	DDRC |= (1<<PC0);
-  PORTC = PORTC ^ (1<<PC0);
-    _delay_ms(500);
-  PORTC = PORTC ^ (1<<PC0);
-    _delay_ms(500);
-  PORTC = PORTC ^ (1<<PC0);
-  _delay_ms(1000);
-  convertToZAC();
-    _delay_ms(500);
-  PORTC = PORTC ^ (1<<PC0);
-    _delay_ms(500);
-  PORTC = PORTC ^ (1<<PC0);
-
-  // TODO debug, LED blink
-	DDRC |= (1<<PC1);
-  PORTC = PORTC ^ (1<<PC1);
-    _delay_ms(500);
-  PORTC = PORTC ^ (1<<PC1);
-    _delay_ms(500);
-  PORTC = PORTC ^ (1<<PC1);
-    _delay_ms(500);
-  PORTC = PORTC ^ (1<<PC1);
-    _delay_ms(500);
-  PORTC = PORTC ^ (1<<PC1);
-
-
+  // Set internal pull-ups
+  PORTC |= (1<<PC4);
+  PORTC |= (1<<PC5);
 
   printf("OC0A = %d\n\r", PIND&(1<<PD6));
     _delay_us(500);
@@ -381,7 +362,7 @@ int main (void)
   TCCR0A &= ~(1 << COM0A0); 
   TCCR0B |= (1 << FOC0A);
   printf("clear OC0A = %d\n\r", PIND&(1<<PD6));
-    _delay_us(500);
+  _delay_us(500);
 
   // Set OC0A at the beginning
   TCCR0A |= ((1 << COM0A0) | (1 << COM0A1)); 
