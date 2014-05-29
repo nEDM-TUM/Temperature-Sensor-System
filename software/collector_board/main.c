@@ -121,7 +121,7 @@ void twi_init(){
 void handle_communications(){
   if(TWCR & (1<<TWINT)){
     //TWI interrupt
-		//printf("TWSR = %x\n\r", TWSR);
+		//printf("TWSR = %x, TWDR = %x, cstate = %x\n\r", TWSR, TWDR, cstate);
     switch (TWSR){
 			// slave receiver:
 			case 0x60:
@@ -228,6 +228,7 @@ void handle_communications(){
 						// If new command arrives, clock will
 						// be extended, until measurement is completed
 						do_measurement();
+						LED2_PORT ^= (1<<LED2);
 						break;
 					default:
 						cstate = IDLE;
@@ -362,7 +363,8 @@ void interpret(uint8_t * data){
 }
 
 void do_measurement(){
-	LED4_PORT |= (1<<LED4);
+	printf("start measurement\n\r");
+	LED3_PORT |= (1<<LED3);
 	uint8_t s;
 	uint8_t i;
 	connected = 0;
@@ -376,7 +378,6 @@ void do_measurement(){
 		meassure_start_bank1();
 		meassure_start_bank2();
 		for(i=0;i<60;i++){
-			handle_communications();
 			_delay_ms(2);
 		}
 		if(meassure_stop_bank1()){
@@ -398,7 +399,8 @@ void do_measurement(){
 	}
 
 	connected_previous = connected;
-	LED4_PORT &= ~(1<<LED4);
+	LED3_PORT &= ~(1<<LED3);
+	printf("measurement finished\n\r");
 
 }
 

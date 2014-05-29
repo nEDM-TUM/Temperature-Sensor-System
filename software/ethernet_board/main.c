@@ -90,7 +90,7 @@ uint8_t verifyCRC(uint8_t * data, int8_t len){
       }
     }
   }
-  printf("\t\t\t!!!Result is %x\n\r", result);
+  //printf("\t\t\t!!!Result is %x\n\r", result);
   return result == 0;
 }
 
@@ -119,14 +119,14 @@ void interpret(uint8_t * data){
 void twi_start(){
 	TWBR = 20;
 	TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
-	while(!(TWCR & (1<<TWINT)) && (TWSR != 0x08) ){
+	while(!(TWCR & (1<<TWINT)) || (TWSR != 0x08) ){
 		// wait for interrupt
 		// and right status code
 	}
 }
 
-uint8_t twi_wait_timeout(uint8_t milliseconds){
-	uint8_t i;
+uint8_t twi_wait_timeout(uint16_t milliseconds){
+	uint16_t i;
 	i = 0;
 	while(!(TWCR & (1<<TWINT))){
 		_delay_ms(1);
@@ -141,18 +141,21 @@ uint8_t twi_wait_timeout(uint8_t milliseconds){
 
 uint8_t start_measurement(uint8_t addr){
 	// send start condition:
+	printf("send start\n\r");
 	twi_start();
+	printf("send SLA+W\n\r");
 	// send SLA + W
 	TWDR = (addr<<1);
 	TWCR = (1<<TWINT) | (1<<TWEN);
-	twi_wait_timeout(5);
+	twi_wait_timeout(50);
+	printf("TWSR = %x\n\r", TWSR);
 	switch (TWSR){
 		case 0x18:
 			// SLA+W has been transmitted;
 			// ACK has been received
 			TWDR = CMD_START_MEASUREMENT;
-			TWCR = (1<<TWINT);
-			twi_wait_timeout(5);
+			TWCR = (1<<TWINT)|(1<<TWEN);
+			twi_wait_timeout(50);
 			switch(TWSR){
 				case 0x28:
 					// Data byte has been transmitted;
@@ -167,7 +170,7 @@ uint8_t start_measurement(uint8_t addr){
 					return 0;
 					break;
 				default:
-					printf("bus error: state = %x\n\r", TWSR);
+					printf("bus error2: state = %x\n\r", TWSR);
 					return 0;
 					break;
 			}
@@ -178,9 +181,22 @@ uint8_t start_measurement(uint8_t addr){
 			TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
 			return 0;
 			break;
+		case 0x38:
+			// Arbitration lost in SLA+W or data bytes
+
+			// 2-wire Serial Bus will be released and not addressed
+			// Slave mode entered
+			TWCR = (1<<TWINT) | (1<<TWEN);
+			return 0;
+			break;
 		case 0xf8:
 			// No relevant state information
 			// available; TWINT = “0”
+			// Timeout has occured, no slave is answering
+
+			// FIXME: I do not know how to free the bus in case
+			// of a timeout. START and SLA+W has already been sent
+			// so I try to send a STOP condition here
 			TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
 			return 0;
 			break;
@@ -193,13 +209,15 @@ uint8_t start_measurement(uint8_t addr){
 	
 	
 }
+
 uint8_t receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 	// send start condition:
 	twi_start();
 	TWDR = (address<<1) | 1;
 	// send read request:
 	TWCR = (1<<TWINT) | (1<<TWEN);
-	twi_wait_timeout(5);
+	twi_wait_timeout(800);
+	printf("TWSR = %x\n\r", TWSR);
 	switch(TWSR){
 		case 0x38:
 			// Arbitration lost in SLA+R or NOT ACK bit
@@ -232,7 +250,7 @@ uint8_t receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 			return 0;
 			break;
 	}
-	twi_wait_timeout(5);
+	twi_wait_timeout(50);
 	while(TWSR == 0x50 && len > 0){
 		//printf("byte received!\n\r");
 		*buffer = TWDR;
@@ -243,7 +261,7 @@ uint8_t receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 		}else{
 			TWCR = (1<<TWINT)|(1<<TWEN)|(1<<TWEA);
 		}
-		twi_wait_timeout(5);
+		twi_wait_timeout(50);
 	}
 	TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);
 	return (len == 0);
@@ -297,6 +315,14 @@ uint8_t receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 // -- 	TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);
 // -- 
 // -- }
+void printarray(uint8_t * arr, uint8_t len){
+  uint8_t i;
+  for (i=0;i<len;i++){
+    printf(" %x ", arr[len-1-i]);
+  }
+  printf("\n\r");
+}
+
 
 void loop(){
 	uint8_t s;
@@ -317,26 +343,33 @@ void loop(){
 	// -- }
 	// -- printf("\n\r");
 
+	printf("----\n\r");
 	printf("receive from 0x78..\n\r");
 	state = start_measurement(SLA2);
+	printf("Measurement started..\n\r");
+	printf("receiving..\n\r");
+	
 	if (state){
-		state = receive_data(SLA2, received[0],40);
+		_delay_us(10);
+		state = receive_data(SLA2, ((uint8_t*)received),40);
+		//state = 0;
 		if (state){
 			for(s = 0; s<8; s++){
 				printf("P%u: ", s+1);
+				printarray((uint8_t*)received, 40);
 				interpret(received[s]);
 				printf(" | ");
 			}
 			printf("\n\r");
 		}else{
-			printf("measurement interrupted\n\r");
+			printf("receive interrupted\n\r");
 		}
 	}else{
 		printf("device not found\n\r");
 	}
 
 	//printf("hello\n\r");
-	//_delay_ms(800);
+	_delay_ms(2000);
 }
 
 
