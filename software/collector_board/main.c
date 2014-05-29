@@ -29,10 +29,11 @@ uint8_t icount;
 #define COMMAND 1
 #define WAIT_ADDRESS 2
 #define TRANSMIT 3
+#define START_MEASUREMENT 4
 
 uint8_t cstate = IDLE;
 
-#define CMD_START_MEASSURE 1;
+#define CMD_START_MEASUREMENT 1;
 #define CMD_SET_ADDRESS 2;
 
 
@@ -171,16 +172,11 @@ void handle_communications(){
 				switch (cstate){
 					case COMMAND:
 						switch (TWDR){
-							// -- case CMD_START_MEASSURE:
-							// -- 	// Data byte will be received and NOT ACK will be returned
-							// -- 	TWCR = (1<<TWEN) | (1<<TWINT);
-							// -- 	cstate = IDLE;
-
-							// -- 	// Start meassuring process. this will block
-							// -- 	// no new twi activity will be processed, clock will
-							// -- 	// be extended, until measurement is completed
-							// -- 	do_measurement();
-							// -- 	break;
+							case CMD_START_MEASUREMENT:
+								// Data byte will be received and NOT ACK will be returned
+								TWCR = (1<<TWEN) | (1<<TWINT);
+								cstate = START_MEASUREMENT;
+								break;
 							case CMD_SET_ADDRESS:
 								// Data byte will be received and ACK will be returned
 								TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
@@ -231,9 +227,23 @@ void handle_communications(){
 				// START condition has been
 				// received while still addressed as
 				// Slave
-				cstate = IDLE;
-				// Switched to the not addressed Slave mode; own SLA will be recognized;
-				TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+				switch (state){
+					case START_MEASUREMENT:
+						// Switched to the not addressed Slave mode; own SLA will be recognized;
+						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+						cstate = IDLE;
+						// Start meassuring process. this will block
+						// no new twi activity will be processed.
+						// If new command arrives, clock will
+						// be extended, until measurement is completed
+						do_measurement();
+						break;
+					default:
+						cstate = IDLE;
+						// Switched to the not addressed Slave mode; own SLA will be recognized;
+						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+						break;
+				}
 
 				break;
 
@@ -245,7 +255,6 @@ void handle_communications(){
 				switch (cstate){
 					case IDLE:
 						
-						do_measurement();
 						// this is the first byte of the transmission
 						bufferpointer = 1;
 						TWDR = ((uint8_t*)measurement_data )[0];
