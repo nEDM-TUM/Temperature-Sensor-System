@@ -119,7 +119,8 @@ void interpret(uint8_t * data){
 
 uint8_t twi_wait(void){
 	while(!(TWCR & (1<<TWINT))){
-		;// wait for interrupt
+		printf("wait: TWSR = %x\n\r", TWSR);
+		// wait for interrupt
 	}
 	return 1;
 }
@@ -138,10 +139,16 @@ uint8_t twi_wait_timeout(uint16_t milliseconds){
 }
 
 uint8_t twi_start(){
-	_delay_us(20);
-	TWBR = 20;
-	TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
-	return twi_wait_timeout(5);
+	do{
+		printf("sending start\n\r");
+		_delay_us(200);
+		TWBR = 20;
+		TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
+		twi_wait();
+		printf("done\n\r");
+	}while(TWSR!=0x08);
+	return 1;
+	//return twi_wait_timeout(5);
 	//while(!(TWCR & (1<<TWINT)) || (TWSR != 0x08) ){
 	//	// wait for interrupt
 	//	// and right status code
@@ -150,16 +157,18 @@ uint8_t twi_start(){
 
 uint8_t start_measurement(uint8_t addr){
 	// send start condition:
-	printf("send start\n\r");
+	//printf("send start\n\r");
 	if (!twi_start()){
+		TWCR = (1<<TWSTO) | (1<<TWEN) | (1<<TWINT);
+		printf("could not send start\n\r");
 		return 0;
 	}
-	printf("send SLA+W\n\r");
+	//printf("send SLA+W\n\r");
 	// send SLA + W
 	TWDR = (addr<<1);
 	TWCR = (1<<TWINT) | (1<<TWEN);
 	twi_wait_timeout(5);
-	printf("TWSR = %x\n\r", TWSR);
+	//printf("TWSR = %x\n\r", TWSR);
 	switch (TWSR){
 		case 0x18:
 			// SLA+W has been transmitted;
@@ -178,6 +187,7 @@ uint8_t start_measurement(uint8_t addr){
 					// Data byte has been transmitted;
 					// NOT ACK has been received
 					TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
+					printf("error: 0x30\n\r");
 					return 0;
 					break;
 				default:
@@ -190,6 +200,7 @@ uint8_t start_measurement(uint8_t addr){
 			// SLA+W has been transmitted;
 			// NOT ACK has been received
 			TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
+			printf("error: 0x20\n\r");
 			return 0;
 			break;
 		case 0x38:
@@ -198,6 +209,7 @@ uint8_t start_measurement(uint8_t addr){
 			// 2-wire Serial Bus will be released and not addressed
 			// Slave mode entered
 			TWCR = (1<<TWINT) | (1<<TWEN);
+			printf("error: 0x38\n\r");
 			return 0;
 			break;
 		case 0xf8:
@@ -209,6 +221,7 @@ uint8_t start_measurement(uint8_t addr){
 			// of a timeout. START and SLA+W has already been sent
 			// so I try to send a STOP condition here
 			TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
+			printf("error: 0xf8, no new state (timeout)\n\r");
 			return 0;
 			break;
 		default:
@@ -224,6 +237,7 @@ uint8_t start_measurement(uint8_t addr){
 uint8_t receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 	// send start condition:
 	if (!twi_start()){
+		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
 		return 0;
 	}
 	TWDR = (address<<1) | 1;
@@ -275,7 +289,7 @@ uint8_t receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 		*buffer = TWDR;
 		buffer++;
 		len--;
-		if (len == 0){
+		if (len == 1){
 			TWCR = (1<<TWINT)|(1<<TWEN);
 		}else{
 			TWCR = (1<<TWINT)|(1<<TWEN)|(1<<TWEA);
@@ -284,7 +298,7 @@ uint8_t receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 		//printf("TWSR = %x\n\r", TWSR);
 	}
 	TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);
-	printf("len = %d\n\r", len);
+	//printf("len = %d\n\r", len);
 	return (len == 0);
 	
 	
@@ -364,11 +378,11 @@ void loop(){
 	// -- }
 	// -- printf("\n\r");
 
-	printf("----\n\r");
-	printf("receive from 0x78..\n\r");
+	//printf("----\n\r");
+	printf("0x78:");
 	state = start_measurement(SLA2);
-	printf("Measurement started..\n\r");
-	printf("receiving..\n\r");
+	//printf("Measurement started..\n\r");
+	//printf("receiving..\n\r");
 	
 	if (state){
 		state = receive_data(SLA2, ((uint8_t*)received),40);

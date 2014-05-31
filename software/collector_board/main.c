@@ -226,12 +226,12 @@ void handle_communications(){
 					case START_MEASUREMENT:
 						// Switched to the not addressed Slave mode; own SLA will be recognized;
 						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
-						cstate = IDLE;
 						// Start meassuring process. this will block
 						// no new twi activity will be processed.
 						// If new command arrives, clock will
 						// be extended, until measurement is completed
 						do_measurement();
+						cstate = IDLE;
 						break;
 					default:
 						cstate = IDLE;
@@ -255,6 +255,7 @@ void handle_communications(){
 						TWDR = ((uint8_t*)measurement_data )[0];
 						// Data byte will be transmitted and ACK should be received
 						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+						// FIXME: TRANSMIT state is never used
 						cstate = TRANSMIT;
 
 						break;
@@ -304,8 +305,17 @@ void handle_communications(){
 
 
 			case 0x00:
-				printf("bus error\n\r");
+				printf("bus error, state is %d\n\r", cstate);
+				cstate = IDLE;
         TWCR = (1<< TWEA) | (1<<TWSTO) | (1<<TWEN) | (1<<TWINT);
+				break;
+			case 0xf8:
+				printf("no state change detected\n\r");
+				break;
+			default:
+				printf("default\n\r");
+				break;
+
       
     }
 
