@@ -397,8 +397,6 @@ void do_measurement(){
 	uint8_t i;
 	connected = 0;
 	for(s = 0; s<4; s++){
-		// FIXME give the measurement routine a direct pointer
-		// to the data. this will save ram and one copy operation
 		sensor_pin_mask1 = (1<< (PC0+s));
 		nsensor_pin_mask1 = ~(1<< (PC0+s));
 		sensor_pin_mask2 = (1<< (PD2+s));

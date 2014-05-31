@@ -175,17 +175,17 @@ ISR(TEMPL_PCINT_VECT){
 			// we now know, that we have received a start bit in the past
 			// shift all 3 TEMPL_BYTE_ARRAYs to the left:
 			// shift first TEMPL_BYTE_ARRAY -> carry flag is the msb
-			TEMPL_BYTE_ARRAY [0] = (TEMPL_BYTE_ARRAY [0] << 1);
+			TEMPL_BYTE_ARRAY [4] = (TEMPL_BYTE_ARRAY [4] << 1);
 			// use "rol" to shift the other two bits with carry
-			asm("rol %0" : "=r" (TEMPL_BYTE_ARRAY [1]) : "0" (TEMPL_BYTE_ARRAY [1]));
-			asm("rol %0" : "=r" (TEMPL_BYTE_ARRAY [2]) : "0" (TEMPL_BYTE_ARRAY [2]));
 			asm("rol %0" : "=r" (TEMPL_BYTE_ARRAY [3]) : "0" (TEMPL_BYTE_ARRAY [3]));
-			asm("rol %0" : "=r" (TEMPL_BYTE_ARRAY [4]) : "0" (TEMPL_BYTE_ARRAY [4]));
+			asm("rol %0" : "=r" (TEMPL_BYTE_ARRAY [2]) : "0" (TEMPL_BYTE_ARRAY [2]));
+			asm("rol %0" : "=r" (TEMPL_BYTE_ARRAY [1]) : "0" (TEMPL_BYTE_ARRAY [1]));
+			asm("rol %0" : "=r" (TEMPL_BYTE_ARRAY [0]) : "0" (TEMPL_BYTE_ARRAY [0]));
 			// now we write the received bit:
 			// if this (rising) edge happened before the critical time,
 			// we extracted from the start bit, we are dealing with a '1',
 			// else with a '0'
-			TEMPL_BYTE_ARRAY [0] = TEMPL_BYTE_ARRAY [0] ^ (TEMPL_TVAL < TEMPL_TCRIT);
+			TEMPL_BYTE_ARRAY [4] = TEMPL_BYTE_ARRAY [4] ^ (TEMPL_TVAL < TEMPL_TCRIT);
 		}
 	}else{
 #ifdef DEBUG
