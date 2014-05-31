@@ -127,8 +127,8 @@ int16_t analyze_hum_hum(uint8_t * buf){
 
 void twi_init(){
   // set slave address
-  // do NOT listen to general call
-  TWAR = (SLA << 1);
+  // also listen to general call
+  TWAR = (SLA << 1) | 1;
   TWCR = (1<<TWEA) | (1<<TWEN);
 }
 
@@ -137,11 +137,11 @@ void handle_communications(){
 	// XXX: as the caused delay for printing influences the bus heavily.
   if(TWCR & (1<<TWINT)){
     //TWI interrupt
-		//printf("TWSR = %x, TWDR = %x, cstate = %x\n\r", TWSR, TWDR, cstate);
-		uint8_t vTWSR = TWSR;
-		uint8_t vTWDR = TWDR;
     switch (TWSR){
 			// slave receiver:
+			case 0x70:
+				// General call address has been
+				// received; ACK has been returned
 			case 0x60:
 				// Own SLA+W has been received;
 				// ACK has been returned
@@ -160,23 +160,21 @@ void handle_communications(){
 				// Arbitration lost in SLA+R/W as
 				// Master; own SLA+W has been
 				// received; ACK has been returned
-
-				printf("ERROR 0x68\n\r");
-				break;
-			case 0x70:
-				// General call address has been
-				// received; ACK has been returned
-
-				printf("ERROR 0x70\n\r");
-				break;
 			case 0x78:
 				// Arbitration lost in SLA+R/W as
 				// Master; General call address has
 				// been received; ACK has been
 				// returned
 
-				printf("ERROR 0x79\n\r");
+				// Data byte will be received and NOT ACK will be returned
+				TWCR = (1<<TWEN) | (1<<TWINT);
+				printf("ERROR 0x%x\n\r", TWSR);
 				break;
+
+			case 0x90:
+				// Previously addressed with
+				// general call; data has been re-
+				// ceived; ACK has been returned
 			case 0x80:
 				// Previously addressed with own
 				// SLA+W; data has been received;
@@ -211,7 +209,11 @@ void handle_communications(){
 				}
 				break;
 
-				break;
+			case 0x98:
+				// Previously addressed with
+				// general call; data has been
+				// received; NOT ACK has been
+				// returned
 			case 0x88:
 				// Previously addressed with own
 				// SLA+W; data has been received;
@@ -221,21 +223,7 @@ void handle_communications(){
 				TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
 
 				break;
-			case 0x90:
-				// Previously addressed with
-				// general call; data has been re-
-				// ceived; ACK has been returned
 
-				printf("ERROR 0x98\n\r");
-				break;
-			case 0x98:
-				// Previously addressed with
-				// general call; data has been
-				// received; NOT ACK has been
-				// returned
-
-				printf("ERROR 0x98\n\r");
-				break;
 			case 0xa0:
 				// A STOP condition or repeated
 				// START condition has been
@@ -325,21 +313,28 @@ void handle_communications(){
 
 
 			case 0x00:
-				printf("bus error, state is %d\n\r", cstate);
+				// Bus error due to an illegal
+				// START or STOP condition
+
+				// this might happen, if device is unplugged and then
+				// plugged back into the bus
+				//printf("bus error, state is %d\n\r", cstate);
 				cstate = IDLE;
+
+				// Only the internal hardware is affected, no STOP condi-
+				// tion is sent on the bus. In all cases, the bus is released
+				// and TWSTO is cleared.
         TWCR = (1<< TWEA) | (1<<TWSTO) | (1<<TWEN) | (1<<TWINT);
 				break;
 			case 0xf8:
 				printf("no state change detected\n\r");
 				break;
 			default:
-				printf("default\n\r");
+				printf("ERROR: unknown TWI state\n\r");
 				break;
 
       
     }
-
-		//printf("vTWSR = %x, vTWDR = %x, cstate = %x\n\r", vTWSR, vTWDR, cstate);
   }
 }
 
@@ -402,8 +397,6 @@ void do_measurement(){
 	uint8_t i;
 	connected = 0;
 	for(s = 0; s<4; s++){
-		// FIXME give the measurement routine a direct pointer
-		// to the data. this will save ram and one copy operation
 		sensor_pin_mask1 = (1<< (PC0+s));
 		nsensor_pin_mask1 = ~(1<< (PC0+s));
 		sensor_pin_mask2 = (1<< (PD2+s));

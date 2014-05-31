@@ -49,7 +49,7 @@ int16_t analyze(uint8_t * buf){
   //int32_t c100 = 100;
   //printf("3ff = %d\n\r", result32*c100);
 
-  int32_t cels = result32*10000L*70L/2047L - 1000L;
+  int32_t cels = result32*100L*70L/2047L - 1000L;
 
   //uint16_t cels = ((result * 25)>>8)*35-1000;
 
@@ -71,7 +71,7 @@ int16_t analyze_hum_temp(uint8_t * buf){
   data = ((tempH<<6) | (tempL>>2));
   data32 = (int32_t)(data);
   result = data32*16500L;
-  result = (result >> 14) - 40L;
+  result = (result >> 14) - 4000L;
 	return(int16_t)result;
 }
 
@@ -419,8 +419,8 @@ void loop(){
 
 	//printf("----\n\r");
 	printf("----------\n\r");
-	state = start_measurement(SLA1);
-	state = start_measurement(SLA2);
+	state = start_measurement(0x00);
+	//state = start_measurement(SLA2);
 	state = receive_data(SLA1, ((uint8_t*)received),40);
 	printf("0x%x: ", SLA1);
 	if (state){
