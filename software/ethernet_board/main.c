@@ -71,7 +71,7 @@ int16_t analyze_hum_temp(uint8_t * buf){
   data = ((tempH<<6) | (tempL>>2));
   data32 = (int32_t)(data);
   result = data32*16500L;
-  result = (result >> 14) - 40L;
+  result = (result >> 14) - 4000L;
 	return(int16_t)result;
 }
 
