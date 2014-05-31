@@ -147,11 +147,13 @@ void handle_communications(){
 				// Master; own SLA+W has been
 				// received; ACK has been returned
 
+				printf("ERROR 0x68\n\r");
 				break;
 			case 0x70:
 				// General call address has been
 				// received; ACK has been returned
 
+				printf("ERROR 0x70\n\r");
 				break;
 			case 0x78:
 				// Arbitration lost in SLA+R/W as
@@ -159,6 +161,7 @@ void handle_communications(){
 				// been received; ACK has been
 				// returned
 
+				printf("ERROR 0x79\n\r");
 				break;
 			case 0x80:
 				// Previously addressed with own
@@ -209,6 +212,7 @@ void handle_communications(){
 				// general call; data has been re-
 				// ceived; ACK has been returned
 
+				printf("ERROR 0x98\n\r");
 				break;
 			case 0x98:
 				// Previously addressed with
@@ -216,6 +220,7 @@ void handle_communications(){
 				// received; NOT ACK has been
 				// returned
 
+				printf("ERROR 0x98\n\r");
 				break;
 			case 0xa0:
 				// A STOP condition or repeated
@@ -273,6 +278,7 @@ void handle_communications(){
 				// Master; own SLA+R has been
 				// received; ACK has been returned
 
+				printf("ERROR 0xb0\n\r");
 				break;
 			case 0xb8:
 				// Data byte in TWDR has been

@@ -141,12 +141,14 @@ uint8_t twi_wait_timeout(uint16_t milliseconds){
 uint8_t twi_start(){
 	do{
 		printf("sending start\n\r");
+		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
 		_delay_us(200);
 		TWBR = 20;
 		TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
 		twi_wait();
-		printf("done\n\r");
+		printf("got interrupt\n\r");
 	}while(TWSR!=0x08);
+	printf("done\n\r");
 	return 1;
 	//return twi_wait_timeout(5);
 	//while(!(TWCR & (1<<TWINT)) || (TWSR != 0x08) ){
@@ -157,13 +159,13 @@ uint8_t twi_start(){
 
 uint8_t start_measurement(uint8_t addr){
 	// send start condition:
-	//printf("send start\n\r");
+	printf("start_measurement\n\r");
 	if (!twi_start()){
 		TWCR = (1<<TWSTO) | (1<<TWEN) | (1<<TWINT);
 		printf("could not send start\n\r");
 		return 0;
 	}
-	//printf("send SLA+W\n\r");
+	printf("send SLA+W\n\r");
 	// send SLA + W
 	TWDR = (addr<<1);
 	TWCR = (1<<TWINT) | (1<<TWEN);
@@ -191,6 +193,7 @@ uint8_t start_measurement(uint8_t addr){
 					return 0;
 					break;
 				default:
+					//TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
 					printf("bus error2: state = %x\n\r", TWSR);
 					return 0;
 					break;
@@ -235,6 +238,7 @@ uint8_t start_measurement(uint8_t addr){
 }
 
 uint8_t receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
+	printf("receive_data\n\r");
 	// send start condition:
 	if (!twi_start()){
 		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
@@ -253,6 +257,7 @@ uint8_t receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 			// 2-wire Serial Bus will be released and not addressed
 			// Slave mode will be entered
 			TWCR = (1<<TWINT)|(1<<TWEN);
+			printf("error 0x38\n\r");
 			return 0;
 			break;
 		case 0x40:
@@ -269,6 +274,8 @@ uint8_t receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 			// STOP condition will be transmitted and TWSTO Flag
 			// will be reset
 			TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);
+
+			printf("error 0x48\n\r");
 			return 0;
 			break;
 		case 0xf8:
@@ -294,12 +301,15 @@ uint8_t receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 		}else{
 			TWCR = (1<<TWINT)|(1<<TWEN)|(1<<TWEA);
 		}
-		twi_wait_timeout(5);
+		if(!twi_wait_timeout(5)){
+			printf("timeout\n\r");
+		}
 		//printf("TWSR = %x\n\r", TWSR);
 	}
+	*buffer = TWDR;
 	TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);
-	//printf("len = %d\n\r", len);
-	return (len == 0);
+	printf("len = %d\n\r", len);
+	return (len == 1);
 	
 	
 }
@@ -379,7 +389,8 @@ void loop(){
 	// -- printf("\n\r");
 
 	//printf("----\n\r");
-	printf("0x78:");
+	printf("----------\n\r");
+	printf("0x78:\n\r");
 	state = start_measurement(SLA2);
 	//printf("Measurement started..\n\r");
 	//printf("receiving..\n\r");
@@ -388,9 +399,10 @@ void loop(){
 		state = receive_data(SLA2, ((uint8_t*)received),40);
 		//state = 0;
 		if (state){
+			printarray((uint8_t*)received, 40);
+			printf("\n\r");
 			for(s = 0; s<8; s++){
 				printf("P%u: ", s+1);
-				//printarray((uint8_t*)received, 40);
 				interpret(received[s]);
 				printf(" | ");
 			}
