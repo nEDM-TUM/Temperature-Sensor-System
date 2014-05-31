@@ -116,15 +116,13 @@ void interpret(uint8_t * data){
 
 }
 
-void twi_start(){
-	TWBR = 20;
-	TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
-	while(!(TWCR & (1<<TWINT)) || (TWSR != 0x08) ){
-		// wait for interrupt
-		// and right status code
-	}
-}
 
+uint8_t twi_wait(void){
+	while(!(TWCR & (1<<TWINT))){
+		;// wait for interrupt
+	}
+	return 1;
+}
 uint8_t twi_wait_timeout(uint16_t milliseconds){
 	uint16_t i;
 	i = 0;
@@ -139,15 +137,28 @@ uint8_t twi_wait_timeout(uint16_t milliseconds){
 	return 1;
 }
 
+uint8_t twi_start(){
+	_delay_us(20);
+	TWBR = 20;
+	TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
+	return twi_wait_timeout(5);
+	//while(!(TWCR & (1<<TWINT)) || (TWSR != 0x08) ){
+	//	// wait for interrupt
+	//	// and right status code
+	//}
+}
+
 uint8_t start_measurement(uint8_t addr){
 	// send start condition:
 	printf("send start\n\r");
-	twi_start();
+	if (!twi_start()){
+		return 0;
+	}
 	printf("send SLA+W\n\r");
 	// send SLA + W
 	TWDR = (addr<<1);
 	TWCR = (1<<TWINT) | (1<<TWEN);
-	twi_wait_timeout(50);
+	twi_wait_timeout(5);
 	printf("TWSR = %x\n\r", TWSR);
 	switch (TWSR){
 		case 0x18:
@@ -155,7 +166,7 @@ uint8_t start_measurement(uint8_t addr){
 			// ACK has been received
 			TWDR = CMD_START_MEASUREMENT;
 			TWCR = (1<<TWINT)|(1<<TWEN);
-			twi_wait_timeout(50);
+			twi_wait_timeout(5);
 			switch(TWSR){
 				case 0x28:
 					// Data byte has been transmitted;
@@ -212,12 +223,15 @@ uint8_t start_measurement(uint8_t addr){
 
 uint8_t receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 	// send start condition:
-	twi_start();
+	if (!twi_start()){
+		return 0;
+	}
 	TWDR = (address<<1) | 1;
 	// send read request:
 	TWCR = (1<<TWINT) | (1<<TWEN);
-	twi_wait_timeout(800);
-	printf("TWSR = %x\n\r", TWSR);
+	twi_wait_timeout(5);
+	//twi_wait();
+	//printf("TWSR = %x\n\r", TWSR);
 	switch(TWSR){
 		case 0x38:
 			// Arbitration lost in SLA+R or NOT ACK bit
@@ -246,12 +260,16 @@ uint8_t receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 		case 0xf8:
 			// No relevant state information
 			// available; TWINT = “0”
+			// FIXME: this reaction causes a bus error
 			TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
+			printf("no new state\n\r");
 			return 0;
 			break;
 	}
-	twi_wait_timeout(50);
-	printf("TWSR = %x\n\r", TWSR);
+	// wait max 800ms, as measurement should be finished by then
+	twi_wait_timeout(800);
+	//twi_wait();
+	//printf("TWSR = %x\n\r", TWSR);
 	while(TWSR == 0x50 && len > 0){
 		//printf("byte received!\n\r");
 		*buffer = TWDR;
@@ -262,10 +280,11 @@ uint8_t receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 		}else{
 			TWCR = (1<<TWINT)|(1<<TWEN)|(1<<TWEA);
 		}
-		twi_wait_timeout(50);
-		printf("TWSR = %x\n\r", TWSR);
+		twi_wait_timeout(5);
+		//printf("TWSR = %x\n\r", TWSR);
 	}
 	TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);
+	printf("len = %d\n\r", len);
 	return (len == 0);
 	
 	
@@ -352,13 +371,12 @@ void loop(){
 	printf("receiving..\n\r");
 	
 	if (state){
-		_delay_ms(100);
 		state = receive_data(SLA2, ((uint8_t*)received),40);
 		//state = 0;
 		if (state){
 			for(s = 0; s<8; s++){
 				printf("P%u: ", s+1);
-				printarray((uint8_t*)received, 40);
+				//printarray((uint8_t*)received, 40);
 				interpret(received[s]);
 				printf(" | ");
 			}
@@ -371,7 +389,6 @@ void loop(){
 	}
 
 	//printf("hello\n\r");
-	_delay_ms(2000);
 }
 
 

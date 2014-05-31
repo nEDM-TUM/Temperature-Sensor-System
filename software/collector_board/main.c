@@ -119,6 +119,8 @@ void twi_init(){
 }
 
 void handle_communications(){
+	// XXX: one has to be EXTREMELY careful when debugging this code with printf,
+	// XXX: as the caused delay for printing influences the bus heavily.
   if(TWCR & (1<<TWINT)){
     //TWI interrupt
 		//printf("TWSR = %x, TWDR = %x, cstate = %x\n\r", TWSR, TWDR, cstate);
@@ -230,7 +232,6 @@ void handle_communications(){
 						// If new command arrives, clock will
 						// be extended, until measurement is completed
 						do_measurement();
-						LED2_PORT ^= (1<<LED2);
 						break;
 					default:
 						cstate = IDLE;
@@ -308,7 +309,7 @@ void handle_communications(){
       
     }
 
-		printf("vTWSR = %x, vTWDR = %x, cstate = %x\n\r", vTWSR, vTWDR, cstate);
+		//printf("vTWSR = %x, vTWDR = %x, cstate = %x\n\r", vTWSR, vTWDR, cstate);
   }
 }
 
@@ -366,8 +367,7 @@ void interpret(uint8_t * data){
 }
 
 void do_measurement(){
-	printf("start measurement\n\r");
-	LED3_PORT |= (1<<LED3);
+	LED1_PORT &= ~(1<<LED1);
 	uint8_t s;
 	uint8_t i;
 	connected = 0;
@@ -402,8 +402,7 @@ void do_measurement(){
 	}
 
 	connected_previous = connected;
-	LED3_PORT &= ~(1<<LED3);
-	printf("measurement finished\n\r");
+	LED1_PORT |= (1<<LED1);
 
 }
 
@@ -457,6 +456,5 @@ int main (void)
 	printf("Controller started\n\r");
 	while (1) {
 		loop();
-		LED1_PORT ^= (1<<LED1);
 	}
 }
