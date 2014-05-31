@@ -89,11 +89,11 @@ int16_t analyze_hum_hum(uint8_t * buf){
 }
 
 
-uint8_t verifyCRC(uint8_t * data, int8_t len){
-  uint8_t result = data[len - 1];
+uint8_t computeCRC(uint8_t * data, unit8_t offset, uint8_t len, uint8_t crc){
+  uint8_t result = data[offset];
   int8_t i;
-  for (i=len-2; i>=0; i--){
-    int8_t index;
+  int8_t index;
+  for (i=offset+1; i<offset+len; i++){
     for(index=7; index >= 0; index--){
       if(result & (1<<7)){
         result = result << 1;
@@ -105,8 +105,18 @@ uint8_t verifyCRC(uint8_t * data, int8_t len){
       }
     }
   }
+  for(index=7; index >= 0; index--){
+    if(result & (1<<7)){
+      result = result << 1;
+      result |= ((crc >> index) & 1);
+      result ^= CRC8;
+    } else  {
+      result = result << 1;
+      result |= ((crc >> index) & 1);
+    }
+  }
   //printf("\t\t\t!!!Result is %x\n\r", result);
-  return result == 0;
+  return result;
 }
 
 void interpret(uint8_t * data){
@@ -114,7 +124,7 @@ void interpret(uint8_t * data){
 		// this is a humidity sensor
     // check crc checksum:
 		//printf("verify crc...\n\r");
-    if (!verifyCRC(data, 5)){
+    if (computeCRC(data, 0, 4,  data[5])!=0){
       printf("CRC error\n\r");
     }
 		//printf("done\n\r");
