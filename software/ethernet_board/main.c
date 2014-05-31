@@ -119,7 +119,7 @@ void interpret(uint8_t * data){
 
 uint8_t twi_wait(void){
 	while(!(TWCR & (1<<TWINT))){
-		printf("wait: TWSR = %x\n\r", TWSR);
+		//printf("wait: TWSR = %x\n\r", TWSR);
 		// wait for interrupt
 	}
 	return 1;
@@ -139,17 +139,21 @@ uint8_t twi_wait_timeout(uint16_t milliseconds){
 }
 
 uint8_t twi_start(){
-	do{
-		printf("sending start\n\r");
+	//do{
+		//printf("sending start\n\r");
 		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
 		_delay_us(200);
 		TWBR = 20;
 		TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
-		twi_wait();
-		printf("got interrupt\n\r");
-	}while(TWSR!=0x08);
-	printf("done\n\r");
-	return 1;
+		twi_wait_timeout(5);
+		//printf("got interrupt\n\r");
+	//}while(TWSR!=0x08);
+	if (TWSR != 0x08){
+		return 0;
+	}else{
+		//printf("done\n\r");
+		return 1;
+	}
 	//return twi_wait_timeout(5);
 	//while(!(TWCR & (1<<TWINT)) || (TWSR != 0x08) ){
 	//	// wait for interrupt
@@ -159,13 +163,13 @@ uint8_t twi_start(){
 
 uint8_t start_measurement(uint8_t addr){
 	// send start condition:
-	printf("start_measurement\n\r");
+	//printf("start_measurement\n\r");
 	if (!twi_start()){
 		TWCR = (1<<TWSTO) | (1<<TWEN) | (1<<TWINT);
 		printf("could not send start\n\r");
 		return 0;
 	}
-	printf("send SLA+W\n\r");
+	//printf("send SLA+W\n\r");
 	// send SLA + W
 	TWDR = (addr<<1);
 	TWCR = (1<<TWINT) | (1<<TWEN);
@@ -238,7 +242,7 @@ uint8_t start_measurement(uint8_t addr){
 }
 
 uint8_t receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
-	printf("receive_data\n\r");
+	//printf("receive_data\n\r");
 	// send start condition:
 	if (!twi_start()){
 		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
@@ -308,7 +312,7 @@ uint8_t receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 	}
 	*buffer = TWDR;
 	TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);
-	printf("len = %d\n\r", len);
+	//printf("len = %d\n\r", len);
 	return (len == 1);
 	
 	
@@ -390,29 +394,56 @@ void loop(){
 
 	//printf("----\n\r");
 	printf("----------\n\r");
-	printf("0x78:\n\r");
+	state = start_measurement(SLA1);
 	state = start_measurement(SLA2);
+	state = receive_data(SLA1, ((uint8_t*)received),40);
+	printf("0x%x: ", SLA1);
+	if (state){
+		//printarray((uint8_t*)received, 40);
+		for(s = 0; s<8; s++){
+			printf("P%u: ", s+1);
+			interpret(received[s]);
+			printf(" | ");
+		}
+		printf("\n\r");
+	}else{
+		printf("receive interrupted\n\r");
+	}
+	state = receive_data(SLA2, ((uint8_t*)received),40);
+	printf("\n\r");
+	printf("0x%x: ", SLA2);
+	if (state){
+		//printarray((uint8_t*)received, 40);
+		for(s = 0; s<8; s++){
+			printf("P%u: ", s+1);
+			interpret(received[s]);
+			printf(" | ");
+		}
+		printf("\n\r");
+	}else{
+		printf("receive interrupted\n\r");
+	}
 	//printf("Measurement started..\n\r");
 	//printf("receiving..\n\r");
 	
-	if (state){
-		state = receive_data(SLA2, ((uint8_t*)received),40);
-		//state = 0;
-		if (state){
-			printarray((uint8_t*)received, 40);
-			printf("\n\r");
-			for(s = 0; s<8; s++){
-				printf("P%u: ", s+1);
-				interpret(received[s]);
-				printf(" | ");
-			}
-			printf("\n\r");
-		}else{
-			printf("receive interrupted\n\r");
-		}
-	}else{
-		printf("device not found\n\r");
-	}
+	// -- if (state){
+	// -- 	state = receive_data(SLA2, ((uint8_t*)received),40);
+	// -- 	//state = 0;
+	// -- 	if (state){
+	// -- 		//printarray((uint8_t*)received, 40);
+	// -- 		printf("\n\r");
+	// -- 		for(s = 0; s<8; s++){
+	// -- 			printf("P%u: ", s+1);
+	// -- 			interpret(received[s]);
+	// -- 			printf(" | ");
+	// -- 		}
+	// -- 		printf("\n\r");
+	// -- 	}else{
+	// -- 		printf("receive interrupted\n\r");
+	// -- 	}
+	// -- }else{
+	// -- 	printf("device not found\n\r");
+	// -- }
 
 	//printf("hello\n\r");
 }
