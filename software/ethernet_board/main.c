@@ -409,8 +409,8 @@ void loop(){
 
 	//printf("----\n\r");
 	printf("----------\n\r");
-	state = start_measurement(SLA1);
-	state = start_measurement(SLA2);
+	state = start_measurement(0x00);
+	//state = start_measurement(SLA2);
 	state = receive_data(SLA1, ((uint8_t*)received),40);
 	printf("0x%x: ", SLA1);
 	if (state){
