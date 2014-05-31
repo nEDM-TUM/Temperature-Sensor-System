@@ -49,7 +49,7 @@ int16_t analyze(uint8_t * buf){
   //int32_t c100 = 100;
   //printf("3ff = %d\n\r", result32*c100);
 
-  int32_t cels = result32*10000L*70L/2047L - 1000L;
+  int32_t cels = result32*100L*70L/2047L - 1000L;
 
   //uint16_t cels = ((result * 25)>>8)*35-1000;
 
