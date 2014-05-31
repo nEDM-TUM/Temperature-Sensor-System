@@ -99,16 +99,30 @@ int16_t analyze(uint8_t * buf){
 
 }
 
-uint16_t analyze_hum_temp(uint8_t * buf){
+int16_t analyze_hum_temp(uint8_t * buf){
+	uint16_t data;
+	int32_t data32;
+	int32_t result;
 	uint8_t tempH = buf[2];
-	//uint8_t tempL = buf[1];
-	return (tempH >> 1) + (tempH >> 3) + (tempH >> 6) - 40;
+	uint8_t tempL = buf[1];
+  data = ((tempH<<6) | (tempL>>2));
+  data32 = (int32_t)(data);
+  result = data32*165L;
+  result = (result >> 14) - 40L;
+	return(int16_t)result;
 }
 
-uint16_t analyze_hum_hum(uint8_t * buf){
+int16_t analyze_hum_hum(uint8_t * buf){
+	uint16_t data;
+	int32_t data32;
+	int32_t result;
 	uint8_t capH = buf[4] & ~((1<<7)|(1<<6));
-	//uint8_t capL = buf[3];
-	return ((capH*3) >> 1) + (capH >>4);
+	uint8_t capL = buf[3];
+  data= (capH << 8) | capL;
+  data32 = (int32_t)(data);
+  result = data32*100L;
+  result = result >> 14;
+	return(int16_t)result;
 }
 
 void twi_init(){
@@ -369,9 +383,9 @@ void interpret(uint8_t * data){
       printf("CRC error\n\r");
     }
 		//printf("done\n\r");
-		uint16_t cels = analyze_hum_temp(data);
-		uint16_t hum = analyze_hum_hum(data);
-		printf(" T = %u, H = %u", cels, hum);
+		int16_t cels = analyze_hum_temp(data);
+		int16_t hum = analyze_hum_hum(data);
+		printf(" T = %d, H = %d", cels, hum);
 
 	}else{
 		// this is a temperature sensor
