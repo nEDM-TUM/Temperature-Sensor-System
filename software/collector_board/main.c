@@ -119,9 +119,13 @@ void twi_init(){
 }
 
 void handle_communications(){
+	// XXX: one has to be EXTREMELY careful when debugging this code with printf,
+	// XXX: as the caused delay for printing influences the bus heavily.
   if(TWCR & (1<<TWINT)){
     //TWI interrupt
-		//printf("TWSR = %x\n\r", TWSR);
+		//printf("TWSR = %x, TWDR = %x, cstate = %x\n\r", TWSR, TWDR, cstate);
+		uint8_t vTWSR = TWSR;
+		uint8_t vTWDR = TWDR;
     switch (TWSR){
 			// slave receiver:
 			case 0x60:
@@ -143,11 +147,13 @@ void handle_communications(){
 				// Master; own SLA+W has been
 				// received; ACK has been returned
 
+				printf("ERROR 0x68\n\r");
 				break;
 			case 0x70:
 				// General call address has been
 				// received; ACK has been returned
 
+				printf("ERROR 0x70\n\r");
 				break;
 			case 0x78:
 				// Arbitration lost in SLA+R/W as
@@ -155,6 +161,7 @@ void handle_communications(){
 				// been received; ACK has been
 				// returned
 
+				printf("ERROR 0x79\n\r");
 				break;
 			case 0x80:
 				// Previously addressed with own
@@ -205,6 +212,7 @@ void handle_communications(){
 				// general call; data has been re-
 				// ceived; ACK has been returned
 
+				printf("ERROR 0x98\n\r");
 				break;
 			case 0x98:
 				// Previously addressed with
@@ -212,6 +220,7 @@ void handle_communications(){
 				// received; NOT ACK has been
 				// returned
 
+				printf("ERROR 0x98\n\r");
 				break;
 			case 0xa0:
 				// A STOP condition or repeated
@@ -222,12 +231,12 @@ void handle_communications(){
 					case START_MEASUREMENT:
 						// Switched to the not addressed Slave mode; own SLA will be recognized;
 						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
-						cstate = IDLE;
 						// Start meassuring process. this will block
 						// no new twi activity will be processed.
 						// If new command arrives, clock will
 						// be extended, until measurement is completed
 						do_measurement();
+						cstate = IDLE;
 						break;
 					default:
 						cstate = IDLE;
@@ -251,6 +260,7 @@ void handle_communications(){
 						TWDR = ((uint8_t*)measurement_data )[0];
 						// Data byte will be transmitted and ACK should be received
 						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+						// FIXME: TRANSMIT state is never used
 						cstate = TRANSMIT;
 
 						break;
@@ -268,6 +278,7 @@ void handle_communications(){
 				// Master; own SLA+R has been
 				// received; ACK has been returned
 
+				printf("ERROR 0xb0\n\r");
 				break;
 			case 0xb8:
 				// Data byte in TWDR has been
@@ -300,11 +311,21 @@ void handle_communications(){
 
 
 			case 0x00:
-				printf("bus error\n\r");
+				printf("bus error, state is %d\n\r", cstate);
+				cstate = IDLE;
         TWCR = (1<< TWEA) | (1<<TWSTO) | (1<<TWEN) | (1<<TWINT);
+				break;
+			case 0xf8:
+				printf("no state change detected\n\r");
+				break;
+			default:
+				printf("default\n\r");
+				break;
+
       
     }
 
+		//printf("vTWSR = %x, vTWDR = %x, cstate = %x\n\r", vTWSR, vTWDR, cstate);
   }
 }
 
@@ -362,7 +383,7 @@ void interpret(uint8_t * data){
 }
 
 void do_measurement(){
-	LED4_PORT |= (1<<LED4);
+	LED1_PORT &= ~(1<<LED1);
 	uint8_t s;
 	uint8_t i;
 	connected = 0;
@@ -376,7 +397,6 @@ void do_measurement(){
 		meassure_start_bank1();
 		meassure_start_bank2();
 		for(i=0;i<60;i++){
-			handle_communications();
 			_delay_ms(2);
 		}
 		if(meassure_stop_bank1()){
@@ -398,7 +418,7 @@ void do_measurement(){
 	}
 
 	connected_previous = connected;
-	LED4_PORT &= ~(1<<LED4);
+	LED1_PORT |= (1<<LED1);
 
 }
 
@@ -452,6 +472,5 @@ int main (void)
 	printf("Controller started\n\r");
 	while (1) {
 		loop();
-		LED1_PORT ^= (1<<LED1);
 	}
 }
