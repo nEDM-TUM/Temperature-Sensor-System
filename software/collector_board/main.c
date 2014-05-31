@@ -99,7 +99,7 @@ int16_t analyze(uint8_t * buf){
 
 }
 
-uint16_t analyze_hum_temp(uint8_t * buf){
+int16_t analyze_hum_temp(uint8_t * buf){
 	uint16_t data;
 	int32_t data32;
 	int32_t result;
@@ -112,7 +112,7 @@ uint16_t analyze_hum_temp(uint8_t * buf){
 	return(int16_t)result;
 }
 
-uint16_t analyze_hum_hum(uint8_t * buf){
+int16_t analyze_hum_hum(uint8_t * buf){
 	uint16_t data;
 	int32_t data32;
 	int32_t result;
@@ -383,9 +383,9 @@ void interpret(uint8_t * data){
       printf("CRC error\n\r");
     }
 		//printf("done\n\r");
-		uint16_t cels = analyze_hum_temp(data);
-		uint16_t hum = analyze_hum_hum(data);
-		printf(" T = %u, H = %u", cels, hum);
+		int16_t cels = analyze_hum_temp(data);
+		int16_t hum = analyze_hum_hum(data);
+		printf(" T = %d, H = %d", cels, hum);
 
 	}else{
 		// this is a temperature sensor
