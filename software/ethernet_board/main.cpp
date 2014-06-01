@@ -61,8 +61,8 @@ int main (void)
 	DDRD = (1<<PD5);
 
 	printf("Controller started\n\r");
-  setupServerLib();
-  //setupServer();
+  //setupServerLib();
+  setupServer();
 	while (1) {
 	//	loop();
 	}
