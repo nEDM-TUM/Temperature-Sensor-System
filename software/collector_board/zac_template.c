@@ -101,7 +101,7 @@ ISR(TEMPL_TMR_OVF_VECT){
 #ifdef DEBUG
 	printf ("%x %x %x %d\n\r", TEMPL_BYTE_ARRAY [2], TEMPL_BYTE_ARRAY [1], TEMPL_BYTE_ARRAY [0], s);
 #endif
-	if (!(TEMPL_BYTE_ARRAY [2] & (1<<2)) || !(TEMPL_BYTE_ARRAY [4] & (1<<7))){
+	if (!(TEMPL_BYTE_ARRAY [2] & (1<<2)) || !(TEMPL_BYTE_ARRAY [0] & (1<<7))){
 		// we have seen a start bit AND are finished with transmission
 		// => stop measurement
 		// disable interrupt for this pin
@@ -132,7 +132,7 @@ ISR(TEMPL_TMR_OVF_VECT){
 // Interrupt handler
 // IDEA: use OCRnA/B for TEMPL_TCRIT / TEMPL_TVAL storage to reduce stack usage
 ISR(TEMPL_PCINT_VECT){
-  icount++;
+  //icount++;
 	// start timer 2: enable with prescaler 64
 	// the order AND position of the following 3 instructions
 	// is highly important for propper timing
@@ -167,9 +167,6 @@ ISR(TEMPL_PCINT_VECT){
 		// PC0 is 1 -> rising edge
 		// this is the time, the signal was low:
 		TEMPL_LOWTIME = TEMPL_TVAL;
-		// TODO: Idea:
-		// Try to directly use 16 bis or 32 bit integers. this might reduce
-		// stack and register overhead
 		if (TEMPL_TCRIT != 0xff){
 			// here we receive a TEMPL_BYTE_ARRAY.
 			// we now know, that we have received a start bit in the past
