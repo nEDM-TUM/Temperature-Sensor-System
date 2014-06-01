@@ -22,7 +22,7 @@ int16_t analyze_hum_hum(uint8_t * buf);
 void twi_init(void);
 void handle_communications(void);
 void printarray(uint8_t * arr, uint8_t len);
-uint8_t verifyCRC(uint8_t * data, int8_t len);
+uint8_t verifyCRC(uint8_t * data, int8_t len, uint8_t crc);
 void interpret(uint8_t * data);
 void do_measurement(void);
 void print_interpreted_data(uint8_t ** data);
