@@ -1,9 +1,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
-extern "C" {
 #include "usart.h"
-}
 #include "configuration.h"
 #include "collector_twi.h"
 
