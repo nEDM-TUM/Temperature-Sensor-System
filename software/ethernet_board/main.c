@@ -17,76 +17,6 @@ uint8_t check_parity(uint8_t value, uint8_t parity){
 	return parity == 0;
 }
 
-int16_t analyze(uint8_t * buf){
-	uint16_t result;
-	uint8_t err = 0;
-	uint8_t resth = ((buf[2]<<5) | (buf[1]>>3));
-	uint8_t restl = ((buf[1]<<7) | (buf[0]>>1));
-	if (!check_parity(restl, buf[0] & 0x1) ){
-		err = 1;
-		//printf("PARITY ERROR low\n\r");
-	}
-	if (!check_parity(resth, (buf[1]>>2) & 0x1 ) ){
-		err = 1;
-		//printf("PARITY ERROR high\n\r");
-	}
-	if (resth & ~(0x7)){
-		err = 1;
-		//printf("FORMAT ERROR\n\r");
-	}
-  //result = (((buf[2]<<5) | (buf[1]>>3)) <<8) | ((buf[1]<<7) | (buf[0]>>1));
-  result =( resth <<8)|restl;
-  //uint32_t result32 = (uint32_t)result;
-
-
-  int32_t result32 = (int32_t)(result);
-  //for (i =0;i<25;i++){
-  //  result32 += result32;
-  //}
-  //result32 = result32 << 2;
-  //result32 = result32 * 100UL * 70UL;
-  //printf("3ff = %lu\n\r", result32/2047UL - 1000UL);
-  //int32_t c100 = 100;
-  //printf("3ff = %d\n\r", result32*c100);
-
-  int32_t cels = result32*100L*70L/2047L - 1000L;
-
-  //uint16_t cels = ((result * 25)>>8)*35-1000;
-
-	if(err){
-		return 0;
-	}else{
-		return (int16_t)cels;
-	}
-
-}
-
-
-int16_t analyze_hum_temp(uint8_t * buf){
-	uint16_t data;
-	int32_t data32;
-	int32_t result;
-	uint8_t tempH = buf[2];
-	uint8_t tempL = buf[1];
-  data = ((tempH<<6) | (tempL>>2));
-  data32 = (int32_t)(data);
-  result = data32*16500L;
-  result = (result >> 14) - 4000L;
-	return(int16_t)result;
-}
-
-int16_t analyze_hum_hum(uint8_t * buf){
-	uint16_t data;
-	int32_t data32;
-	int32_t result;
-	uint8_t capH = buf[4] & ~((1<<7)|(1<<6));
-	uint8_t capL = buf[3];
-  data= (capH << 8) | capL;
-  data32 = (int32_t)(data);
-  result = data32*10000L;
-  result = result >> 14;
-	return(int16_t)result;
-}
 
 uint8_t computeCRC(uint8_t * data, uint8_t len, uint8_t crc){
   uint8_t result = data[0];
@@ -117,12 +47,72 @@ uint8_t computeCRC(uint8_t * data, uint8_t len, uint8_t crc){
   return result;
 }
 
+int16_t analyze(uint8_t * buf){
+	uint16_t result;
+	uint8_t err = 0;
+	uint8_t resth = ((buf[2]<<5) | (buf[3]>>3));
+	uint8_t restl = ((buf[3]<<7) | (buf[4]>>1));
+	if (!check_parity(restl, buf[4] & 0x1) ){
+		err = 1;
+		//printf("PARITY ERROR low\n\r");
+	}
+	if (!check_parity(resth, (buf[3]>>2) & 0x1 ) ){
+		err = 1;
+		//printf("PARITY ERROR high\n\r");
+	}
+	if (resth & ~(0x7)){
+		err = 1;
+		//printf("FORMAT ERROR\n\r");
+	}
+  result =( resth <<8)|restl;
+
+  int32_t result32 = (int32_t)(result);
+
+  int32_t cels = result32*100L*70L/2047L - 1000L;
+
+	if(err){
+		return 0;
+	}else{
+		return (int16_t)cels;
+	}
+
+}
+
+int16_t analyze_hum_temp(uint8_t * buf){
+	uint16_t data;
+	int32_t data32;
+	int32_t result;
+	uint8_t tempH = buf[2];
+	uint8_t tempL = buf[3];
+  data = ((tempH<<6) | (tempL>>2));
+  data32 = (int32_t)(data);
+  result = data32*16500L;
+  result = (result >> 14) - 4000L;
+	return(int16_t)result;
+}
+
+int16_t analyze_hum_hum(uint8_t * buf){
+	uint16_t data;
+	int32_t data32;
+	int32_t result;
+	uint8_t capH = buf[0] & ~((1<<7)|(1<<6));
+	uint8_t capL = buf[1];
+  data= (capH << 8) | capL;
+  data32 = (int32_t)(data);
+  result = data32*10000L;
+  result = result >> 14;
+	return(int16_t)result;
+}
+
 void interpret(uint8_t * data){
-	if (!(data[4] & (1<<7))){
+	if (!(data[0] & (1<<7))){
+		//printf("received: \n\r");
+		//printarray(data, 5);
+		//printf("\n\r");
 		// this is a humidity sensor
     // check crc checksum:
 		//printf("verify crc...\n\r");
-    if (computeCRC(data, 4,  data[4])!=0){
+    if (computeCRC(data, 4, data[4])!=0){
       printf("CRC error\n\r");
     }
 		//printf("done\n\r");
@@ -134,10 +124,9 @@ void interpret(uint8_t * data){
 		// this is a temperature sensor
 		int16_t cels = analyze(data);
 		printf("T = %d", cels);
-
 	}
-
 }
+
 
 
 uint8_t twi_wait(void){
@@ -404,36 +393,10 @@ void loop(){
 
 	uint8_t state;
 
-	// -- printf("receive from 0x77..\n\r");
-	// -- receive_data(SLA1, received[0],40);
-
-	// -- uint8_t s;
-	// -- for(s = 0; s<8; s++){
-	// -- 	printf("P%u: ", s+1);
-	// -- 	interpret(received[s]);
-	// -- 	printf(" | ");
-	// -- }
-	// -- printf("\n\r");
-
-	//printf("----\n\r");
 	printf("----------\n\r");
 	state = start_measurement(0x00);
 	//state = start_measurement(SLA2);
-	state = receive_data(SLA1, ((uint8_t*)received),40);
-	printf("0x%x: ", SLA1);
-	if (state){
-		//printarray((uint8_t*)received, 40);
-		for(s = 0; s<8; s++){
-			printf("P%u: ", s+1);
-			interpret(received[s]);
-			printf(" | ");
-		}
-		printf("\n\r");
-	}else{
-		printf("receive interrupted\n\r");
-	}
 	state = receive_data(SLA2, ((uint8_t*)received),40);
-	printf("\n\r");
 	printf("0x%x: ", SLA2);
 	if (state){
 		//printarray((uint8_t*)received, 40);
@@ -446,29 +409,20 @@ void loop(){
 	}else{
 		printf("receive interrupted\n\r");
 	}
-	//printf("Measurement started..\n\r");
-	//printf("receiving..\n\r");
-	
+	// -- state = receive_data(SLA2, ((uint8_t*)received),40);
+	// -- printf("\n\r");
+	// -- printf("0x%x: ", SLA2);
 	// -- if (state){
-	// -- 	state = receive_data(SLA2, ((uint8_t*)received),40);
-	// -- 	//state = 0;
-	// -- 	if (state){
-	// -- 		//printarray((uint8_t*)received, 40);
-	// -- 		printf("\n\r");
-	// -- 		for(s = 0; s<8; s++){
-	// -- 			printf("P%u: ", s+1);
-	// -- 			interpret(received[s]);
-	// -- 			printf(" | ");
-	// -- 		}
-	// -- 		printf("\n\r");
-	// -- 	}else{
-	// -- 		printf("receive interrupted\n\r");
+	// -- 	//printarray((uint8_t*)received, 40);
+	// -- 	for(s = 0; s<8; s++){
+	// -- 		printf("P%u: ", s+1);
+	// -- 		interpret(received[s]);
+	// -- 		printf(" | ");
 	// -- 	}
+	// -- 	printf("\n\r");
 	// -- }else{
-	// -- 	printf("device not found\n\r");
+	// -- 	printf("receive interrupted\n\r");
 	// -- }
-
-	//printf("hello\n\r");
 }
 
 

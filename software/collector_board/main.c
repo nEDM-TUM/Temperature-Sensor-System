@@ -54,6 +54,34 @@ uint8_t check_parity(uint8_t value, uint8_t parity){
 	return parity == 0;
 }
 
+uint8_t computeCRC(uint8_t * data, uint8_t len, uint8_t crc){
+  uint8_t result = data[0];
+  uint8_t byte;
+  int8_t i=1;
+  int8_t index;
+  while (1){
+    if(i<len){
+      byte = data[i];
+    }else if(i == len){
+      byte = crc;
+    }else{
+      break;
+    }
+    for(index=7; index >= 0; index--){
+      if(result & (1<<7)){
+        result = result << 1;
+        result |= ((byte >> index) & 1);
+        result ^= CRC8;
+      }else{
+        result = result << 1;
+        result |= ((byte >> index) & 1);
+      }
+    }
+    i++;
+  }
+  //printf("\t\t\t!!!Result is %x\n\r", result);
+  return result;
+}
 
 int16_t analyze(uint8_t * buf){
 	uint16_t result;
@@ -110,6 +138,29 @@ int16_t analyze_hum_hum(uint8_t * buf){
   result = data32*10000L;
   result = result >> 14;
 	return(int16_t)result;
+}
+
+void interpret(uint8_t * data){
+	if (!(data[0] & (1<<7))){
+		//printf("received: \n\r");
+		//printarray(data, 5);
+		//printf("\n\r");
+		// this is a humidity sensor
+    // check crc checksum:
+		//printf("verify crc...\n\r");
+    if (computeCRC(data, 4, data[4])!=0){
+      printf("CRC error\n\r");
+    }
+		//printf("done\n\r");
+		int16_t cels = analyze_hum_temp(data);
+		int16_t hum = analyze_hum_hum(data);
+		printf(" T = %d, H = %d", cels, hum);
+
+	}else{
+		// this is a temperature sensor
+		int16_t cels = analyze(data);
+		printf("T = %d", cels);
+	}
 }
 
 void twi_init(){
@@ -331,60 +382,6 @@ void printarray(uint8_t * arr, uint8_t len){
     printf(" %x ", arr[i]);
   }
   printf("\n\r");
-}
-
-uint8_t computeCRC(uint8_t * data, uint8_t len, uint8_t crc){
-  uint8_t result = data[0];
-  uint8_t byte;
-  int8_t i=1;
-  int8_t index;
-  while (1){
-    if(i<len){
-      byte = data[i];
-    }else if(i == len){
-      byte = crc;
-    }else{
-      break;
-    }
-    for(index=7; index >= 0; index--){
-      if(result & (1<<7)){
-        result = result << 1;
-        result |= ((byte >> index) & 1);
-        result ^= CRC8;
-      }else{
-        result = result << 1;
-        result |= ((byte >> index) & 1);
-      }
-    }
-    i++;
-  }
-  //printf("\t\t\t!!!Result is %x\n\r", result);
-  return result;
-}
-
-void interpret(uint8_t * data){
-	if (!(data[0] & (1<<7))){
-		//printf("received: \n\r");
-		//printarray(data, 5);
-		//printf("\n\r");
-		// this is a humidity sensor
-    // check crc checksum:
-		//printf("verify crc...\n\r");
-    if (computeCRC(data, 4, data[4])!=0){
-      printf("CRC error\n\r");
-    }
-		//printf("done\n\r");
-		int16_t cels = analyze_hum_temp(data);
-		int16_t hum = analyze_hum_hum(data);
-		printf(" T = %d, H = %d", cels, hum);
-
-	}else{
-		// this is a temperature sensor
-		int16_t cels = analyze(data);
-		printf("T = %d", cels);
-
-	}
-
 }
 
 void do_measurement(){
