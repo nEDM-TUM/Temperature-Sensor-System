@@ -83,12 +83,12 @@ void interpret_detectPrintSingle(uint8_t * data){
 	}
 }
 
-void interpret_detectPrintAll(uint8_t * data, uint8_t connected){
+void interpret_detectPrintAll(uint8_t (* data)[5], uint8_t connected){
 	uint8_t s;
 	for(s = 0; s<8; s++){
 		printf("P%u: ", s+1);
 		if(connected & (1<<s) ){
-			interpret_detectPrintSingle(data + 5*s);
+			interpret_detectPrintSingle(data[s]);
 		}else{
 			printf("X = xxxx");
 		}
