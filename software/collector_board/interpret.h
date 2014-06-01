@@ -33,4 +33,5 @@ int16_t interpret_analyzeHYThum(uint8_t * buf);
 void interpret_detectPrintSingle(uint8_t * data);
 void interpret_detectPrintAll(uint8_t (* data)[5], uint8_t connected);
 uint8_t interpret_generatePacket(uint8_t * data, uint8_t connected, uint8_t * buffer);
+uint8_t * interpret_generatePacketAll(uint8_t (* data)[5], uint8_t connected, uint8_t * buffer);
 #endif

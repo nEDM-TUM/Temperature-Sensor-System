@@ -63,7 +63,7 @@ uint8_t interpret_generatePacket(uint8_t * data, uint8_t connected, uint8_t * bu
 		struct hyt_packet * hyt = (struct hyt_packet *) buffer;
 		hyt->header.len = 4;
 		hyt->header.type = PACKET_TYPE_HYT;
-		hyt->header.connected = connected;
+		hyt->header.connected = (connected != 0);
 		hyt->header.error = (checksum_computeCRC(data, 4, data[4]) == 0);
 		hyt->temperature = interpret_analyzeHYTtemp(data);
 		hyt->humidity = interpret_analyzeHYThum(data);
@@ -74,11 +74,20 @@ uint8_t interpret_generatePacket(uint8_t * data, uint8_t connected, uint8_t * bu
 		struct tsic_packet * tsic = (struct tsic_packet *) buffer;
 		tsic->header.len = 2;
 		tsic->header.type = PACKET_TYPE_TSIC;
-		tsic->header.connected = connected;
+		tsic->header.connected = (connected != 0);
 		tsic->header.error = interpret_analyzeTSIC(data, &(tsic->temperature));
 		tsic->crc = checksum_computeCRC(buffer, 3, 0);
 		return 4;
 	}
+}
+
+uint8_t * interpret_generatePacketAll(uint8_t (* data)[5], uint8_t connected, uint8_t * buffer){
+	uint8_t i;
+	for(i=0;i<8;i++){
+		buffer += interpret_generatePacket(data[i], (connected & (1<<i)), buffer);
+	}
+	// return a pointer, pointing to the first byte, which is not valid
+	return buffer;
 }
 
 void interpret_detectPrintSingle(uint8_t * data){
