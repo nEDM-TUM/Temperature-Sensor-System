@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <Arduino.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
 extern "C" {
@@ -479,16 +480,16 @@ void loop(){
 int main (void)
 {
 
-
+  init();
 	uart_init();
 	sei();
 
 	DDRD = (1<<PD5);
 
 	printf("Controller started\n\r");
-  //setupServerLib();
+  setupServerLib();
   //setupServer();
 	while (1) {
-		loop();
+	//	loop();
 	}
 }

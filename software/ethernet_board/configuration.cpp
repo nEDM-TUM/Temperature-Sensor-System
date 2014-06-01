@@ -20,6 +20,7 @@ uint8_t serverSock[] = {0,0,0};
 boolean alreadyConnected = false; // whether or not the client was connected previously
 EthernetServer server = EthernetServer(23);
 void setupServer() {
+  
   printf("Set up server\n\r");
   //Init and config ethernet device w5100
   W5100.init();
@@ -35,22 +36,12 @@ void setupServer() {
   } else {
     printf("not Linstend \n\r");
   }
-}
-
-
-void setupServerLib(){
-
-  printf("Libtest\n\r");
- Ethernet.begin(mac, ip, gateway, subnet);
-
-  // start listening for clients
-  server.begin();
-  printf("Listened\n\r");
   while(1){
-    loop();
+    printf("Status: %x\n\r", W5100.readSnSR(0));
   }
 }
-void loop() {
+
+void loop2() {
   // wait for a new client:
  // if an incoming client connects, there will be bytes available to read:
   EthernetClient client = server.available();
@@ -59,6 +50,20 @@ void loop() {
     // read bytes from the incoming client and write them back
     // to any clients connected to the server:
     server.write(client.read());
+  }
+}
+
+void setupServerLib(){
+
+  printf("Libtest\n\r");
+ Ethernet.begin(mac, ip, gateway, subnet);
+  printf("Libtest begin\n\r");
+
+  // start listening for clients
+  server.begin();
+  printf("Listened\n\r");
+  while(1){
+    loop2();
   }
 }
 void startServer(){
