@@ -9,7 +9,7 @@
 // Enter a MAC address and IP address for your controller below.
 // The IP address will be dependent on your local network.
 // gateway and subnet are optional:
-uint8_t mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+uint8_t mac[] = { 0x90, 0xA2, 0xDA, 0x00, 0xE3, 0x5B};
 uint8_t ip[] = {10,0,1, 100};
 uint8_t gateway[] = {10,0,1, 1 };
 uint8_t subnet[] = {255, 255, 0, 0};
@@ -18,8 +18,7 @@ uint8_t clientSock = 3;
 uint8_t serverSock[] = {0,0,0};
 // telnet defaults to port 23
 boolean alreadyConnected = false; // whether or not the client was connected previously
-
-  Server server = Server(23);
+EthernetServer server = EthernetServer(23);
 void setupServer() {
   printf("Set up server\n\r");
   //Init and config ethernet device w5100
@@ -40,15 +39,27 @@ void setupServer() {
 
 
 void setupServerLib(){
+
+  printf("Libtest\n\r");
  Ethernet.begin(mac, ip, gateway, subnet);
 
   // start listening for clients
   server.begin();
   printf("Listened\n\r");
+  while(1){
+    loop();
+  }
 }
 void loop() {
   // wait for a new client:
-
+ // if an incoming client connects, there will be bytes available to read:
+  EthernetClient client = server.available();
+  printf("available\n\r");
+  if (client) {
+    // read bytes from the incoming client and write them back
+    // to any clients connected to the server:
+    server.write(client.read());
+  }
 }
 void startServer(){
 ;
