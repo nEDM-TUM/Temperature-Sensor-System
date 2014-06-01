@@ -101,7 +101,7 @@ ISR(TEMPL_TMR_OVF_VECT){
 #ifdef DEBUG
 	printf ("%x %x %x %d\n\r", TEMPL_BYTE_ARRAY [2], TEMPL_BYTE_ARRAY [1], TEMPL_BYTE_ARRAY [0], s);
 #endif
-	if (!(TEMPL_BYTE_ARRAY [2] & (1<<2)) || !(TEMPL_BYTE_ARRAY [4] & (1<<7))){
+	if (!(TEMPL_BYTE_ARRAY [2] & (1<<2)) || !(TEMPL_BYTE_ARRAY [0] & (1<<7))){
 		// we have seen a start bit AND are finished with transmission
 		// => stop measurement
 		// disable interrupt for this pin
