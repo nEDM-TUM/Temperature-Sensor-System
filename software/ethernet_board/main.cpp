@@ -1,7 +1,10 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
+extern "C" {
 #include "usart.h"
+}
+#include "configuration.h"
 
 #define CMD_START_MEASUREMENT 1
 #define CMD_SET_ADDRESS 2
@@ -428,8 +431,6 @@ void loop(){
 
 int main (void)
 {
-	static FILE usart_stdout = FDEV_SETUP_STREAM( mputc, 0, _FDEV_SETUP_WRITE);
-	stdout = &usart_stdout;
 
 
 	uart_init();
@@ -438,6 +439,8 @@ int main (void)
 	DDRD = (1<<PD5);
 
 	printf("Controller started\n\r");
+  //setupServerLib();
+  //setupServer();
 	while (1) {
 		loop();
 	}
