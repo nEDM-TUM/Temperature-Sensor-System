@@ -49,7 +49,7 @@ int16_t analyze(uint8_t * buf){
   //int32_t c100 = 100;
   //printf("3ff = %d\n\r", result32*c100);
 
-  int32_t cels = result32*100L*70L/2047L - 1000L;
+  int32_t cels = result32*10000L*70L/2047L - 1000L;
 
   //uint16_t cels = ((result * 25)>>8)*35-1000;
 
@@ -71,7 +71,7 @@ int16_t analyze_hum_temp(uint8_t * buf){
   data = ((tempH<<6) | (tempL>>2));
   data32 = (int32_t)(data);
   result = data32*16500L;
-  result = (result >> 14) - 4000L;
+  result = (result >> 14) - 40L;
 	return(int16_t)result;
 }
 
@@ -89,31 +89,30 @@ int16_t analyze_hum_hum(uint8_t * buf){
 }
 
 
-uint8_t computeCRC(uint8_t * data, unit8_t offset, uint8_t len, uint8_t crc){
-  uint8_t result = data[offset];
-  int8_t i;
+uint8_t computeCRC(uint8_t * data, uint8_t len, uint8_t crc){
+  uint8_t result = data[0];
+  uint8_t byte;
+  int8_t i=1;
   int8_t index;
-  for (i=offset+1; i<offset+len; i++){
+  while (1){
+    if(i<len){
+      byte = data[i];
+    } else if(i==len){
+      byte=crc;
+    }else{
+      break;
+    }
     for(index=7; index >= 0; index--){
       if(result & (1<<7)){
         result = result << 1;
-        result |= ((data[i] >> index) & 1);
+        result |= ((byte >> index) & 1);
         result ^= CRC8;
       } else  {
         result = result << 1;
-        result |= ((data[i] >> index) & 1);
+        result |= ((byte >> index) & 1);
       }
     }
-  }
-  for(index=7; index >= 0; index--){
-    if(result & (1<<7)){
-      result = result << 1;
-      result |= ((crc >> index) & 1);
-      result ^= CRC8;
-    } else  {
-      result = result << 1;
-      result |= ((crc >> index) & 1);
-    }
+    i++;
   }
   //printf("\t\t\t!!!Result is %x\n\r", result);
   return result;
@@ -124,7 +123,7 @@ void interpret(uint8_t * data){
 		// this is a humidity sensor
     // check crc checksum:
 		//printf("verify crc...\n\r");
-    if (computeCRC(data, 0, 4,  data[5])!=0){
+    if (computeCRC(data, 4,  data[4])!=0){
       printf("CRC error\n\r");
     }
 		//printf("done\n\r");
@@ -419,8 +418,8 @@ void loop(){
 
 	//printf("----\n\r");
 	printf("----------\n\r");
-	state = start_measurement(0x00);
-	//state = start_measurement(SLA2);
+	state = start_measurement(SLA1);
+	state = start_measurement(SLA2);
 	state = receive_data(SLA1, ((uint8_t*)received),40);
 	printf("0x%x: ", SLA1);
 	if (state){
