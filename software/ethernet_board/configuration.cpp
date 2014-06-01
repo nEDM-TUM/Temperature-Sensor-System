@@ -19,7 +19,7 @@ uint8_t serverSock[] = {0,0,0};
 // telnet defaults to port 23
 boolean alreadyConnected = false; // whether or not the client was connected previously
 
-  Server server = Server(23);
+  EthernetServer server = EthernetServer(23);
 void setupServer() {
   printf("Set up server\n\r");
   //Init and config ethernet device w5100
