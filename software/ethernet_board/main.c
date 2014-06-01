@@ -71,7 +71,7 @@ int16_t analyze_hum_temp(uint8_t * buf){
   data = ((tempH<<6) | (tempL>>2));
   data32 = (int32_t)(data);
   result = data32*16500L;
-  result = (result >> 14) - 40L;
+  result = (result >> 14) - 4000L;
 	return(int16_t)result;
 }
 
@@ -222,7 +222,7 @@ uint8_t start_measurement(uint8_t addr){
 					break;
 				default:
 					//TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
-					printf("bus error2: state = %x\n\r", TWSR);
+					printf("bus error2: tate = %x\n\r", TWSR);
 					return 0;
 					break;
 			}
@@ -418,8 +418,8 @@ void loop(){
 
 	//printf("----\n\r");
 	printf("----------\n\r");
-	state = start_measurement(SLA1);
-	state = start_measurement(SLA2);
+	state = start_measurement(0x00);
+	//state = start_measurement(SLA2);
 	state = receive_data(SLA1, ((uint8_t*)received),40);
 	printf("0x%x: ", SLA1);
 	if (state){
