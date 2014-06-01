@@ -6,11 +6,11 @@ int16_t interpret_analyzeTSIC(uint8_t * buf){
 	uint8_t err = 0;
 	uint8_t resth = ((buf[2]<<5) | (buf[3]>>3));
 	uint8_t restl = ((buf[3]<<7) | (buf[4]>>1));
-	if (!check_parity(restl, buf[4] & 0x1) ){
+	if (!checksum_checkParity(restl, buf[4] & 0x1) ){
 		err = 1;
 		//printf("PARITY ERROR low\n\r");
 	}
-	if (!check_parity(resth, (buf[3]>>2) & 0x1 ) ){
+	if (!checksum_checkParity(resth, (buf[3]>>2) & 0x1 ) ){
 		err = 1;
 		//printf("PARITY ERROR high\n\r");
 	}
@@ -58,7 +58,7 @@ int16_t interpret_analyzeHYThum(uint8_t * buf){
 	return(int16_t)result;
 }
 
-void interpret_detectPrint(uint8_t * data){
+void interpret_detectPrintSingle(uint8_t * data){
 	if (!(data[0] & (1<<7))){
 		//printf("received: \n\r");
 		//printarray(data, 5);
@@ -66,7 +66,7 @@ void interpret_detectPrint(uint8_t * data){
 		// this is a humidity sensor
     // check crc checksum:
 		//printf("verify crc...\n\r");
-    if (computeCRC(data, 4, data[4])!=0){
+    if (checksum_computeCRC(data, 4, data[4])!=0){
       printf("CRC error\n\r");
     }
 		//printf("done\n\r");
@@ -79,4 +79,19 @@ void interpret_detectPrint(uint8_t * data){
 		int16_t cels = analyze(data);
 		printf("T = %d", cels);
 	}
+}
+
+void interpret_detectPrintAll(uint8_t * data){
+	uint8_t s;
+	for(s = 0; s<8; s++){
+		printf("P%u: ", s+1);
+		if(connected & (1<<s) ){
+			interpret_detectPrintSingle(data[s]);
+		}else{
+			printf("X = xxxx");
+		}
+		printf(" | ");
+	}
+  printf("\n\r");
+
 }

@@ -1,6 +1,8 @@
 #ifndef ETHERNET_TWI_H
 #define ETHERNET_TWI_H
 
+#include <inttypes.h>
+
 #define IDLE 0
 #define COMMAND 1
 #define WAIT_ADDRESS 2
@@ -13,4 +15,8 @@
 uint8_t bufferpointer;
 uint8_t cstate = IDLE;
 
+uint8_t measurement_data[8][5];
+
+void twi_init(void);
+void twi_handle(void);
 #endif

@@ -1,4 +1,9 @@
 #include "ethernet_twi.c"
+#include <avr/io.h>
+#include <stdio.h>
+#include <util/delay.h>
+#include "zac.h"
+#include "interpret.h"
 
 
 void twi_init(){
@@ -8,7 +13,7 @@ void twi_init(){
   TWCR = (1<<TWEA) | (1<<TWEN);
 }
 
-void handle_communications(){
+void twi_handle(){
 	// XXX: one has to be EXTREMELY careful when debugging this code with printf,
 	// XXX: as the caused delay for printing influences the bus heavily.
   if(TWCR & (1<<TWINT)){
@@ -113,7 +118,8 @@ void handle_communications(){
 						// no new twi activity will be processed.
 						// If new command arrives, clock will
 						// be extended, until measurement is completed
-						do_measurement();
+						zac_sampleAll(measurement_data);
+						interpret_detectPrintAll(measurement_data);
 						cstate = IDLE;
 						break;
 					default:

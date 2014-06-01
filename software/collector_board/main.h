@@ -9,7 +9,6 @@
 
 
 void printarray(uint8_t * arr, uint8_t len);
-void print_interpreted_data(uint8_t ** data);
 void loop(void);
 void io_init(void);
 int main (void);

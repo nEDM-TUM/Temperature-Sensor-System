@@ -1,24 +1,14 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
-#include "usart.h"
 #include <inttypes.h>
+
 #include "main.h"
+#include "usart.h"
 #include "board_support.h"
-
-
-
-
-#ifdef DEBUG
-uint8_t s = 0;
-uint8_t tcrita;
-uint8_t tcritb;
-uint8_t times[30];
-uint8_t cf = 0;
-uint8_t timesr[30];
-uint8_t cr = 0;
-#endif
-
+#include "interpret.h"
+#include "ethernet_twi.h"
+#include "zac.h"
 
 void printarray(uint8_t * arr, uint8_t len){
   uint8_t i;
@@ -26,26 +16,6 @@ void printarray(uint8_t * arr, uint8_t len){
     printf(" %x ", arr[i]);
   }
   printf("\n\r");
-}
-
-
-void print_interpreted_data(uint8_t ** data){
-	uint8_t s;
-	for(s = 0; s<8; s++){
-		printf("P%u: ", s+1);
-		if(connected & (1<<s) ){
-			interpret(data[s]);
-		}else{
-			printf("X = xxxx");
-		}
-		printf(" | ");
-	}
-  printf("\n\r");
-
-}
-
-void loop(){
-	handle_communications();
 }
 
 void io_init(void){
@@ -68,16 +38,15 @@ int main (void)
 	stdout = &usart_stdout;
 
 	io_init();
-
 	uart_init();
-	sei();
-	twi_init();
 
-	int_init1();
-	int_init2();
+	sei();
+
+	zac_init();
+	twi_init();
 
 	printf("Controller started\n\r");
 	while (1) {
-		loop();
+		twi_handle();
 	}
 }

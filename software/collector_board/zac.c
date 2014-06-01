@@ -1,4 +1,5 @@
 #include "zac.h"
+#include <avr/io.h>
 
 #undef BANK
 #define BANK 1
@@ -32,4 +33,11 @@ uint8_t zac_sampleAll(uint8_t * * buffer){
 		}
 	}
 	return connected;
+}
+
+void zac_init(){
+	// TODO: rename this
+	// TODO: initialize GPIO pins correctly here
+	int_init1();
+	int_init2();
 }
