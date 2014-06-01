@@ -58,13 +58,13 @@ uint8_t check_parity(uint8_t value, uint8_t parity){
 int16_t analyze(uint8_t * buf){
 	uint16_t result;
 	uint8_t err = 0;
-	uint8_t resth = ((buf[2]<<5) | (buf[1]>>3));
-	uint8_t restl = ((buf[1]<<7) | (buf[0]>>1));
-	if (!check_parity(restl, buf[0] & 0x1) ){
+	uint8_t resth = ((buf[2]<<5) | (buf[3]>>3));
+	uint8_t restl = ((buf[3]<<7) | (buf[4]>>1));
+	if (!check_parity(restl, buf[4] & 0x1) ){
 		err = 1;
 		//printf("PARITY ERROR low\n\r");
 	}
-	if (!check_parity(resth, (buf[1]>>2) & 0x1 ) ){
+	if (!check_parity(resth, (buf[3]>>2) & 0x1 ) ){
 		err = 1;
 		//printf("PARITY ERROR high\n\r");
 	}
@@ -104,7 +104,7 @@ int16_t analyze_hum_temp(uint8_t * buf){
 	int32_t data32;
 	int32_t result;
 	uint8_t tempH = buf[2];
-	uint8_t tempL = buf[1];
+	uint8_t tempL = buf[3];
   data = ((tempH<<6) | (tempL>>2));
   data32 = (int32_t)(data);
   result = data32*16500L;
@@ -116,8 +116,8 @@ int16_t analyze_hum_hum(uint8_t * buf){
 	uint16_t data;
 	int32_t data32;
 	int32_t result;
-	uint8_t capH = buf[4] & ~((1<<7)|(1<<6));
-	uint8_t capL = buf[3];
+	uint8_t capH = buf[0] & ~((1<<7)|(1<<6));
+	uint8_t capL = buf[1];
   data= (capH << 8) | capL;
   data32 = (int32_t)(data);
   result = data32*10000L;
@@ -341,7 +341,7 @@ void handle_communications(){
 void printarray(uint8_t * arr, uint8_t len){
   uint8_t i;
   for (i=0;i<len;i++){
-    printf(" %x ", arr[len-1-i]);
+    printf(" %x ", arr[i]);
   }
   printf("\n\r");
 }
@@ -367,7 +367,7 @@ uint8_t verifyCRC(uint8_t * data, int8_t len){
 }
 
 void interpret(uint8_t * data){
-	if (!(data[4] & (1<<7))){
+	if (!(data[0] & (1<<7))){
 		//printf("received: \n\r");
 		//printarray(data, 5);
 		//printf("\n\r");
