@@ -15,8 +15,10 @@
 #define CMD_SET_ADDRESS 2
 
 uint8_t bufferpointer;
+uint8_t * end_of_transmit;
 
 uint8_t measurement_data[8][5];
+uint8_t interpreted_data[48];
 
 void twi_init(void);
 void twi_handle(void);

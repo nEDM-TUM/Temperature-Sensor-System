@@ -11,6 +11,7 @@ uint8_t cstate = IDLE;
 void twi_init(){
   // set slave address
   // also listen to general call
+	end_of_transmit = interpreted_data;
   TWAR = (SLA << 1) | 1;
   TWCR = (1<<TWEA) | (1<<TWEN);
 }
@@ -120,8 +121,9 @@ void twi_handle(){
 						// no new twi activity will be processed.
 						// If new command arrives, clock will
 						// be extended, until measurement is completed
-						uint8_t connected = zac_sampleAll((uint8_t *)measurement_data);
-						//interpret_detectPrintAll((uint8_t *)measurement_data, connected);
+						uint8_t connected = zac_sampleAll(measurement_data);
+						end_of_transmit = interpret_generatePacketAll(measurement_data, connected, interpreted_data);
+						//interpret_detectPrintAll(measurement_data, connected);
 						cstate = IDLE;
 						break;
 					default:
@@ -143,7 +145,7 @@ void twi_handle(){
 						
 						// this is the first byte of the transmission
 						bufferpointer = 1;
-						TWDR = ((uint8_t*)measurement_data )[0];
+						TWDR = interpreted_data[0];
 						// Data byte will be transmitted and ACK should be received
 						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
 						// FIXME: TRANSMIT state is never used
@@ -170,10 +172,15 @@ void twi_handle(){
 				// Data byte in TWDR has been
 				// transmitted; ACK has been
 				// received
-				TWDR = ((uint8_t*)measurement_data)[bufferpointer]; //data :)
+				TWDR = interpreted_data[bufferpointer]; //data :)
 				bufferpointer++;
-				// Data byte will be transmitted and ACK should be received
-				TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+				if(interpreted_data + bufferpointer < end_of_transmit){
+					// Data byte will be transmitted and ACK should be received
+					TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+				}else{
+					// Last Data byte will be transmitted and NOT ACK should be received
+					TWCR = (1<<TWEN) | (1<<TWINT);
+				}
 
 				break;
 			case 0xc0:
@@ -192,6 +199,7 @@ void twi_handle(){
 
 				// Switched to the not addressed Slave mode; own SLA will be recognized;
 				TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+				cstate = IDLE;
 				break;
 
 
