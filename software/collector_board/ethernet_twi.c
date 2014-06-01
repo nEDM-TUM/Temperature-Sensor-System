@@ -121,7 +121,7 @@ void twi_handle(){
 						// If new command arrives, clock will
 						// be extended, until measurement is completed
 						uint8_t connected = zac_sampleAll((uint8_t *)measurement_data);
-						interpret_detectPrintAll((uint8_t *)measurement_data, connected);
+						//interpret_detectPrintAll((uint8_t *)measurement_data, connected);
 						cstate = IDLE;
 						break;
 					default:
