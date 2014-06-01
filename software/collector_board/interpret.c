@@ -3,8 +3,8 @@
 #include "checksum.h"
 
 
-int16_t interpret_analyzeTSIC(uint8_t * buf){
-	uint16_t result;
+uint8_t interpret_analyzeTSIC(uint8_t * buf, int16_t * result){
+	uint16_t block;
 	uint8_t err = 0;
 	uint8_t resth = ((buf[2]<<5) | (buf[3]>>3));
 	uint8_t restl = ((buf[3]<<7) | (buf[4]>>1));
@@ -17,21 +17,18 @@ int16_t interpret_analyzeTSIC(uint8_t * buf){
 		//printf("PARITY ERROR high\n\r");
 	}
 	if (resth & ~(0x7)){
-		err = 1;
+		err |= (1<<1);
 		//printf("FORMAT ERROR\n\r");
 	}
-  result =( resth <<8)|restl;
+  block = ( resth << 8 ) | restl;
 
-  int32_t result32 = (int32_t)(result);
+  int32_t result32 = (int32_t)(block);
 
   int32_t cels = result32*100L*70L/2047L - 1000L;
 
-	if(err){
-		return 0;
-	}else{
-		return (int16_t)cels;
-	}
+	*result = (int16_t)cels;
 
+	return err;
 }
 
 int16_t interpret_analyzeHYTtemp(uint8_t * buf){
@@ -60,6 +57,30 @@ int16_t interpret_analyzeHYThum(uint8_t * buf){
 	return(int16_t)result;
 }
 
+uint8_t interpret_generatePacket(uint8_t * data, uint8_t connected, uint8_t * buffer){
+	if (!(data[0] & (1<<7))){
+		// This is a HYT sensor
+		struct hyt_packet * hyt = (struct hyt_packet *) buffer;
+		hyt->header.len = 4;
+		hyt->header.type = PACKET_TYPE_HYT;
+		hyt->header.connected = connected;
+		hyt->header.error = (checksum_computeCRC(data, 4, data[4]) == 0);
+		hyt->temperature = interpret_analyzeHYTtemp(data);
+		hyt->humidity = interpret_analyzeHYThum(data);
+		hyt->crc = checksum_computeCRC(buffer, 5, 0);
+		return 6;
+	}else{
+		// This is a TSIC sensor
+		struct tsic_packet * tsic = (struct tsic_packet *) buffer;
+		tsic->header.len = 2;
+		tsic->header.type = PACKET_TYPE_TSIC;
+		tsic->header.connected = connected;
+		tsic->header.error = interpret_analyzeTSIC(data, &(tsic->temperature));
+		tsic->crc = checksum_computeCRC(buffer, 3, 0);
+		return 4;
+	}
+}
+
 void interpret_detectPrintSingle(uint8_t * data){
 	if (!(data[0] & (1<<7))){
 		//printf("received: \n\r");
@@ -78,7 +99,8 @@ void interpret_detectPrintSingle(uint8_t * data){
 
 	}else{
 		// this is a temperature sensor
-		int16_t cels = interpret_analyzeTSIC(data);
+		int16_t cels;
+		interpret_analyzeTSIC(data, &cels);
 		printf("T = %d", cels);
 	}
 }
