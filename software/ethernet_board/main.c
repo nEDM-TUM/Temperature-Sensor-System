@@ -89,24 +89,33 @@ int16_t analyze_hum_hum(uint8_t * buf){
 }
 
 
-uint8_t verifyCRC(uint8_t * data, int8_t len){
-  uint8_t result = data[len - 1];
-  int8_t i;
-  for (i=len-2; i>=0; i--){
-    int8_t index;
+uint8_t computeCRC(uint8_t * data, uint8_t len, uint8_t crc){
+  uint8_t result = data[0];
+  uint8_t byte;
+  int8_t i=1;
+  int8_t index;
+  while (1){
+    if(i<len){
+      byte = data[i];
+    } else if(i==len){
+      byte=crc;
+    }else{
+      break;
+    }
     for(index=7; index >= 0; index--){
       if(result & (1<<7)){
         result = result << 1;
-        result |= ((data[i] >> index) & 1);
+        result |= ((byte >> index) & 1);
         result ^= CRC8;
       } else  {
         result = result << 1;
-        result |= ((data[i] >> index) & 1);
+        result |= ((byte >> index) & 1);
       }
     }
+    i++;
   }
   //printf("\t\t\t!!!Result is %x\n\r", result);
-  return result == 0;
+  return result;
 }
 
 void interpret(uint8_t * data){
@@ -114,7 +123,7 @@ void interpret(uint8_t * data){
 		// this is a humidity sensor
     // check crc checksum:
 		//printf("verify crc...\n\r");
-    if (!verifyCRC(data, 5)){
+    if (computeCRC(data, 4,  data[4])!=0){
       printf("CRC error\n\r");
     }
 		//printf("done\n\r");
@@ -213,7 +222,7 @@ uint8_t start_measurement(uint8_t addr){
 					break;
 				default:
 					//TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
-					printf("bus error2: state = %x\n\r", TWSR);
+					printf("bus error2: tate = %x\n\r", TWSR);
 					return 0;
 					break;
 			}
