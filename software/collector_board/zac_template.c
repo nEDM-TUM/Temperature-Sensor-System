@@ -167,9 +167,6 @@ ISR(TEMPL_PCINT_VECT){
 		// PC0 is 1 -> rising edge
 		// this is the time, the signal was low:
 		TEMPL_LOWTIME = TEMPL_TVAL;
-		// TODO: Idea:
-		// Try to directly use 16 bis or 32 bit integers. this might reduce
-		// stack and register overhead
 		if (TEMPL_TCRIT != 0xff){
 			// here we receive a TEMPL_BYTE_ARRAY.
 			// we now know, that we have received a start bit in the past
