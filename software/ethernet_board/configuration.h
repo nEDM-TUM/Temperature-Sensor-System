@@ -1,2 +1,3 @@
-void startServer(void);
+void setupServer(void);
+void setupServerLib(void);
 

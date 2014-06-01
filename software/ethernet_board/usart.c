@@ -24,6 +24,8 @@ void uart_init(){
   UBRR0L = UBRR_VAL & 0xff;
   UCSR0B |= (1<<TXEN0); // | (1<<RXEN);
 
+	static FILE usart_stdout = FDEV_SETUP_STREAM( mputc, 0, _FDEV_SETUP_WRITE);
+	stdout = &usart_stdout;
 }
 
 void mputc(char c){
