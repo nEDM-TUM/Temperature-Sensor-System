@@ -1,10 +1,12 @@
-#include "ethernet_twi.c"
+#include "ethernet_twi.h"
 #include <avr/io.h>
 #include <stdio.h>
 #include <util/delay.h>
 #include "zac.h"
 #include "interpret.h"
+#include <avr/io.h>
 
+uint8_t cstate = IDLE;
 
 void twi_init(){
   // set slave address
@@ -118,8 +120,8 @@ void twi_handle(){
 						// no new twi activity will be processed.
 						// If new command arrives, clock will
 						// be extended, until measurement is completed
-						zac_sampleAll(measurement_data);
-						interpret_detectPrintAll(measurement_data);
+						uint8_t connected = zac_sampleAll((uint8_t *)measurement_data);
+						interpret_detectPrintAll((uint8_t *)measurement_data, connected);
 						cstate = IDLE;
 						break;
 					default:

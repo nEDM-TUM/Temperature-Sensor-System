@@ -29,7 +29,7 @@ FORMAT = ihex
 
 # Project files
 PROJECT_PATH = .
-PROJECT_OBJS = main.o usart.o
+PROJECT_OBJS = main.o usart.o ethernet_twi.o zac.o interpret.o checksum.o
 #----------------------------------------------------------
 # Programmer settings
 AVRDUDE_PROGRAMMER = usbasp

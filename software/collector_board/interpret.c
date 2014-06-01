@@ -1,4 +1,6 @@
+#include <stdio.h>
 #include "interpret.h"
+#include "checksum.h"
 
 
 int16_t interpret_analyzeTSIC(uint8_t * buf){
@@ -70,23 +72,23 @@ void interpret_detectPrintSingle(uint8_t * data){
       printf("CRC error\n\r");
     }
 		//printf("done\n\r");
-		int16_t cels = analyze_hum_temp(data);
-		int16_t hum = analyze_hum_hum(data);
+		int16_t cels = interpret_analyzeHYTtemp(data);
+		int16_t hum = interpret_analyzeHYThum(data);
 		printf(" T = %d, H = %d", cels, hum);
 
 	}else{
 		// this is a temperature sensor
-		int16_t cels = analyze(data);
+		int16_t cels = interpret_analyzeTSIC(data);
 		printf("T = %d", cels);
 	}
 }
 
-void interpret_detectPrintAll(uint8_t * data){
+void interpret_detectPrintAll(uint8_t * data, uint8_t connected){
 	uint8_t s;
 	for(s = 0; s<8; s++){
 		printf("P%u: ", s+1);
 		if(connected & (1<<s) ){
-			interpret_detectPrintSingle(data[s]);
+			interpret_detectPrintSingle(data + 5*s);
 		}else{
 			printf("X = xxxx");
 		}

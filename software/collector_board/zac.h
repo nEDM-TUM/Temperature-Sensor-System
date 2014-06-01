@@ -13,6 +13,7 @@ uint8_t timesr[30];
 uint8_t cr = 0;
 #endif
 
-uint8_t zac_sampleAll(uint8_t * * buffer);
+uint8_t zac_sampleAll(uint8_t * buffer);
+void zac_init(void);
 
 #endif

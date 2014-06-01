@@ -1,5 +1,7 @@
 #include "zac.h"
 #include <avr/io.h>
+#include <avr/interrupt.h>
+#include <util/delay.h>
 
 #undef BANK
 #define BANK 1
@@ -8,10 +10,10 @@
 #define BANK 2
 #include "zac_template.c"
 
-uint8_t zac_sampleAll(uint8_t * * buffer){
+uint8_t zac_sampleAll(uint8_t * buffer){
 	uint8_t s;
 	uint8_t i;
-	connected = 0;
+	uint8_t connected = 0;
 	for(s = 0; s<4; s++){
 		sensor_pin_mask1 = (1<< (PC0+s));
 		nsensor_pin_mask1 = ~(1<< (PC0+s));
@@ -27,9 +29,13 @@ uint8_t zac_sampleAll(uint8_t * * buffer){
 		if(meassure_stop_bank2()){
 			connected |= (1<<(4+s));
 		}
+		uint8_t a1 = s*5;
+		//uint8_t a2 = (s+4)*5 - 1;
+		uint8_t a2 = 5*s+20;
+
 		for(i=0;i<5;i++){
-			buffer[s][i] = bytearr_bank1[i];
-			buffer[4+s][i] = bytearr_bank2[i];
+			buffer[a1+i] = bytearr_bank1[i];
+			buffer[a2+i] = bytearr_bank2[i];
 		}
 	}
 	return connected;

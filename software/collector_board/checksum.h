@@ -3,6 +3,8 @@
 
 #include <inttypes.h>
 
+#define CRC8 49
+
 uint8_t checksum_checkParity(uint8_t value, uint8_t parity);
 uint8_t checksum_computeCRC(uint8_t * data, uint8_t len, uint8_t crc);
 
