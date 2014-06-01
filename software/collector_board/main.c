@@ -341,8 +341,8 @@ uint8_t computeCRC(uint8_t * data, uint8_t len, uint8_t crc){
   while (1){
     if(i<len){
       byte = data[i];
-    } else if(i==len){
-      byte=crc;
+    }else if(i == len){
+      byte = crc;
     }else{
       break;
     }
@@ -351,7 +351,7 @@ uint8_t computeCRC(uint8_t * data, uint8_t len, uint8_t crc){
         result = result << 1;
         result |= ((byte >> index) & 1);
         result ^= CRC8;
-      } else  {
+      }else{
         result = result << 1;
         result |= ((byte >> index) & 1);
       }
@@ -370,7 +370,7 @@ void interpret(uint8_t * data){
 		// this is a humidity sensor
     // check crc checksum:
 		//printf("verify crc...\n\r");
-    if (verifyCRC(data, 4, data[4])!=0){
+    if (computeCRC(data, 4, data[4])!=0){
       printf("CRC error\n\r");
     }
 		//printf("done\n\r");

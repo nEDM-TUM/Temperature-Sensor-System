@@ -88,7 +88,6 @@ int16_t analyze_hum_hum(uint8_t * buf){
 	return(int16_t)result;
 }
 
-
 uint8_t computeCRC(uint8_t * data, uint8_t len, uint8_t crc){
   uint8_t result = data[0];
   uint8_t byte;
@@ -97,8 +96,8 @@ uint8_t computeCRC(uint8_t * data, uint8_t len, uint8_t crc){
   while (1){
     if(i<len){
       byte = data[i];
-    } else if(i==len){
-      byte=crc;
+    }else if(i == len){
+      byte = crc;
     }else{
       break;
     }
@@ -107,7 +106,7 @@ uint8_t computeCRC(uint8_t * data, uint8_t len, uint8_t crc){
         result = result << 1;
         result |= ((byte >> index) & 1);
         result ^= CRC8;
-      } else  {
+      }else{
         result = result << 1;
         result |= ((byte >> index) & 1);
       }
