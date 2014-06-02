@@ -22,7 +22,7 @@ void loop(){
 
 	state = twi_start_measurement(0x00);
 	//state = start_measurement(SLA2);
-	state = twi_receive_data(SLA2, ((uint8_t*)received),40);
+	state = twi_receive_data(SLA2, ((uint8_t*)received),8*sizeof(struct dummy_packet));
 	if (state){
 		for (s=0;s<8;s++){
 			printf(" | P%u: ", s+1);
