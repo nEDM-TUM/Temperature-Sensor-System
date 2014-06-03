@@ -150,6 +150,37 @@ uint8_t twi_wait_timeout(uint16_t milliseconds){
 	return 1;
 }
 
+uint8_t twi_scan(uint8_t * result, uint8_t max_results){
+	uint8_t i;
+	uint8_t n = 0;
+	// scan all allowed addresses
+	for (i=8;i<120;i++){
+		if(twi_start()){
+			
+			TWDR = (i<<1);
+			TWCR = (1<<TWINT) | (1<<TWEN);
+			if(!twi_wait_timeout(5)){
+				printf("scan timeout\n\r");
+			}
+			if(TWSR == 0x18){
+				result[n] = i;
+				n++;
+				if (n >= max_results){
+					// send stop
+					TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
+					return n;
+				}
+			}
+			// send stop
+			TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
+		}else{
+			printf("scan error\n\r");
+		}
+
+	}
+	return n;
+}
+
 uint8_t twi_start(){
 	//do{
 		//printf("sending start\n\r");
@@ -161,9 +192,10 @@ uint8_t twi_start(){
 		//printf("got interrupt\n\r");
 	//}while(TWSR!=0x08);
 	if (TWSR != 0x08){
+		printf("start error: %u\n\r", TWSR);
+		TWCR = 0;
 		return 0;
 	}else{
-		//printf("done\n\r");
 		return 1;
 	}
 	//return twi_wait_timeout(5);

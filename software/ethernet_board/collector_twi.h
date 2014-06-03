@@ -19,6 +19,7 @@ uint8_t twi_wait_timeout(uint16_t milliseconds);
 uint8_t twi_start(void);
 uint8_t twi_start_measurement(uint8_t addr);
 uint8_t twi_receive_data(uint8_t address, uint8_t * buffer, uint8_t len);
+uint8_t twi_scan(uint8_t * result, uint8_t max_results);
 
 
 #ifdef __cplusplus

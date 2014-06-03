@@ -3,7 +3,7 @@
 
 #include <inttypes.h>
 
-#define SLA 0x78
+#define SLA 42
 
 #define IDLE 0
 #define COMMAND 1
