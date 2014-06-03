@@ -1,6 +1,7 @@
 #include "configuration.h"
 
-#include <avr/io.h>
+//#include <avr/io.h>
+#include <string.h>
 #include "usart.h"
 #include <Ethernet.h>
 #include "w5100.h"
@@ -25,54 +26,42 @@ static const uint8_t cmdCount = 2;
 char cmdBuff[MAX_SERVER_SOCK_NUM][MAX_CMD_LEN];
 uint8_t listeningSock = MAX_SERVER_SOCK_NUM;
 uint8_t closedSock = MAX_SERVER_SOCK_NUM;
-// telnet defaults to port 23
-boolean alreadyConnected = false; // whether or not the client was connected previously
-EthernetServer server = EthernetServer(23);
 
-void execCMD(uint8_t sock, uint8_t index){
-
-  switch(index){
-    case 0:
-      send(sock, (uint8_t *)"IP is \n", 7);
-      break;
-    case 1:
-      ;
-    default:
-      send(sock, (uint8_t *)"I want to help you\n", 19);
-  }
-}
-
-void searchCMD(uint8_t sock, int8_t len){
+void execCMD(char * buff, int8_t len){
   uint8_t i = 0;
   uint8_t i2 = 0;
   uint8_t same=0;
-  printf("Compare  %s\n", cmdBuff[sock]);
-  for(; i<cmdCount; i++){
-    if(cmdLen[i] == len){
-      same=1;
-      for(i2=0; i2<len; i2++){
-        if(cmd[i][i2] != cmdBuff[sock][i2]){
-          same=0;
-          break;
-        }
-      }
-      if(same){
-        //FIXME better structure
-        printf("Get a cmd index %u\n", i);
-        execCMD(sock, i);
-        break;
-      }
-    }
+  printf("Compare  %s\n", buff);
+  // TODO lengh include \0 ???
+  if(strncmp(buff, "ip", 2) == 1){
+    send(sock, (uint8_t *)"IP is \n", 7);
+    return;
   }
-}
-void readCMD(uint8_t sock){
-  int16_t ret = recv(sock, (uint8_t*) cmdBuff[sock], MAX_CMD_LEN);
+  if(strncmp(buff, "gateway", 3) == 1){
+    send(sock, (uint8_t *)"GATEWAY is \n", 12);
+    return;
+  }
+  if(strncmp(buff, "mac", 3) == 1){
+    send(sock, (uint8_t *)"MAC is \n", 8);
+    return;
+  }
+  
+  // Default, usage:
+  send(sock, (uint8_t *)"I want to help you\n", 19);
+
+ }
+
+void handleCMD(uint8_t sock){
+  uint8_t buff[MAX_CMD_LEN+1];
+  // TODO flush rest of buff
+  int16_t ret = recv(sock, buff, MAX_CMD_LEN);
 #ifdef DEBUG
   printf("Receive lenk: %d\n\r", ret);
 #endif
   // TODO if a cmd in more packet???
   if(ret>0){
-    searchCMD(sock, (int8_t)ret);  
+    buff[ret] = '\0';
+    execCMD((char *)buff, (int8_t)ret);  
   }
 }
 
@@ -94,7 +83,7 @@ void serve(){
         listeningSock = i;
         break;
       case SnSR::ESTABLISHED:
-        readCMD(i);
+        handleCMD(i);
         break;
       case SnSR::CLOSING:
         // TODO if readCMD??
@@ -114,6 +103,7 @@ void serve(){
         printf("Sock %u Status: %x\n\r", i, serverSock[i]);
     }
   }
+  // TODO open more sockets
 }
 
 void setupServer() {
@@ -139,31 +129,4 @@ void setupServer() {
   }
 }
 
-void loop2() {
-  // wait for a new client:
- // if an incoming client connects, there will be bytes available to read:
-  EthernetClient client = server.available();
-  printf("available\n\r");
-  if (client) {
-    // read bytes from the incoming client and write them back
-    // to any clients connected to the server:
-    server.write(client.read());
-  }
-}
 
-void setupServerLib(){
-
-  printf("Libtest\n\r");
- Ethernet.begin(mac, ip, gateway, subnet);
-  printf("Libtest begin\n\r");
-
-  // start listening for clients
-  server.begin();
-  printf("Listened\n\r");
-  while(1){
-    loop2();
-  }
-}
-void startServer(){
-;
-}
