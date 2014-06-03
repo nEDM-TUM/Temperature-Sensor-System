@@ -8,11 +8,15 @@
 
 uint8_t cstate = IDLE;
 
-void twi_init(){
+void twi_init(uint8_t addr){
+	// reset TWI hardware:
+	TWCR = 0;
+	_delay_ms(1);
+	end_of_transmit = interpreted_data;
   // set slave address
   // also listen to general call
-	end_of_transmit = interpreted_data;
-  TWAR = (SLA << 1) | 1;
+  TWAR = (addr << 1) | 1;
+	// start responding:
   TWCR = (1<<TWEA) | (1<<TWEN);
 }
 

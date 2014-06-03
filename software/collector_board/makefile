@@ -35,6 +35,7 @@ PROJECT_OBJS = main.o usart.o ethernet_twi.o zac.o interpret.o checksum.o config
 AVRDUDE_PROGRAMMER = usbasp
 AVRDUDE_PORT = /dev/ttyACM0
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
+AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET)_eeprom.hex
 AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
 # -F forces programming without checking device
 #  identifier.
@@ -90,6 +91,8 @@ build: elf hex
 # upload the program to the microcontroller flash:
 upload:
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH)
+eeprom:
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_EEPROM)
 
 # analyze compiled program size:
 size:
@@ -110,7 +113,7 @@ $(TARGET).hex: $(TARGET).elf
 
 # generate eeprom hexfile:
 $(TARGET)_eeprom.hex: $(TARGET).elf
-	$(OBJCOPY) -O $(FORMAT) -j .eeprom $< $@
+	$(OBJCOPY) -O $(FORMAT) -j .eeprom --no-change-warnings --change-section-lma .eeprom=0 $< $@
 
 clean:
 	rm -rv $(BUILD_DIR)/*
