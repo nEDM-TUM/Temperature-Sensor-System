@@ -19,6 +19,7 @@ void loop(){
 	struct dummy_packet received[8];
 
 	uint8_t state;
+	int16_t temp;
 
 	state = twi_start_measurement(0x00);
 	//state = start_measurement(SLA2);
@@ -28,7 +29,9 @@ void loop(){
 			printf(" | P%u: ", s+1);
 			switch(received[s].header.type){
 				case PACKET_TYPE_TSIC:
-					printf("T = %d", ( (struct tsic_packet *)(received) )[s].temperature);
+					temp =  ((struct tsic_packet *)(received) )[s].temperature;
+					printf("T = %d.%02d", temp/100, temp%100);
+					printf(" T = %d", ( (struct tsic_packet *)(received) )[s].temperature);
 					break;
 				case PACKET_TYPE_HYT:
 					printf("T = %d", ( (struct hyt_packet *)(received) )[s].temperature);
