@@ -177,11 +177,15 @@ void execCMD(uint8_t sock, char * buff, int8_t len){
 void handleCMD(uint8_t sock){
   uint8_t b;
   while(recv(sock, &b, 1) >0){
-    if(b=='\n'){
+    if(b=='\n' || b==';'){
       receiveBuff[sock][writeBuffPointer[sock]] = '\0';
       execCMD(sock, receiveBuff[sock], writeBuffPointer[sock]);
       writeBuffPointer[sock] = 0;
     }else{
+      // XXX The first char should be alphabet in low case 
+      if(writeBuffPointer[sock] == 0 && (b<97 || b>122){
+        continue;
+      }
       receiveBuff[sock][writeBuffPointer[sock]] = b;
       writeBuffPointer[sock]++;
       writeBuffPointer[sock] %= MAX_CMD_LEN;
