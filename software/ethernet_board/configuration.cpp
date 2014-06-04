@@ -183,7 +183,7 @@ void handleCMD(uint8_t sock){
       writeBuffPointer[sock] = 0;
     }else{
       // XXX The first char should be alphabet in low case 
-      if(writeBuffPointer[sock] == 0 && (b<97 || b>122){
+      if(writeBuffPointer[sock] == 0 && (b<97 || b>122)){
         continue;
       }
       receiveBuff[sock][writeBuffPointer[sock]] = b;
