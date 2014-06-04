@@ -205,7 +205,7 @@ uint8_t twi_start(){
 	//}
 }
 
-uint8_t twi_start_measurement(uint8_t addr){
+uint8_t twi_send_cmd(uint8_t addr, uint8_t cmd){
 	// send start condition:
 	//printf("start_measurement\n\r");
 	if (!twi_start()){
@@ -223,14 +223,13 @@ uint8_t twi_start_measurement(uint8_t addr){
 		case 0x18:
 			// SLA+W has been transmitted;
 			// ACK has been received
-			TWDR = CMD_START_MEASUREMENT;
+			TWDR = cmd;
 			TWCR = (1<<TWINT)|(1<<TWEN);
 			twi_wait_timeout(5);
 			switch(TWSR){
 				case 0x28:
 					// Data byte has been transmitted;
 					// ACK has been received
-					TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
 					return 1;
 					break;
 				case 0x30:
@@ -283,6 +282,33 @@ uint8_t twi_start_measurement(uint8_t addr){
 	
 	
 	
+
+}
+
+uint8_t twi_set_address(uint8_t addr, uint8_t new_addr){	
+  if(!twi_send_cmd(addr, CMD_SET_ADDRESS)){
+		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
+    return 0;
+  }
+  TWDR = new_addr;
+	TWCR = (1<<TWINT) | (1<<TWEN);
+	twi_wait_timeout(5);
+  if(TWSR == 0x28){
+    return 1;
+  }else{
+		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
+    return 0;
+  }
+}
+
+uint8_t twi_start_measurement(uint8_t addr){
+  if(twi_send_cmd(addr, CMD_START_MEASUREMENT)){
+    TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
+    return 1;
+  }else{
+		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
+    return 0;
+  }
 }
 
 uint8_t twi_receive_data(uint8_t address, uint8_t * buffer, uint8_t len){

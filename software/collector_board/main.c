@@ -45,7 +45,6 @@ int main (void)
 
 	zac_init();
 
-	struct config cfg;
 	config_read(&cfg);
 
 	twi_init(cfg.twi_addr);

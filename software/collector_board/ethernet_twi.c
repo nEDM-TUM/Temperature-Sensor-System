@@ -5,6 +5,7 @@
 #include "zac.h"
 #include "interpret.h"
 #include <avr/io.h>
+#include "config.h"
 
 uint8_t cstate = IDLE;
 
@@ -89,7 +90,11 @@ void twi_handle(){
 
 					case WAIT_ADDRESS:
 						// Data byte will be received and NOT ACK will be returned
+            cfg.twi_addr = TWDR;
+            config_write(&cfg);
 						TWCR = (1<<TWEN) | (1<<TWINT);
+            _delay_ms(10);
+            twi_init(cfg.twi_addr);
 
 					default:
 						// Data byte will be received and NOT ACK will be returned
