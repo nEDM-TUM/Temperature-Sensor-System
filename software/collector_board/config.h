@@ -9,6 +9,8 @@ struct config {
 	uint8_t twi_addr;
 };
 
+extern struct config cfg;
+
 void config_check_eeprom(void);
 void config_reset_eeprom(void);
 uint8_t config_write(struct config * cfg);

@@ -3,6 +3,8 @@
 #include <string.h>
 
 
+struct config cfg;
+
 struct {
 	uint8_t magic;
 	uint16_t start_pointer;
@@ -22,24 +24,24 @@ void config_check_eeprom(){
 }
 
 void config_reset_eeprom(){
-	eeprom_update_byte(0, EEPROM_MAGIC);
-	eeprom_update_word(1, 3);
-	eeprom_update_byte(3, 42);
+	eeprom_update_byte((void *)0, EEPROM_MAGIC);
+	eeprom_update_word((void *)1, 3);
+	eeprom_update_byte((void *)3, 42);
 }
 
 uint8_t config_write(struct config * cfg){
-	uint16_t eeaddr = eeprom_read_word(1);
+	void * eeaddr = eeprom_read_word((void *)1);
 	while(1){
 		// 
 		eeprom_update_block(cfg, eeaddr, sizeof(struct config));
 		struct config newcfg;
 		eeprom_read_block(&newcfg, eeaddr, sizeof(struct config) );
 		if( ! memcmp(&newcfg, cfg, sizeof(struct config)) ){
-			eeprom_update_word(1, eeaddr);
+			eeprom_update_word((void *)1, (uint16_t)eeaddr);
 			return 1;
 		}
 		eeaddr += sizeof(struct config);
-		if(eeaddr >= 1023 - sizeof(struct config)){
+		if(eeaddr >= (void*)(1023 - sizeof(struct config) ) ){
 			break;
 		}
 	}
@@ -47,7 +49,7 @@ uint8_t config_write(struct config * cfg){
 }
 
 void config_read(struct config * cfg){
-	uint16_t eeaddr = eeprom_read_word(1);
-	eeprom_read_block(cfg, eeaddr, sizeof(struct config) );
+	uint16_t eeaddr = eeprom_read_word((void *)1);
+	eeprom_read_block(cfg, (void *)eeaddr, sizeof(struct config) );
 	return;
 }
