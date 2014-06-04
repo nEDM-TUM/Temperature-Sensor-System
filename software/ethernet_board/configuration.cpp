@@ -38,15 +38,13 @@ int8_t convertParamToBytes(char * buff, int8_t len, uint8_t * params){
   int8_t paramCounter =0;
   char paramBuff[MAX_PARAM_LEN];
   for(index=0; index<len; index++){
-    printf("Param buff  %c, %d\n\r", buff[index], buff[index]);
     if(paramIndex<MAX_PARAM_LEN && buff[index]>=48 && buff[index]<=57){
       paramBuff[paramIndex] = buff[index];
       paramIndex++;
-    printf("oben!!! Param index  %d\n\r", paramIndex);
     }else{
       if(paramIndex>0){
-    printf("Param index  %d\n\r", paramIndex);
         paramBuff[paramIndex] = '\0';
+        // FIXME for mac hex 
         params[paramCounter] = atoi(paramBuff);
         paramCounter++;
         paramIndex = 0;
@@ -58,7 +56,6 @@ int8_t convertParamToBytes(char * buff, int8_t len, uint8_t * params){
     params[paramCounter] = atoi(paramBuff);
     paramCounter++;
   }
-  printf("paramCounter = %d\n\r", paramCounter);
   return paramCounter;
 }
 
@@ -108,14 +105,14 @@ void execCMD(uint8_t sock, char * buff, int8_t len){
         for(index=0; index<6; index++){
           mac[index] = params[index];
         }
-        resLen = sprintf(resBuff, "mac will be set to %d:%d:%d:%d:%d:%d, if you input 'update config'\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+        resLen = sprintf(resBuff, "mac will be set to %x:%x:%x:%x:%x:%x, if you input 'update config'\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
   printf("TEST %d\n\r", resLen);
       }else{
-        resLen = sprintf(resBuff, "mac is %d:%d:%d:%d:%d:%d (To update the mac address ip addr/subnet like the output format!)\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+        resLen = sprintf(resBuff, "mac is %x:%x:%x:%x:%x:%x (To update the mac address ip addr/subnet like the output format!)\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
   printf("TEST %d\n\r", resLen);
       }
     }else{
-      resLen = sprintf(resBuff, "mac is %d:%d:%d:%d:%d:%d\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+      resLen = sprintf(resBuff, "mac is %x:%x:%x:%x:%x:%x\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
   printf("TEST %d\n\r", resLen);
     }
   //} else
