@@ -199,6 +199,7 @@ uint8_t twi_set_address(uint8_t addr, uint8_t new_addr){
 	TWCR = (1<<TWINT) | (1<<TWEN);
 	twi_wait_timeout(5);
   if(TWSR == 0x28){
+		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
     return 1;
   }else{
 		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
