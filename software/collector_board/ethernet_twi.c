@@ -130,8 +130,10 @@ void twi_handle(){
 						// no new twi activity will be processed.
 						// If new command arrives, clock will
 						// be extended, until measurement is completed
+						LED4_PORT &= ~(1<<LED4);
 						uint8_t connected = zac_sampleAll(measurement_data);
 						end_of_transmit = interpret_generatePacketAll(measurement_data, connected, interpreted_data);
+						LED4_PORT |= (1<<LED4);
 						//interpret_detectPrintAll(measurement_data, connected);
 						cstate = IDLE;
 						break;
