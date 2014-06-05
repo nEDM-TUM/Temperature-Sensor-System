@@ -5,14 +5,19 @@
 #include "zac.h"
 #include "interpret.h"
 #include <avr/io.h>
+#include "config.h"
 
 uint8_t cstate = IDLE;
 
-void twi_init(){
+void twi_init(uint8_t addr){
+	// reset TWI hardware:
+	TWCR = 0;
+	_delay_ms(1);
+	end_of_transmit = interpreted_data;
   // set slave address
   // also listen to general call
-	end_of_transmit = interpreted_data;
-  TWAR = (SLA << 1) | 1;
+  TWAR = (addr << 1) | 1;
+	// start responding:
   TWCR = (1<<TWEA) | (1<<TWEN);
 }
 
@@ -85,7 +90,11 @@ void twi_handle(){
 
 					case WAIT_ADDRESS:
 						// Data byte will be received and NOT ACK will be returned
+            cfg.twi_addr = TWDR;
+            config_write(&cfg);
 						TWCR = (1<<TWEN) | (1<<TWINT);
+            _delay_ms(10);
+            twi_init(cfg.twi_addr);
 
 					default:
 						// Data byte will be received and NOT ACK will be returned
@@ -121,8 +130,10 @@ void twi_handle(){
 						// no new twi activity will be processed.
 						// If new command arrives, clock will
 						// be extended, until measurement is completed
+						LED4_PORT &= ~(1<<LED4);
 						uint8_t connected = zac_sampleAll(measurement_data);
 						end_of_transmit = interpret_generatePacketAll(measurement_data, connected, interpreted_data);
+						LED4_PORT |= (1<<LED4);
 						//interpret_detectPrintAll(measurement_data, connected);
 						cstate = IDLE;
 						break;

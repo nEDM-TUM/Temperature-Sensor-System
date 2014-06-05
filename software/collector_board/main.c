@@ -9,6 +9,7 @@
 #include "interpret.h"
 #include "ethernet_twi.h"
 #include "zac.h"
+#include "config.h"
 
 void printarray(uint8_t * arr, uint8_t len){
   uint8_t i;
@@ -43,7 +44,12 @@ int main (void)
 	sei();
 
 	zac_init();
-	twi_init();
+
+	config_read(&cfg);
+
+	twi_init(cfg.twi_addr);
+
+
 
 	printf("Controller started\n\r");
 	while (1) {

@@ -9,6 +9,7 @@
 #include <Ethernet.h>
 #include "w5100.h"
 #include "socket.h"
+#include "collector_twi.h"
 // set debug mode
 // #define DEBUG
 //
@@ -72,6 +73,24 @@ void execCMD(uint8_t sock, char * buff, int8_t len){
   int8_t index;
   printf("Compare  %s\n\r", buff);
   // TODO lengh include \0 ???
+  if(strncmp(buff, "twiaddr", 7) == 0){
+		uint8_t synerr = 1;
+		if(len>7){
+			uint8_t old_addr, new_addr;
+			if(sscanf(buff+7, "%d %d", old_addr, new_addr) ==2){
+				synerr = 0;
+				if(twi_set_address(old_addr, new_addr)){
+					resLen = sprintf(resBuff, "success\n");
+				}else{
+					resLen = sprintf(resBuff, "failed\n");
+				}
+			}
+		}
+		if (synerr){
+			resLen = sprintf(resBuff, "Usage: twiaddr <old> <new>\n");
+		}
+
+	}
   if(strncmp(buff, "ip", 2) == 0){
     if(len>2){
       paramCounter = convertParamToBytes(buff+2, len-2, params);

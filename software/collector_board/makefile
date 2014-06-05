@@ -29,12 +29,13 @@ FORMAT = ihex
 
 # Project files
 PROJECT_PATH = .
-PROJECT_OBJS = main.o usart.o ethernet_twi.o zac.o interpret.o checksum.o
+PROJECT_OBJS = main.o usart.o ethernet_twi.o zac.o interpret.o checksum.o config.o
 #----------------------------------------------------------
 # Programmer settings
 AVRDUDE_PROGRAMMER = usbasp
 AVRDUDE_PORT = /dev/ttyACM0
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
+AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET)_eeprom.hex
 AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
 # -F forces programming without checking device
 #  identifier.
@@ -90,13 +91,15 @@ build: elf hex
 # upload the program to the microcontroller flash:
 upload:
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH)
+eeprom:
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_EEPROM)
 
 # analyze compiled program size:
 size:
 	$(SIZE) $(TARGET).elf
 
 elf: $(TARGET).elf
-hex: $(TARGET).hex
+hex: $(TARGET).hex $(TARGET)_eeprom.hex
 
 # link everything together:
 $(TARGET).elf: project
@@ -107,6 +110,10 @@ $(TARGET).elf: project
 # as we do not want to write this to flash
 $(TARGET).hex: $(TARGET).elf
 	$(OBJCOPY) -O $(FORMAT) -R .eeprom $< $@
+
+# generate eeprom hexfile:
+$(TARGET)_eeprom.hex: $(TARGET).elf
+	$(OBJCOPY) -O $(FORMAT) -j .eeprom --no-change-warnings --change-section-lma .eeprom=0 $< $@
 
 clean:
 	rm -rv $(BUILD_DIR)/*
