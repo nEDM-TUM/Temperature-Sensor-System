@@ -104,7 +104,7 @@ int main (void)
 
 	printf("Controller started\n\r");
   //setupServerLib();
-  //setupServer();
+  setupServer();
 	scanresults[20];
 	num_boards = twi_scan(scanresults, 20);
 
