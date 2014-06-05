@@ -45,6 +45,8 @@ int8_t convertParamToBytes(char * buff, int8_t len, uint8_t * params){
     if(paramIndex<MAX_PARAM_LEN && buff[index]>=48 && buff[index]<=57){
       paramBuff[paramIndex] = buff[index];
       paramIndex++;
+    }else if(buff[index] == '\0'){
+      break;
     }else{
       if(paramIndex>0){
         paramBuff[paramIndex] = '\0';
@@ -175,6 +177,10 @@ void execCMD(uint8_t sock, char * buff, int8_t len){
   send(sock, (uint8_t *)resBuff, resLen);
  }
 
+inline void sendError(uint8_t sock){
+  send(sock, (uint8_t *)"Error!\n", 7);
+}
+
 void handleCMD(uint8_t sock){
   uint8_t b;
   while(recv(sock, &b, 1) >0){
@@ -182,7 +188,7 @@ void handleCMD(uint8_t sock){
       receiveBuff[sock][writeBuffPointer[sock]] = '\0';
       execCMD(sock, receiveBuff[sock], writeBuffPointer[sock]);
       writeBuffPointer[sock] = 0;
-    }else{
+    }else if(writeBuffPointer[sock] < MAX_CMD_LEN-1){
       // XXX The first char should be alphabet in low case 
       if(writeBuffPointer[sock] == 0 && (b<97 || b>122)){
         continue;
@@ -190,10 +196,13 @@ void handleCMD(uint8_t sock){
       receiveBuff[sock][writeBuffPointer[sock]] = b;
       writeBuffPointer[sock]++;
       writeBuffPointer[sock] %= MAX_CMD_LEN;
+    }else{
+      sendError(sock); 
+      while(W5100.getRXReceivedSize(sock) && recv(sock, &b, 1) >0){
+        ;
+      }
+      break;
     }
-#ifdef DEBUG
-  printf("Receive lenk: %d\n\r", ret);
-#endif
   }
 }
 
@@ -238,8 +247,10 @@ void serve(){
     }
   }
   // TODO open more sockets
+  printf("Listening socket %d, closed socket %d\n\r",listeningSock, closedSock);
   if(listeningSock == MAX_SERVER_SOCK_NUM && closedSock < MAX_SERVER_SOCK_NUM){
     socket(closedSock, SnMR::TCP, port, 0);    
+    listen(closedSock);
   }
 }
 
