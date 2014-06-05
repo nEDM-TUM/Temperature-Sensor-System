@@ -4,11 +4,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <avr/pgmspace.h>
 #include "usart.h"
 #include <Ethernet.h>
 #include "w5100.h"
 #include "socket.h"
-
 // set debug mode
 // #define DEBUG
 //
@@ -25,13 +25,17 @@ uint8_t ip_db[] = {10,0,1, 100};
 uint16_t port_db = 8888;
 uint8_t clientSock = MAX_SERVER_SOCK_NUM;
 uint8_t serverSock[MAX_SERVER_SOCK_NUM];
-uint8_t listeningSock = MAX_SERVER_SOCK_NUM;
-uint8_t closedSock = MAX_SERVER_SOCK_NUM;
+
+int8_t listeningSock = MAX_SERVER_SOCK_NUM;
+int8_t closedSock = MAX_SERVER_SOCK_NUM;
 
 char receiveBuff[MAX_SERVER_SOCK_NUM][MAX_CMD_LEN];
 char resBuff[MAX_RESPONSE_LEN];
 uint8_t writeBuffPointer[MAX_SERVER_SOCK_NUM] = {0}; // Point to a byte, which will be written
 
+const char WillSet[] PROGMEM = " will be set to ";
+const char IfUpdate[] PROGMEM = ", if you input 'update config'\n";
+const char UpdateOption[] PROGMEM = ", update option: ";
 int8_t convertParamToBytes(char * buff, int8_t len, uint8_t * params){
   int8_t index;
   int8_t paramIndex =0;
@@ -74,9 +78,9 @@ void execCMD(uint8_t sock, char * buff, int8_t len){
           ip[index] = params[index];
         }
         subnet = params[4]; 
-        resLen = sprintf(resBuff, "ip will be set to %d.%d.%d.%d/%d, if you input 'update config'\n", ip[0], ip[1], ip[2], ip[3], subnet);
+        resLen = sprintf(resBuff, "ip %S%d.%d.%d.%d/%d%S", WillSet, ip[0], ip[1], ip[2], ip[3], subnet, IfUpdate);
       }else{
-        resLen = sprintf(resBuff, "ip is %d.%d.%d.%d/%d (To update the ip address: ip addr/subnet like the output format!)\n", ip[0], ip[1], ip[2], ip[3], subnet);
+        resLen = sprintf(resBuff, "ip is %d.%d.%d.%d/%d%Sip addr/subnet\n", ip[0], ip[1], ip[2], ip[3], subnet, UpdateOption);
       }
     }else{
       resLen = sprintf(resBuff, "ip is %d.%d.%d.%d/%d\n", ip[0], ip[1], ip[2], ip[3], subnet);
@@ -89,9 +93,9 @@ void execCMD(uint8_t sock, char * buff, int8_t len){
         for(index=0; index<4; index++){
           gateway[index] = params[index];
         }
-        resLen = sprintf(resBuff, "gateway will be set to %d.%d.%d.%d, if you input 'update config'\n", gateway[0], gateway[1], gateway[2], gateway[3]);
+        resLen = sprintf(resBuff, "gateway%S%d.%d.%d.%d%S", WillSet, gateway[0], gateway[1], gateway[2], gateway[3], IfUpdate);
       }else{
-        resLen = sprintf(resBuff, "gateway is %d.%d.%d.%d (To update the gateway address: gateway addr like the output format!)\n", gateway[0], gateway[1], gateway[2], gateway[3]);
+        resLen = sprintf(resBuff, "gateway is %d.%d.%d.%d%Sgateway addr\n", gateway[0], gateway[1], gateway[2], gateway[3], UpdateOption);
       }
     }else{
       resLen = sprintf(resBuff, "gateway is %d.%d.%d.%d\n", gateway[0], gateway[1], gateway[2], gateway[3]);
@@ -105,29 +109,29 @@ void execCMD(uint8_t sock, char * buff, int8_t len){
         for(index=0; index<6; index++){
           mac[index] = params[index];
         }
-        resLen = sprintf(resBuff, "mac will be set to %x:%x:%x:%x:%x:%x, if you input 'update config'\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+        resLen = sprintf(resBuff, "mac%S%x:%x:%x:%x:%x:%x%S", WillSet, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], IfUpdate);
   printf("TEST %d\n\r", resLen);
       }else{
-        resLen = sprintf(resBuff, "mac is %x:%x:%x:%x:%x:%x (To update the mac address ip addr/subnet like the output format!)\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+        resLen = sprintf(resBuff, "mac is %x:%x:%x:%x:%x:%x%Smac addr\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], UpdateOption);
   printf("TEST %d\n\r", resLen);
       }
     }else{
       resLen = sprintf(resBuff, "mac is %x:%x:%x:%x:%x:%x\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
   printf("TEST %d\n\r", resLen);
     }
-  //} else
-  //if(strncmp(buff, "port", 4) == 0){
-  //  if(len>4){
-  //    paramCounter = convertParamToBytes(buff+4, len-4, params);
-  //    if(paramCounter==1){
-  //      port = params[0];
-  //      resLen = sprintf(resBuff, "port will be set to %d, if you input 'update config'\n", port);
-  //    }else{
-  //      resLen = sprintf(resBuff, "port is %d (To update the port: port number like the output format!)\n", port);
-  //    }
-  //  }else{
-  //    resLen = sprintf(resBuff, "port is %d\n", port);
-  //  }
+  } else
+  if(strncmp(buff, "port", 4) == 0){
+    if(len>4){
+      paramCounter = convertParamToBytes(buff+4, len-4, params);
+      if(paramCounter==1){
+        port = params[0];
+        resLen = sprintf(resBuff, "port%S%d%S", WillSet, port, IfUpdate);
+      }else{
+        resLen = sprintf(resBuff, "port is %d%Sport\n", port, UpdateOption);
+      }
+    }else{
+      resLen = sprintf(resBuff, "port is %d\n", port);
+    }
   //} else
   //if(strncmp(buff, "update config", 13) == 1){
   //  resLen = sprintf(resBuff, "The config will be updated, the future login is %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], port);
@@ -195,6 +199,8 @@ void handleCMD(uint8_t sock){
 
 void serve(){
   uint8_t i;
+  closedSock = MAX_SERVER_SOCK_NUM;
+  listeningSock = MAX_SERVER_SOCK_NUM;
   for(i=0; i<MAX_SERVER_SOCK_NUM; i++){
     serverSock[i] = W5100.readSnSR(i);
 #ifdef DEBUG
@@ -232,6 +238,9 @@ void serve(){
     }
   }
   // TODO open more sockets
+  if(listeningSock == MAX_SERVER_SOCK_NUM && closedSock < MAX_SERVER_SOCK_NUM){
+    socket(closedSock, SnMR::TCP, port, 0);    
+  }
 }
 
 int8_t toSubnetMask(uint8_t subnet, uint8_t* addr){
