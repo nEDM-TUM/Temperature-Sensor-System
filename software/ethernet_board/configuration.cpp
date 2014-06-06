@@ -77,7 +77,7 @@ void execCMD(uint8_t sock, char * buff, int8_t len){
 		uint8_t synerr = 1;
 		if(len>7){
 			uint8_t old_addr, new_addr;
-			if(sscanf(buff+7, "%u %u", old_addr, new_addr) ==2){
+			if(sscanf(buff+7, "%u %u", &old_addr, &new_addr) ==2){
 			//if(buff[4]=='g'){
 				synerr = 0;
 				if(twi_set_address(old_addr, new_addr)){

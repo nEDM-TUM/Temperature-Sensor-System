@@ -191,8 +191,10 @@ uint8_t twi_send_cmd(uint8_t addr, uint8_t cmd){
 }
 
 uint8_t twi_set_address(uint8_t addr, uint8_t new_addr){	
+	printf("trying %u -> %u\n\r", addr, new_addr);
   if(!twi_send_cmd(addr, CMD_SET_ADDRESS)){
 		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
+		printf("cmd not successful\n\r");
     return 0;
   }
   TWDR = new_addr;
@@ -205,6 +207,7 @@ uint8_t twi_set_address(uint8_t addr, uint8_t new_addr){
     return 1;
   }else{
 		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
+		printf("new addr not successful\n\r");
     return 0;
   }
 }

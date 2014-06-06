@@ -6,6 +6,7 @@
 #include "interpret.h"
 #include <avr/io.h>
 #include "config.h"
+#include "board_support.h"
 
 uint8_t cstate = IDLE;
 
@@ -143,6 +144,7 @@ void twi_handle(){
 						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
 						break;
 				}
+				printf("stop %u\n\r", cstate);
 
 				break;
 
@@ -238,5 +240,6 @@ void twi_handle(){
 
       
     }
+		printf("cstate %u\n\r", cstate);
   }
 }
