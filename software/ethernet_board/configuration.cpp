@@ -165,7 +165,7 @@ void execCMD(uint8_t sock, char * buff, int8_t len){
   printf("Compare  %s\n\r", buff);
   for(index= 0; index<cmdLen; index++){
     cmd = cmds[index];
-    if(strncmp(buff, cmd.name, cmd.nameLen)==0){
+    if(strncmp_P(buff, cmd.name, cmd.nameLen)==0){
       // cmd params should be seperated with the cmd name by a arbitary character
       cmd.handle(sock, buff+cmd.nameLen+1);
       return;
