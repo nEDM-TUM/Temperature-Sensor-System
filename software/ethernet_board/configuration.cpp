@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <avr/pgmspace.h>
+#include <util/delay.h>
 #include "usart.h"
 #include <Ethernet.h>
 #include "w5100.h"
@@ -35,8 +36,35 @@ char resBuff[MAX_RESPONSE_LEN];
 uint8_t writeBuffPointer[MAX_SERVER_SOCK_NUM] = {0}; // Point to a byte, which will be written
 
 const char WillSet[] PROGMEM = " will be set to ";
-const char IfUpdate[] PROGMEM = ", if you input 'update config'\n";
+const char IfUpdate[] PROGMEM = ", if you input 'reset'\n";
 const char UpdateOption[] PROGMEM = ", update option: ";
+const char WillReset[] PROGMEM = "The ethernet service will be reset, the future login is ";
+
+int8_t toSubnetMask(uint8_t subnet, uint8_t* addr){
+  int8_t indexByte = 0;
+  int8_t indexBit = 0;
+  printf("Subnet Mask: %d.%d.%d.%d\n\r", subnetM[0], subnetM[1], subnetM[2], subnetM[3]);
+  while((subnet >> 3) >0 ){
+  printf("Subnet: %d %d\n\r", subnet, subnet-8<subnet);
+    addr[indexByte] = 255;
+    indexByte++;
+    subnet -= 8;
+  }
+  if(indexByte>=4){
+    return 0;
+  }
+  while(subnet != 0 ){
+    addr[indexByte] |= 1 << indexBit;
+    indexBit ++;
+    subnet--;
+    if(indexBit>=8){
+      return 0;
+    }
+  }
+  printf("Subnet Mask: %d.%d.%d.%d\n\r", subnetM[0], subnetM[1], subnetM[2], subnetM[3]);
+  return 1;
+}
+
 int8_t convertParamToBytes(char * buff, int8_t len, uint8_t * params){
   int8_t index;
   int8_t paramIndex =0;
@@ -66,6 +94,45 @@ int8_t convertParamToBytes(char * buff, int8_t len, uint8_t * params){
   return paramCounter;
 }
 
+void beginService() {
+  //Init and config ethernet device w5100
+  toSubnetMask(subnet, subnetM);
+  W5100.init();
+  W5100.setMACAddress(mac);
+  W5100.setIPAddress(ip);
+  W5100.setGatewayIp(gateway);
+  W5100.setSubnetMask(subnetM);
+  // TODO reset client to db
+  // Create the first server socket
+  socket(0, SnMR::TCP, port, 0);
+  serverSock[0] = W5100.readSnSR(0);
+  while(!listen(0)){
+    // wait a second and try again
+    _delay_ms(1000);
+  }
+}
+
+void reset(){
+  int16_t resLen=0;
+  uint8_t index;
+  resLen = sprintf(resBuff, "%S%d.%d.%d.%d:%d\n",WillReset, ip[0], ip[1], ip[2], ip[3], port);
+  for(index= 0; index<MAX_SERVER_SOCK_NUM; index++){
+    if(W5100.readSnSR(index) == SnSR::ESTABLISHED){
+      send(index, (uint8_t *)resBuff, resLen);
+    }
+    disconnect(index);
+  }
+  // Wait a second to close all sockets
+  _delay_ms(1000);
+  // TODO LEDs action
+  for(index= 0; index<MAX_SERVER_SOCK_NUM; index++){
+    if(W5100.readSnSR(index) != SnSR::CLOSED){
+      // If a socket is still not closed, force it
+      close(index);
+    }
+  }
+  beginService();
+}
 void execCMD(uint8_t sock, char * buff, int8_t len){
   int16_t resLen=0;
   uint8_t params[MAX_PARAM_COUNT];
@@ -90,7 +157,6 @@ void execCMD(uint8_t sock, char * buff, int8_t len){
 		if (synerr){
 			resLen = sprintf(resBuff, "Usage: twiaddr <old> <new>\n");
 		}
-
 	}else
   if(strncmp(buff, "ip", 2) == 0){
     if(len>2){
@@ -154,12 +220,11 @@ void execCMD(uint8_t sock, char * buff, int8_t len){
     }else{
       resLen = sprintf(resBuff, "port is %d\n", port);
     }
-  //} else
-  //if(strncmp(buff, "update config", 13) == 1){
-  //  resLen = sprintf(resBuff, "The config will be updated, the future login is %d.%d.%d.%d:%d\n", ip[0], ip[1], ip[2], ip[3], port);
-  //  send(sock, (uint8_t *)resBuff, resLen);
-  //  // TODO update config!
-  //  return;
+  } else
+  if(strcmp(buff, "restart") == 1){
+    reset();
+    // TODO update config!
+    return;
 
   //} else
   //if(strncmp(buff, "ip-db", 5) == 0){
@@ -279,49 +344,9 @@ void serve(){
   }
 }
 
-int8_t toSubnetMask(uint8_t subnet, uint8_t* addr){
-  int8_t indexByte = 0;
-  int8_t indexBit = 0;
-  printf("Subnet Mask: %d.%d.%d.%d\n\r", subnetM[0], subnetM[1], subnetM[2], subnetM[3]);
-  while((subnet >> 3) >0 ){
-  printf("Subnet: %d %d\n\r", subnet, subnet-8<subnet);
-    addr[indexByte] = 255;
-    indexByte++;
-    subnet -= 8;
-  }
-  if(indexByte>=4){
-    return 0;
-  }
-  while(subnet != 0 ){
-    addr[indexByte] |= 1 << indexBit;
-    indexBit ++;
-    subnet--;
-    if(indexBit>=8){
-      return 0;
-    }
-  }
-  printf("Subnet Mask: %d.%d.%d.%d\n\r", subnetM[0], subnetM[1], subnetM[2], subnetM[3]);
-  return 1;
-}
-
 void setupServer() {
   printf("Set up server\n\r");
-  //Init and config ethernet device w5100
-  toSubnetMask(subnet, subnetM);
-  W5100.init();
-  W5100.setMACAddress(mac);
-  W5100.setIPAddress(ip);
-  W5100.setGatewayIp(gateway);
-  W5100.setSubnetMask(subnetM);
-  // Create the first server socket
-  socket(0, SnMR::TCP, port, 0);
-  serverSock[0] = W5100.readSnSR(0);
-  if(listen(0)){
-    	printf("Listened\n\r");
-  } else {
-    printf("not Linstend \n\r");
-  }
-  printf("0. Status: %x\n\r", serverSock[0]);
+  beginService();
   while(1){
     serve();
   }
