@@ -10,6 +10,7 @@
 #define WAIT_ADDRESS 2
 #define TRANSMIT 3
 #define START_MEASUREMENT 4
+#define ADDR_FIN 5
 
 #define CMD_START_MEASUREMENT 1
 #define CMD_SET_ADDRESS 2

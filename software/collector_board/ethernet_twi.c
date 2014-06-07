@@ -26,6 +26,7 @@ void twi_handle(){
 	// XXX: one has to be EXTREMELY careful when debugging this code with printf,
 	// XXX: as the caused delay for printing influences the bus heavily.
   if(TWCR & (1<<TWINT)){
+    LED2_PORT ^= (1<<LED2);
     //TWI interrupt
     switch (TWSR){
 			// slave receiver:
@@ -36,6 +37,8 @@ void twi_handle(){
 				// Own SLA+W has been received;
 				// ACK has been returned
 				switch (cstate){
+          // FIXME: do not do a case switch here,
+          // if we are addressed, always go to command mode!
 					case IDLE:
 						// Data byte will be received and ACK will be returned
 						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
@@ -91,11 +94,9 @@ void twi_handle(){
 
 					case WAIT_ADDRESS:
 						// Data byte will be received and NOT ACK will be returned
+            cstate = ADDR_FIN;
             cfg.twi_addr = TWDR;
-            config_write(&cfg);
 						TWCR = (1<<TWEN) | (1<<TWINT);
-            _delay_ms(10);
-            twi_init(cfg.twi_addr);
 
 					default:
 						// Data byte will be received and NOT ACK will be returned
@@ -138,6 +139,12 @@ void twi_handle(){
 						//interpret_detectPrintAll(measurement_data, connected);
 						cstate = IDLE;
 						break;
+          case ADDR_FIN:
+						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+            LED1_PORT ^= (1<<LED1);
+            config_write(&cfg);
+            twi_init(cfg.twi_addr);
+            cstate = IDLE;
 					default:
 						cstate = IDLE;
 						// Switched to the not addressed Slave mode; own SLA will be recognized;

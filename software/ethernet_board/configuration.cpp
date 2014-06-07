@@ -233,7 +233,7 @@ void serve(){
   listeningSock = MAX_SERVER_SOCK_NUM;
   for(i=0; i<MAX_SERVER_SOCK_NUM; i++){
     serverSock[i] = W5100.readSnSR(i);
-    printf("%u. Status: %x\n\r",i, serverSock[i]);
+    //printf("%u. Status: %x\n\r",i, serverSock[i]);
 #ifdef DEBUG
     printf("%u. Status: %x\n\r",i, serverSock[i]);
 #endif
@@ -264,6 +264,7 @@ void serve(){
         printf("Close wait Sock: %u\n\r", i);
         break;
       default:
+        break;
 #ifdef DEBUG
         printf("Sock %u Status: %x\n\r", i, serverSock[i]);
 #endif
