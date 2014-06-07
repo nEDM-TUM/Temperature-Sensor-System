@@ -221,7 +221,12 @@ void execCMD(uint8_t sock, char * buff, int8_t len){
       resLen = sprintf(resBuff, "port is %d\n", port);
     }
   } else
-  if(strcmp(buff, "restart") == 1){
+  if(strcmp(buff, "reset") == 0){
+    reset();
+    // TODO update config!
+    return;
+  } else
+  if(strncmp(buff, "reset", 5) == 0){
     reset();
     // TODO update config!
     return;
