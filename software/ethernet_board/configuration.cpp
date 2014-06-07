@@ -221,6 +221,7 @@ void handleCMD(uint8_t sock){
       while(W5100.getRXReceivedSize(sock) && recv(sock, &b, 1) >0){
         ;
       }
+      writeBuffPointer[sock] = 0;
       break;
     }
   }
@@ -232,6 +233,7 @@ void serve(){
   listeningSock = MAX_SERVER_SOCK_NUM;
   for(i=0; i<MAX_SERVER_SOCK_NUM; i++){
     serverSock[i] = W5100.readSnSR(i);
+    printf("%u. Status: %x\n\r",i, serverSock[i]);
 #ifdef DEBUG
     printf("%u. Status: %x\n\r",i, serverSock[i]);
 #endif
@@ -240,7 +242,9 @@ void serve(){
         closedSock = i;
         break;
       case SnSR::INIT:
+#ifdef DEBUG
         printf("Init Sock: %u\n\r", i);
+#endif
         break;
       case SnSR::LISTEN:
         listeningSock = i;
@@ -259,15 +263,15 @@ void serve(){
         // TODO implement see Arduino Ethernet library
         printf("Close wait Sock: %u\n\r", i);
         break;
-      case SnSR::IPRAW:
-        printf("IP RAW Sock: %u\n\r", i);
-        break;
       default:
+#ifdef DEBUG
         printf("Sock %u Status: %x\n\r", i, serverSock[i]);
+#endif
     }
   }
-  // TODO open more sockets
+#ifdef DEBUG
   printf("Listening socket %d, closed socket %d\n\r",listeningSock, closedSock);
+#endif
   if(listeningSock == MAX_SERVER_SOCK_NUM && closedSock < MAX_SERVER_SOCK_NUM){
     socket(closedSock, SnMR::TCP, port, 0);    
     listen(closedSock);
