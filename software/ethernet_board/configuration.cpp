@@ -225,11 +225,11 @@ void execCMD(uint8_t sock, char * buff, int8_t len){
     reset();
     // TODO update config!
     return;
-  } else
-  if(strncmp(buff, "reset", 5) == 0){
-    reset();
-    // TODO update config!
-    return;
+  //} else
+  //if(strncmp(buff, "reset", 5) == 0){
+  //  reset();
+  //  // TODO update config!
+  //  return;
 
   //} else
   //if(strncmp(buff, "ip-db", 5) == 0){
