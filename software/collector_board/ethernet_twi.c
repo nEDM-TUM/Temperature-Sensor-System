@@ -36,18 +36,10 @@ void twi_handle(){
 			case 0x60:
 				// Own SLA+W has been received;
 				// ACK has been returned
-				switch (cstate){
-          // FIXME: do not do a case switch here,
-          // if we are addressed, always go to command mode!
-					case IDLE:
-						// Data byte will be received and ACK will be returned
-						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
-						cstate = COMMAND;
-						break;
-					default:
-						// Data byte will be received and NOT ACK will be returned
-						TWCR = (1<<TWEN) | (1<<TWINT);
-				}
+				
+        // Data byte will be received and ACK will be returned
+        TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+        cstate = COMMAND;
 				break;
 			case 0x68:
 				// Arbitration lost in SLA+R/W as
@@ -86,21 +78,23 @@ void twi_handle(){
 								cstate = WAIT_ADDRESS;
 								break;
 							default:
-								// Data byte will be received and ACK will be returned
-								TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+								// Data byte will be received and NOT ACK will be returned
+								TWCR = (1<<TWEN) | (1<<TWINT);
+                cstate = IDLE;
 								break;
 						}
 						break;
 
 					case WAIT_ADDRESS:
 						// Data byte will be received and NOT ACK will be returned
-            cstate = ADDR_FIN;
             cfg.twi_addr = TWDR;
 						TWCR = (1<<TWEN) | (1<<TWINT);
+            cstate = ADDR_FIN;
 
 					default:
 						// Data byte will be received and NOT ACK will be returned
 						TWCR = (1<<TWEN) | (1<<TWINT);
+            cstate = IDLE;
 				}
 				break;
 
@@ -113,9 +107,10 @@ void twi_handle(){
 				// Previously addressed with own
 				// SLA+W; data has been received;
 				// NOT ACK has been returned
-				cstate = IDLE;
+
 				// Switched to the not addressed Slave mode; own SLA will be recognized;
 				TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+				cstate = IDLE;
 
 				break;
 
@@ -140,18 +135,19 @@ void twi_handle(){
 						cstate = IDLE;
 						break;
           case ADDR_FIN:
+						// Switched to the not addressed Slave mode; own SLA will be recognized;
 						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
             LED1_PORT ^= (1<<LED1);
             config_write(&cfg);
             twi_init(cfg.twi_addr);
             cstate = IDLE;
 					default:
-						cstate = IDLE;
 						// Switched to the not addressed Slave mode; own SLA will be recognized;
 						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+						cstate = IDLE;
 						break;
 				}
-				printf("stop %u\n\r", cstate);
+				//printf("stop %u\n\r", cstate);
 
 				break;
 
@@ -168,14 +164,13 @@ void twi_handle(){
 						TWDR = interpreted_data[0];
 						// Data byte will be transmitted and ACK should be received
 						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
-						// FIXME: TRANSMIT state is never used
-						cstate = TRANSMIT;
 
 						break;
 					default:
 						TWDR = 0xff;
 						// Last data byte will be transmitted and NOT ACK should be received
 						TWCR = (1<<TWEN) | (1<<TWINT);
+            cstate = IDLE;
 
 						break;
 				}
@@ -237,6 +232,7 @@ void twi_handle(){
 				// tion is sent on the bus. In all cases, the bus is released
 				// and TWSTO is cleared.
         TWCR = (1<< TWEA) | (1<<TWSTO) | (1<<TWEN) | (1<<TWINT);
+        printf("bus error\n\r");
 				break;
 			case 0xf8:
 				printf("no state change detected\n\r");
