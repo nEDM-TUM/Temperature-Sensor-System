@@ -6,6 +6,7 @@
 #include "interpret.h"
 #include <avr/io.h>
 #include "config.h"
+#include "board_support.h"
 
 uint8_t cstate = IDLE;
 
@@ -25,6 +26,7 @@ void twi_handle(){
 	// XXX: one has to be EXTREMELY careful when debugging this code with printf,
 	// XXX: as the caused delay for printing influences the bus heavily.
   if(TWCR & (1<<TWINT)){
+    LED2_PORT ^= (1<<LED2);
     //TWI interrupt
     switch (TWSR){
 			// slave receiver:
@@ -34,16 +36,10 @@ void twi_handle(){
 			case 0x60:
 				// Own SLA+W has been received;
 				// ACK has been returned
-				switch (cstate){
-					case IDLE:
-						// Data byte will be received and ACK will be returned
-						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
-						cstate = COMMAND;
-						break;
-					default:
-						// Data byte will be received and NOT ACK will be returned
-						TWCR = (1<<TWEN) | (1<<TWINT);
-				}
+				
+        // Data byte will be received and ACK will be returned
+        TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+        cstate = COMMAND;
 				break;
 			case 0x68:
 				// Arbitration lost in SLA+R/W as
@@ -82,8 +78,9 @@ void twi_handle(){
 								cstate = WAIT_ADDRESS;
 								break;
 							default:
-								// Data byte will be received and ACK will be returned
-								TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+								// Data byte will be received and NOT ACK will be returned
+								TWCR = (1<<TWEN) | (1<<TWINT);
+                cstate = IDLE;
 								break;
 						}
 						break;
@@ -91,14 +88,13 @@ void twi_handle(){
 					case WAIT_ADDRESS:
 						// Data byte will be received and NOT ACK will be returned
             cfg.twi_addr = TWDR;
-            config_write(&cfg);
 						TWCR = (1<<TWEN) | (1<<TWINT);
-            _delay_ms(10);
-            twi_init(cfg.twi_addr);
+            cstate = ADDR_FIN;
 
 					default:
 						// Data byte will be received and NOT ACK will be returned
 						TWCR = (1<<TWEN) | (1<<TWINT);
+            cstate = IDLE;
 				}
 				break;
 
@@ -111,9 +107,10 @@ void twi_handle(){
 				// Previously addressed with own
 				// SLA+W; data has been received;
 				// NOT ACK has been returned
-				cstate = IDLE;
+
 				// Switched to the not addressed Slave mode; own SLA will be recognized;
 				TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+				cstate = IDLE;
 
 				break;
 
@@ -137,12 +134,20 @@ void twi_handle(){
 						//interpret_detectPrintAll(measurement_data, connected);
 						cstate = IDLE;
 						break;
-					default:
-						cstate = IDLE;
+          case ADDR_FIN:
 						// Switched to the not addressed Slave mode; own SLA will be recognized;
 						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+            LED1_PORT ^= (1<<LED1);
+            config_write(&cfg);
+            twi_init(cfg.twi_addr);
+            cstate = IDLE;
+					default:
+						// Switched to the not addressed Slave mode; own SLA will be recognized;
+						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+						cstate = IDLE;
 						break;
 				}
+				//printf("stop %u\n\r", cstate);
 
 				break;
 
@@ -159,14 +164,13 @@ void twi_handle(){
 						TWDR = interpreted_data[0];
 						// Data byte will be transmitted and ACK should be received
 						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
-						// FIXME: TRANSMIT state is never used
-						cstate = TRANSMIT;
 
 						break;
 					default:
 						TWDR = 0xff;
 						// Last data byte will be transmitted and NOT ACK should be received
 						TWCR = (1<<TWEN) | (1<<TWINT);
+            cstate = IDLE;
 
 						break;
 				}
@@ -228,6 +232,7 @@ void twi_handle(){
 				// tion is sent on the bus. In all cases, the bus is released
 				// and TWSTO is cleared.
         TWCR = (1<< TWEA) | (1<<TWSTO) | (1<<TWEN) | (1<<TWINT);
+        printf("bus error\n\r");
 				break;
 			case 0xf8:
 				printf("no state change detected\n\r");
@@ -238,5 +243,6 @@ void twi_handle(){
 
       
     }
+		printf("cstate %u\n\r", cstate);
   }
 }

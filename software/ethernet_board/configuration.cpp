@@ -144,7 +144,7 @@ void execCMD(uint8_t sock, char * buff, int8_t len){
 		uint8_t synerr = 1;
 		if(len>7){
 			uint8_t old_addr, new_addr;
-			if(sscanf(buff+7, "%u %u", old_addr, new_addr) ==2){
+			if(sscanf(buff+7, "%u %u", &old_addr, &new_addr) ==2){
 			//if(buff[4]=='g'){
 				synerr = 0;
 				if(twi_set_address(old_addr, new_addr)){
@@ -221,7 +221,12 @@ void execCMD(uint8_t sock, char * buff, int8_t len){
       resLen = sprintf(resBuff, "port is %d\n", port);
     }
   } else
-  if(strcmp(buff, "restart") == 1){
+  if(strcmp(buff, "reset") == 0){
+    reset();
+    // TODO update config!
+    return;
+  } else
+  if(strncmp(buff, "reset", 5) == 0){
     reset();
     // TODO update config!
     return;
@@ -298,7 +303,7 @@ void serve(){
   listeningSock = MAX_SERVER_SOCK_NUM;
   for(i=0; i<MAX_SERVER_SOCK_NUM; i++){
     serverSock[i] = W5100.readSnSR(i);
-    printf("%u. Status: %x\n\r",i, serverSock[i]);
+    //printf("%u. Status: %x\n\r",i, serverSock[i]);
 #ifdef DEBUG
     printf("%u. Status: %x\n\r",i, serverSock[i]);
 #endif
@@ -329,7 +334,7 @@ void serve(){
         printf("Close wait Sock: %u\n\r", i);
         break;
       default:
-        ;
+        break;
 #ifdef DEBUG
         printf("Sock %u Status: %x\n\r", i, serverSock[i]);
 #endif
