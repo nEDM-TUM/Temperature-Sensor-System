@@ -35,6 +35,28 @@ char receiveBuff[MAX_SERVER_SOCK_NUM][MAX_CMD_LEN];
 char resBuff[MAX_RESPONSE_LEN];
 uint8_t writeBuffPointer[MAX_SERVER_SOCK_NUM] = {0}; // Point to a byte, which will be written
 
+struct cmd{
+  const char * name PROGMEM;
+  uint8_t nameLen;
+  uint8_t paramLen;
+  int8_t (*handle)(uint8_t, char*);
+};
+
+int8_t handleIp(uint8_t sock, char* paramsStr);
+int8_t handleMac(uint8_t sock, char* paramsStr);
+int8_t handleGw(uint8_t sock, char* paramsStr);
+
+const char Ip[] PROGMEM = "ip";
+const char Mac[] PROGMEM = "mac";
+const char Gw[] PROGMEM = "gw";
+
+const uint8_t cmdLen = 3;
+struct cmd cmds[]={
+  {Ip, 2, 5, handleIp},
+  {Mac, 3, 6, handleMac},
+  {Gw, 2, 4, handleGw}
+};
+
 const char WillSet[] PROGMEM = " will be set to ";
 const char IfUpdate[] PROGMEM = ", if you input 'reset'\n";
 const char UpdateOption[] PROGMEM = ", update option: ";
@@ -133,12 +155,26 @@ void reset(){
   }
   beginService();
 }
+
 void execCMD(uint8_t sock, char * buff, int8_t len){
   int16_t resLen=0;
   uint8_t params[MAX_PARAM_COUNT];
   int8_t paramCounter =0;
   int8_t index;
+  struct cmd cmd;
   printf("Compare  %s\n\r", buff);
+  for(index= 0; index<cmdLen; index++){
+    cmd = cmds[index];
+    if(strncmp(buff, cmd.name, cmd.nameLen)){
+      // cmd params should be seperated with the cmd name by a arbitary character
+      cmd.handle(sock, buff+cmd.nameLen+1);
+      return;
+    }
+
+  }
+  resLen = sprintf(resBuff, "Usage: TODO\n");
+  send(sock, (uint8_t *)resBuff, resLen);
+return;
   // TODO lengh include \0 ???
   if(strncmp(buff, "twiaddr", 7) == 0){
 		uint8_t synerr = 1;
@@ -223,14 +259,7 @@ void execCMD(uint8_t sock, char * buff, int8_t len){
   } else
   if(strcmp(buff, "reset") == 0){
     reset();
-    // TODO update config!
     return;
-  //} else
-  //if(strncmp(buff, "reset", 5) == 0){
-  //  reset();
-  //  // TODO update config!
-  //  return;
-
   //} else
   //if(strncmp(buff, "ip-db", 5) == 0){
   //  if(len>5){
@@ -266,6 +295,23 @@ void execCMD(uint8_t sock, char * buff, int8_t len){
   }
   send(sock, (uint8_t *)resBuff, resLen);
  }
+
+int8_t handleIp(uint8_t sock, char* paramsStr){
+  int16_t resLen=0;
+  resLen = sprintf(resBuff, "Usage: TODO\n");
+  send(sock, (uint8_t *)resBuff, resLen);
+
+}
+int8_t handleMac(uint8_t sock, char* paramsStr){
+  int16_t resLen=0;
+  resLen = sprintf(resBuff, "Usage: TODO\n");
+  send(sock, (uint8_t *)resBuff, resLen);
+}
+int8_t handleGw(uint8_t sock, char* paramsStr){
+  int16_t resLen=0;
+  resLen = sprintf(resBuff, "Usage: TODO\n");
+  send(sock, (uint8_t *)resBuff, resLen);
+}
 
 inline void sendError(uint8_t sock){
   send(sock, (uint8_t *)"Error!\n", 7);
