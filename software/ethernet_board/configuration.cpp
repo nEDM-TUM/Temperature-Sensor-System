@@ -298,18 +298,18 @@ return;
 
 int8_t handleIp(uint8_t sock, char* paramsStr){
   int16_t resLen=0;
-  resLen = sprintf(resBuff, "Usage: TODO\n");
+  resLen = sprintf(resBuff, "IP: TODO\n");
   send(sock, (uint8_t *)resBuff, resLen);
 
 }
 int8_t handleMac(uint8_t sock, char* paramsStr){
   int16_t resLen=0;
-  resLen = sprintf(resBuff, "Usage: TODO\n");
+  resLen = sprintf(resBuff, "MAC: TODO\n");
   send(sock, (uint8_t *)resBuff, resLen);
 }
 int8_t handleGw(uint8_t sock, char* paramsStr){
   int16_t resLen=0;
-  resLen = sprintf(resBuff, "Usage: TODO\n");
+  resLen = sprintf(resBuff, "GW: TODO\n");
   send(sock, (uint8_t *)resBuff, resLen);
 }
 
