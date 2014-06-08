@@ -167,7 +167,7 @@ void execCMD(uint8_t sock, char * buff, int8_t len){
     cmd = cmds[index];
     if(strncmp_P(buff, cmd.name, cmd.nameLen)==0){
       // cmd params should be seperated with the cmd name by a arbitary character
-      cmd.handle(sock, buff+cmd.nameLen+1);
+      cmd.handle(sock, buff+cmd.nameLen);
       return;
     }
 
