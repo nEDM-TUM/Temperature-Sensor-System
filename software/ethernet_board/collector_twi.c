@@ -3,6 +3,9 @@
 #include <avr/io.h>
 #include <stdio.h>
 
+uint8_t scanresults[20];
+uint8_t num_boards;
+
 void printarray(uint8_t * arr, uint8_t len){
   uint8_t i;
   for (i=0;i<len;i++){

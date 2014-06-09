@@ -11,6 +11,9 @@ extern "C" {
 #define CMD_START_MEASUREMENT 1
 #define CMD_SET_ADDRESS 2
 
+extern uint8_t scanresults[20];
+extern uint8_t num_boards;
+
 void twi_interpret(uint8_t * data);
 void printarray(uint8_t * arr, uint8_t len);
 uint8_t twi_computeCRC(uint8_t * data, uint8_t len, uint8_t crc);

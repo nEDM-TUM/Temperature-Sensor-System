@@ -17,43 +17,6 @@
 uint8_t scanresults[20];
 uint8_t num_boards;
 
-void send_result(struct dummy_packet * packets, uint8_t sock){
-  char buffer[10];
-	uint8_t s;
-  uint8_t resLen;
-	int16_t temp;
-  for (s=0;s<8;s++){
-    resLen = sprintf(buffer, " | P%u: ", s+1);
-    send(sock, (uint8_t *)buffer, resLen);
-    if(packets[s].header.error && packets[s].header.connected){
-      resLen = sprintf(buffer, " ERROR ");
-      send(sock, (uint8_t *)buffer, resLen);
-    }
-    if(packets[s].header.connected){
-      switch(packets[s].header.type){
-        case PACKET_TYPE_TSIC:
-          temp =  ((struct tsic_packet *)(packets) )[s].temperature;
-          resLen = sprintf(buffer, "T = %d.%02d", temp/100, temp%100);
-          send(sock, (uint8_t *)buffer, resLen);
-          //printf(" T = %d", ( (struct tsic_packet *)(packets) )[s].temperature);
-          break;
-        case PACKET_TYPE_HYT:
-          resLen = sprintf(buffer, "T = %d", ( (struct hyt_packet *)(packets) )[s].temperature);
-          send(sock, (uint8_t *)buffer, resLen);
-          resLen = sprintf(buffer, " H = %d", ( (struct hyt_packet *)(packets) )[s].humidity);
-          send(sock, (uint8_t *)buffer, resLen);
-          break;
-        default:
-          resLen = sprintf(buffer, "---?---");
-          send(sock, (uint8_t *)buffer, resLen);
-          break;
-      }
-    }else{
-      resLen = sprintf(buffer, "---nc---");
-      send(sock, (uint8_t *)buffer, resLen);
-    }
-  }
-}
 
 
 void loop(){

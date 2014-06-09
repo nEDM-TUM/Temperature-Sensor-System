@@ -45,15 +45,21 @@ struct cmd{
 int8_t handleIp(uint8_t sock, char* paramsStr);
 int8_t handleMac(uint8_t sock, char* paramsStr);
 int8_t handleGw(uint8_t sock, char* paramsStr);
+int8_t handleTwiaddr(uint8_t sock, char* paramsStr);
+int8_t handleDoMeasurement(uint8_t sock, char* paramsStr);
 
 const char Ip[] PROGMEM = "ip";
 const char Mac[] PROGMEM = "mac";
 const char Gw[] PROGMEM = "gw";
+const char Twiaddr[] PROGMEM = "twiaddr";
+
 
 const uint8_t cmdLen = 3;
 struct cmd cmds[]={
   {Ip, 2, 5, handleIp},
   {Mac, 3, 6, handleMac},
+  {Twiaddr, 7, 0, handleTwiaddr},
+  {"m", 1, 0, handleDoMeasurement},
   {Gw, 2, 4, handleGw}
 };
 
@@ -295,6 +301,82 @@ void execCMD(uint8_t sock, char * buff, int8_t len){
   }
   send(sock, (uint8_t *)resBuff, resLen);
  }
+
+void send_result(struct dummy_packet * packets, uint8_t sock){
+  char buffer[10];
+	uint8_t s;
+  uint8_t resLen;
+	int16_t temp;
+  for (s=0;s<8;s++){
+    resLen = sprintf(buffer, " | P%u: ", s+1);
+    send(sock, (uint8_t *)buffer, resLen);
+    if(packets[s].header.error && packets[s].header.connected){
+      resLen = sprintf(buffer, " ERROR ");
+      send(sock, (uint8_t *)buffer, resLen);
+    }
+    if(packets[s].header.connected){
+      switch(packets[s].header.type){
+        case PACKET_TYPE_TSIC:
+          temp =  ((struct tsic_packet *)(packets) )[s].temperature;
+          resLen = sprintf(buffer, "T = %d.%02d", temp/100, temp%100);
+          send(sock, (uint8_t *)buffer, resLen);
+          //printf(" T = %d", ( (struct tsic_packet *)(packets) )[s].temperature);
+          break;
+        case PACKET_TYPE_HYT:
+          resLen = sprintf(buffer, "T = %d", ( (struct hyt_packet *)(packets) )[s].temperature);
+          send(sock, (uint8_t *)buffer, resLen);
+          resLen = sprintf(buffer, " H = %d", ( (struct hyt_packet *)(packets) )[s].humidity);
+          send(sock, (uint8_t *)buffer, resLen);
+          break;
+        default:
+          resLen = sprintf(buffer, "---?---");
+          send(sock, (uint8_t *)buffer, resLen);
+          break;
+      }
+    }else{
+      resLen = sprintf(buffer, "---nc---");
+      send(sock, (uint8_t *)buffer, resLen);
+    }
+  }
+}
+
+int8_t handleDoMeasurement(uint8_t sock, char* paramsStr){
+  twi_start_measurement();
+	uint8_t iaddr;
+	uint8_t addr;
+  struct dummy_packet received[8];
+	for (iaddr=0;iaddr<num_boards;iaddr++){
+		addr = scanresults[iaddr];
+		printf("# %u # ", addr);
+		//state = start_measurement(SLA2);
+		state = twi_receive_data(addr, ((uint8_t*)received),8*sizeof(struct dummy_packet));
+  }
+  send_result(received);
+
+
+}
+
+int8_t handleTwiaddr(uint8_t sock, char * paramsStr){
+  uint8_t resLen;
+  uint8_t synerr = 1;
+  if(len>7){
+    uint8_t old_addr, new_addr;
+    if(sscanf(paramsStr + 1, "%u %u", &old_addr, &new_addr) ==2){
+      //if(buff[4]=='g'){
+      synerr = 0;
+      if(twi_set_address(old_addr, new_addr)){
+        resLen = sprintf(resBuff, "success\n");
+      }else{
+        resLen = sprintf(resBuff, "failed\n");
+      }
+    }
+    }
+    if (synerr){
+      resLen = sprintf(resBuff, "Usage: twiaddr <old> <new>\n");
+    }
+    send(sock, (uint8_t *)resBuff, resLen);
+
+}
 
 int8_t handleIp(uint8_t sock, char* paramsStr){
   int16_t resLen=0;
