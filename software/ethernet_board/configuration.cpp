@@ -11,6 +11,7 @@
 #include "w5100.h"
 #include "socket.h"
 #include "collector_twi.h"
+#include "packet.h"
 // set debug mode
 // #define DEBUG
 //
@@ -341,17 +342,19 @@ void send_result(struct dummy_packet * packets, uint8_t sock){
 }
 
 int8_t handleDoMeasurement(uint8_t sock, char* paramsStr){
-  twi_start_measurement();
+  twi_start_measurement(0);
 	uint8_t iaddr;
 	uint8_t addr;
+  uint8_t state;
   struct dummy_packet received[8];
 	for (iaddr=0;iaddr<num_boards;iaddr++){
 		addr = scanresults[iaddr];
 		printf("# %u # ", addr);
-		//state = start_measurement(SLA2);
 		state = twi_receive_data(addr, ((uint8_t*)received),8*sizeof(struct dummy_packet));
+    if (state){
+      send_result(received, sock);
+    }
   }
-  send_result(received);
 
 
 }
@@ -359,7 +362,7 @@ int8_t handleDoMeasurement(uint8_t sock, char* paramsStr){
 int8_t handleTwiaddr(uint8_t sock, char * paramsStr){
   uint8_t resLen;
   uint8_t synerr = 1;
-  if(len>7){
+  if(paramsStr[0]!='\0'){
     uint8_t old_addr, new_addr;
     if(sscanf(paramsStr + 1, "%u %u", &old_addr, &new_addr) ==2){
       //if(buff[4]=='g'){

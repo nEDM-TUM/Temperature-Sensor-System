@@ -1,6 +1,10 @@
 #ifndef PACKET_H
 #define PACKET_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define PACKET_TYPE_TSIC 0
 #define PACKET_TYPE_HYT 1
 
@@ -32,4 +36,7 @@ struct dummy_packet{
 	int16_t pl2;
 	uint8_t crc;
 };
+#ifdef __cplusplus
+}
+#endif
 #endif
