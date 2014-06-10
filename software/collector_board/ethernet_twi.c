@@ -243,6 +243,6 @@ void twi_handle(){
 
       
     }
-		printf("cstate %u\n\r", cstate);
+		//printf("cstate %u\n\r", cstate);
   }
 }

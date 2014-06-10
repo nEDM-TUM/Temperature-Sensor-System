@@ -106,8 +106,6 @@ int main (void)
 
 	printf("Controller started\n\r");
   //setupServerLib();
-  setupServer();
-	scanresults[20];
 	num_boards = twi_scan(scanresults, 20);
 
 	uint8_t i;
@@ -116,6 +114,8 @@ int main (void)
 		printf(" %u", scanresults[i]);
 	}
 	printf("\n\r");
+
+  setupServer();
 
 	while (1) {
 		loop();

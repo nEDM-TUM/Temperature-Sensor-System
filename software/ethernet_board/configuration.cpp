@@ -48,20 +48,24 @@ int8_t handleMac(uint8_t sock, char* paramsStr);
 int8_t handleGw(uint8_t sock, char* paramsStr);
 int8_t handleTwiaddr(uint8_t sock, char* paramsStr);
 int8_t handleDoMeasurement(uint8_t sock, char* paramsStr);
+int8_t handleScan(uint8_t sock, char* paramsStr);
 
 const char Ip[] PROGMEM = "ip";
 const char Mac[] PROGMEM = "mac";
 const char Gw[] PROGMEM = "gw";
 const char Twiaddr[] PROGMEM = "twiaddr";
+const char DoMeasurement[] PROGMEM = "m";
+const char Scan[] PROGMEM = "scan";
 
 
-const uint8_t cmdLen = 3;
+const uint8_t cmdLen = 6;
 struct cmd cmds[]={
   {Ip, 2, 5, handleIp},
   {Mac, 3, 6, handleMac},
   {Twiaddr, 7, 0, handleTwiaddr},
-  {"m", 1, 0, handleDoMeasurement},
-  {Gw, 2, 4, handleGw}
+  {DoMeasurement, 1, 0, handleDoMeasurement},
+  {Gw, 2, 4, handleGw},
+  {Scan, 4, 4, handleScan}
 };
 
 const char WillSet[] PROGMEM = " will be set to ";
@@ -342,6 +346,7 @@ void send_result(struct dummy_packet * packets, uint8_t sock){
 }
 
 int8_t handleDoMeasurement(uint8_t sock, char* paramsStr){
+	printf("handler do measure\n\r");
   twi_start_measurement(0);
 	uint8_t iaddr;
 	uint8_t addr;
@@ -354,9 +359,27 @@ int8_t handleDoMeasurement(uint8_t sock, char* paramsStr){
     if (state){
       send_result(received, sock);
     }
+		send(sock, (uint8_t *)"\n", 1);
   }
 
 
+}
+int8_t handleScan(uint8_t sock, char * paramsStr){
+
+	uint8_t i;
+	char buf[10];
+	num_boards = twi_scan(scanresults, 20);
+	send(sock, (uint8_t *)"found boards\n", 13);
+	printf("found boards: ");
+	for (i=0;i<num_boards;i++){
+		printf(" %u", scanresults[i]);
+		uint8_t t;
+		t = sprintf(buf, " %u", scanresults[i]);
+		send(sock, (uint8_t *)buf, t);
+
+	}
+	printf("\n\r");
+	send(sock, (uint8_t *)"\n", 1);
 }
 
 int8_t handleTwiaddr(uint8_t sock, char * paramsStr){
@@ -364,7 +387,9 @@ int8_t handleTwiaddr(uint8_t sock, char * paramsStr){
   uint8_t synerr = 1;
   if(paramsStr[0]!='\0'){
     uint8_t old_addr, new_addr;
-    if(sscanf(paramsStr + 1, "%u %u", &old_addr, &new_addr) ==2){
+    if(sscanf(paramsStr, " %u %u", &old_addr, &new_addr) ==2){
+			printf("par %u, %u", old_addr, new_addr);
+			printf("|%s|", paramsStr);
       //if(buff[4]=='g'){
       synerr = 0;
       if(twi_set_address(old_addr, new_addr)){
