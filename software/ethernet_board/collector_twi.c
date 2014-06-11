@@ -206,6 +206,7 @@ uint8_t twi_set_address(uint8_t addr, uint8_t new_addr){
   if(TWSR == 0x28){
 		// Data byte has been transmitted;
 		// ACK has been received
+		_delay_ms(5);
 		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
     return 1;
   }else{

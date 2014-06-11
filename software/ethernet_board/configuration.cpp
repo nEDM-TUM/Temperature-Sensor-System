@@ -346,6 +346,7 @@ void send_result(struct dummy_packet * packets, uint8_t sock){
 }
 
 void handleDoMeasurement(uint8_t sock, char* paramsStr){
+	printf("handler do measure\n\r");
   twi_start_measurement(0);
 	uint8_t iaddr;
 	uint8_t addr;
@@ -358,9 +359,27 @@ void handleDoMeasurement(uint8_t sock, char* paramsStr){
     if (state){
       send_result(received, sock);
     }
+		send(sock, (uint8_t *)"\n", 1);
   }
 
 
+}
+int8_t handleScan(uint8_t sock, char * paramsStr){
+
+	uint8_t i;
+	char buf[10];
+	num_boards = twi_scan(scanresults, 20);
+	send(sock, (uint8_t *)"found boards\n", 13);
+	printf("found boards: ");
+	for (i=0;i<num_boards;i++){
+		printf("%u", scanresults[i]);
+		uint8_t t;
+		t = sprintf(buf, "%u", scanresults[i]);
+		send(sock, (uint8_t *)buf, t);
+
+	}
+	printf("\n\r");
+	send(sock, (uint8_t *)"\n", 1);
 }
 
 void handleTwiaddr(uint8_t sock, char * paramsStr){
@@ -369,6 +388,8 @@ void handleTwiaddr(uint8_t sock, char * paramsStr){
   if(paramsStr[0]!='\0'){
     uint8_t old_addr, new_addr;
     if(sscanf(paramsStr, "%u %u", &old_addr, &new_addr) ==2){
+			printf("par %u, %u", old_addr, new_addr);
+			printf("|%s|", paramsStr);
       //if(buff[4]=='g'){
       synerr = 0;
       if(twi_set_address(old_addr, new_addr)){

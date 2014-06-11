@@ -48,6 +48,7 @@ int main (void)
 	config_read(&cfg);
 
 	twi_init(cfg.twi_addr);
+	printf("TWI SLA: %u", cfg.twi_addr);
 
 
 
