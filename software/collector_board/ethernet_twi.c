@@ -26,7 +26,6 @@ void twi_handle(){
 	// XXX: one has to be EXTREMELY careful when debugging this code with printf,
 	// XXX: as the caused delay for printing influences the bus heavily.
   if(TWCR & (1<<TWINT)){
-    LED2_PORT ^= (1<<LED2);
     //TWI interrupt
     switch (TWSR){
 			// slave receiver:
@@ -87,14 +86,16 @@ void twi_handle(){
 
 					case WAIT_ADDRESS:
 						// Data byte will be received and NOT ACK will be returned
+						LED2_PORT ^= (1<<LED2);
             cfg.twi_addr = TWDR;
 						TWCR = (1<<TWEN) | (1<<TWINT);
             cstate = ADDR_FIN;
-
+						break;
 					default:
 						// Data byte will be received and NOT ACK will be returned
 						TWCR = (1<<TWEN) | (1<<TWINT);
             cstate = IDLE;
+						break;
 				}
 				break;
 
@@ -115,6 +116,7 @@ void twi_handle(){
 				break;
 
 			case 0xa0:
+				LED1_PORT ^= (1<<LED1);
 				// A STOP condition or repeated
 				// START condition has been
 				// received while still addressed as
@@ -136,11 +138,13 @@ void twi_handle(){
 						break;
           case ADDR_FIN:
 						// Switched to the not addressed Slave mode; own SLA will be recognized;
+						LED3_PORT ^= (1<<LED3);
 						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
             LED1_PORT ^= (1<<LED1);
             config_write(&cfg);
             twi_init(cfg.twi_addr);
             cstate = IDLE;
+						break;
 					default:
 						// Switched to the not addressed Slave mode; own SLA will be recognized;
 						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
