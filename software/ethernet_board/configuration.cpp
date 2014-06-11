@@ -185,15 +185,15 @@ void handleIp(uint8_t sock, char* paramsStr){
   uint8_t ipTMP[4];
   uint8_t subnetTMP; 
   if(*paramsStr == '\0'){
-    resLen = sprintf(resBuff, "ip %S%d.%d.%d.%d/%d%S", WillSet, ip[0], ip[1], ip[2], ip[3], subnet, IfUpdate);
+    resLen = sprintf(resBuff, "ip: %d.%d.%d.%d/%d\n", ip[0], ip[1], ip[2], ip[3], subnet);
   }else{
     if(sscanf(paramsStr, "%u.%u.%u.%u/%u", ipTMP[0], ipTMP[1], ipTMP[2], ipTMP[3], subnet)==5){
       for(index=0; index<4; index++){
         ip[index] = ipTMP[index];
       }
-      resLen = sprintf(resBuff, "ip %S%d.%d.%d.%d/%d%S", WillSet, ip[0], ip[1], ip[2], ip[3], subnet, IfUpdate);
+      resLen = sprintf(resBuff, "ip%S%d.%d.%d.%d/%d%S", WillSet, ip[0], ip[1], ip[2], ip[3], subnet, IfUpdate);
     } else {
-      resLen = sprintf(resBuff, "ip is %d.%d.%d.%d/%d%Sip addr/subnet\n", ip[0], ip[1], ip[2], ip[3], subnet, UpdateOption);
+      resLen = sprintf(resBuff, "ip: %d.%d.%d.%d/%d%Sip addr/subnet\n", ip[0], ip[1], ip[2], ip[3], subnet, UpdateOption);
     }
   }
   send(sock, (uint8_t *)resBuff, resLen);
@@ -203,15 +203,15 @@ void handleGw(uint8_t sock, char* paramsStr){
   int16_t resLen=0;
   uint8_t gwTMP[4];
   if(*paramsStr == '\0'){
-    resLen = sprintf(resBuff, "gateway is %d.%d.%d.%d\n", gw[0], gw[1], gw[2], gw[3]);
+    resLen = sprintf(resBuff, "gw: %d.%d.%d.%d\n", gw[0], gw[1], gw[2], gw[3]);
   }else{
     if(sscanf(paramsStr, "%u.%u.%u.%u", gwTMP[0], gwTMP[1], gwTMP[2], gwTMP[3])==4){
       for(index=0; index<4; index++){
         gw[index] = gwTMP[index];
       }
-      resLen = sprintf(resBuff, "gateway%S%d.%d.%d.%d%S", WillSet, gw[0], gw[1], gw[2], gw[3], IfUpdate);
+      resLen = sprintf(resBuff, "gw%S%d.%d.%d.%d%S", WillSet, gw[0], gw[1], gw[2], gw[3], IfUpdate);
     }else{
-        resLen = sprintf(resBuff, "gateway is %d.%d.%d.%d%Sgateway addr\n", gw[0], gw[1], gw[2], gw[3], UpdateOption);
+        resLen = sprintf(resBuff, "gw: %d.%d.%d.%d%Sgateway addr\n", gw[0], gw[1], gw[2], gw[3], UpdateOption);
     }
   }
   send(sock, (uint8_t *)resBuff, resLen);
@@ -222,7 +222,7 @@ void handleMac(uint8_t sock, char* paramsStr){
   int16_t resLen=0;
   uint8_t macTMP[6];
   if(*paramsStr == '\0'){
-      resLen = sprintf(resBuff, "mac is %x:%x:%x:%x:%x:%x\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+      resLen = sprintf(resBuff, "mac: %x:%x:%x:%x:%x:%x\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
   }else{
     if(sscanf(paramsStr, "%x:%x:%x:%x:%x:%x", macTMP[0], macTMP[1], macTMP[2], macTMP[3], macTMP[4], macTMP[5])==6){
       for(index=0; index<4; index++){
@@ -230,7 +230,7 @@ void handleMac(uint8_t sock, char* paramsStr){
       }
       resLen = sprintf(resBuff, "mac%S%x:%x:%x:%x:%x:%x%S", WillSet, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], IfUpdate);
     }else{
-      resLen = sprintf(resBuff, "mac is %x:%x:%x:%x:%x:%x%Smac addr\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], UpdateOption);
+      resLen = sprintf(resBuff, "mac: %x:%x:%x:%x:%x:%x%Smac addr\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], UpdateOption);
     }
   }
   send(sock, (uint8_t *)resBuff, resLen);
@@ -239,12 +239,12 @@ void handleMac(uint8_t sock, char* paramsStr){
 void handlePort(uint8_t sock, char* paramsStr){
   int16_t resLen=0;
   if(*paramsStr == '\0'){
-    resLen = sprintf(resBuff, "port is %d\n", port);
+    resLen = sprintf(resBuff, "port: %d\n", port);
   }else{
     if(sscanf(paramsStr, "%u", port)==1){
       resLen = sprintf(resBuff, "port%S%d%S", WillSet, port, IfUpdate);
     }else{
-      resLen = sprintf(resBuff, "port is %d%Sport\n", port, UpdateOption);
+      resLen = sprintf(resBuff, "port: %d%Sport\n", port, UpdateOption);
     }
   }
   send(sock, (uint8_t *)resBuff, resLen);
@@ -278,7 +278,7 @@ void handleIpDB(uint8_t sock, char* paramsStr){
   uint8_t ipTMP[4];
   uint8_t subnetTMP; 
   if(*paramsStr == '\0'){
-    resLen = sprintf(resBuff, "db ip %S%d.%d.%d.%d/%d%S", WillSet, ip_db[0], ip_db[1], ip_db[2], ip_db[3], subnet, IfUpdate);
+    resLen = sprintf(resBuff, "db ip: %d.%d.%d.%d/%d\n", ip_db[0], ip_db[1], ip_db[2], ip_db[3], subnet);
   } else {
     if(sscanf(paramsStr, "%u.%u.%u.%u/%u", ipTMP[0], ipTMP[1], ipTMP[2], ipTMP[3], subnet)==5){
       for(index=0; index<4; index++){
@@ -286,7 +286,7 @@ void handleIpDB(uint8_t sock, char* paramsStr){
       }
       resLen = sprintf(resBuff, "db ip %S%d.%d.%d.%d/%d%S", WillSet, ip_db[0], ip_db[1], ip_db[2], ip_db[3], subnet, IfUpdate);
     } else {
-      resLen = sprintf(resBuff, "db ip is %d.%d.%d.%d/%d%Sip addr/subnet\n", ip_db[0], ip_db[1], ip_db[2], ip_db[3], subnet, UpdateOption);
+      resLen = sprintf(resBuff, "db ip: %d.%d.%d.%d/%d%Sip addr/subnet\n", ip_db[0], ip_db[1], ip_db[2], ip_db[3], subnet, UpdateOption);
     }
   }
   send(sock, (uint8_t *)resBuff, resLen);
@@ -296,12 +296,12 @@ void handlePortDB(uint8_t sock, char* paramsStr){
   int8_t index;
   int16_t resLen=0;
   if(*paramsStr == '\0'){
-    resLen = sprintf(resBuff, "db port is %d\n", port);
+    resLen = sprintf(resBuff, "db port: %d\n", port);
   }else{
     if(sscanf(paramsStr, "%u", port)==1){
       resLen = sprintf(resBuff, "db port%S%d%S", WillSet, port, IfUpdate);
     }else{
-      resLen = sprintf(resBuff, "db port is %d%Sport\n", port, UpdateOption);
+      resLen = sprintf(resBuff, "db port: %d%Sport\n", port, UpdateOption);
     }
   } 
   send(sock, (uint8_t *)resBuff, resLen);
