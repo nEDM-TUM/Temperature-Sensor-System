@@ -20,7 +20,7 @@
 // gateway and subnet are optional:
 uint8_t mac[] = { 0x90, 0xA2, 0xDA, 0x00, 0xE3, 0x5B};
 uint8_t ip[] = {10,0,1, 100};
-uint8_t gateway[] = {10,0,1, 1 };
+uint8_t gw[] = {10,0,1, 1 };
 uint8_t subnet = 16;
 uint8_t subnetM[] = {255, 255, 0, 0};
 uint16_t port = 8888;
@@ -37,31 +37,31 @@ char resBuff[MAX_RESPONSE_LEN];
 uint8_t writeBuffPointer[MAX_SERVER_SOCK_NUM] = {0}; // Point to a byte, which will be written
 
 struct cmd{
-  const char * name PROGMEM;
-  uint8_t nameLen;
-  uint8_t paramLen;
-  int8_t (*handle)(uint8_t, char*);
+  const char * name;
+  void (*handle)(uint8_t, char*);
 };
 
-int8_t handleIp(uint8_t sock, char* paramsStr);
-int8_t handleMac(uint8_t sock, char* paramsStr);
-int8_t handleGw(uint8_t sock, char* paramsStr);
-int8_t handleTwiaddr(uint8_t sock, char* paramsStr);
-int8_t handleDoMeasurement(uint8_t sock, char* paramsStr);
+void handleIp(uint8_t sock, char* paramsStr);
+void handlePort(uint8_t sock, char* paramsStr);
+void handleMac(uint8_t sock, char* paramsStr);
+void handleGw(uint8_t sock, char* paramsStr);
+void handleReset(uint8_t sock, char* paramsStr);
+void handleIpDB(uint8_t sock, char* paramsStr);
+void handlePortDB(uint8_t sock, char* paramsStr);
+void handleTwiaddr(uint8_t sock, char* paramsStr);
+void handleDoMeasurement(uint8_t sock, char* paramsStr);
 
-const char Ip[] PROGMEM = "ip";
-const char Mac[] PROGMEM = "mac";
-const char Gw[] PROGMEM = "gw";
-const char Twiaddr[] PROGMEM = "twiaddr";
-
-
-const uint8_t cmdLen = 3;
+const uint8_t cmdLen = 9;
 struct cmd cmds[]={
-  {Ip, 2, 5, handleIp},
-  {Mac, 3, 6, handleMac},
-  {Twiaddr, 7, 0, handleTwiaddr},
-  {"m", 1, 0, handleDoMeasurement},
-  {Gw, 2, 4, handleGw}
+  {"ip", handleIp},
+  {"port", handlePort},
+  {"mac", handleMac},
+  {"gw", handleGw},
+  {"reset", handleReset},
+  {"ip-db", handleIpDB},
+  {"port-db", handlePortDB},
+  {"twiaddr", handleTwiaddr},
+  {"m", handleDoMeasurement}
 };
 
 const char WillSet[] PROGMEM = " will be set to ";
@@ -129,7 +129,7 @@ void beginService() {
   W5100.init();
   W5100.setMACAddress(mac);
   W5100.setIPAddress(ip);
-  W5100.setGatewayIp(gateway);
+  W5100.setGatewayIp(gw);
   W5100.setSubnetMask(subnetM);
   // TODO reset client to db
   // Create the first server socket
@@ -141,7 +141,116 @@ void beginService() {
   }
 }
 
-void reset(){
+
+char* cmpCMD(char* cmdstr, const char * cmd){
+  while(*cmd!='\0' && cmdstr!='\0' && *cmd == *cmdstr){
+    cmd++;
+    cmdstr++;
+  }
+  if(*cmd=='\0'){
+    if(*cmdstr=='\0'){
+      return cmdstr; // equal, no param
+    }else if(*cmdstr == ' '){
+      cmdstr ++;
+      return cmdstr; // equal, contains param
+    }
+  }
+  return NULL; // not equal
+}
+
+void execCMD(uint8_t sock, char * buff, int8_t len){
+  int16_t resLen=0;
+  uint8_t params[MAX_PARAM_COUNT];
+  int8_t paramCounter =0;
+  int8_t index;
+  char * cmpedBuff;
+  struct cmd cmd;
+  printf("Compare  %s\n\r", buff);
+  for(index= 0; index<cmdLen; index++){
+    cmd = cmds[index];
+    cmpedBuff = cmpCMD(buff, cmd.name);
+    if(cmpedBuff!=NULL){
+      cmd.handle(sock, cmpedBuff);
+      return;
+    }
+  }
+  resLen = sprintf(resBuff, "Usage: TODO\n");
+  send(sock, (uint8_t *)resBuff, resLen);
+  return;
+}
+
+void handleIp(uint8_t sock, char* paramsStr){
+  int8_t index;
+  int16_t resLen=0;
+  uint8_t ipTMP[4];
+  uint8_t subnetTMP; 
+  if(*paramsStr == '\0'){
+    resLen = sprintf(resBuff, "ip %S%d.%d.%d.%d/%d%S", WillSet, ip[0], ip[1], ip[2], ip[3], subnet, IfUpdate);
+  }else{
+    if(sscanf(paramsStr, "%u.%u.%u.%u/%u", ipTMP[0], ipTMP[1], ipTMP[2], ipTMP[3], subnet)==5){
+      for(index=0; index<4; index++){
+        ip[index] = ipTMP[index];
+      }
+      resLen = sprintf(resBuff, "ip %S%d.%d.%d.%d/%d%S", WillSet, ip[0], ip[1], ip[2], ip[3], subnet, IfUpdate);
+    } else {
+      resLen = sprintf(resBuff, "ip is %d.%d.%d.%d/%d%Sip addr/subnet\n", ip[0], ip[1], ip[2], ip[3], subnet, UpdateOption);
+    }
+  }
+  send(sock, (uint8_t *)resBuff, resLen);
+}
+void handleGw(uint8_t sock, char* paramsStr){
+  int8_t index;
+  int16_t resLen=0;
+  uint8_t gwTMP[4];
+  if(*paramsStr == '\0'){
+    resLen = sprintf(resBuff, "gateway is %d.%d.%d.%d\n", gw[0], gw[1], gw[2], gw[3]);
+  }else{
+    if(sscanf(paramsStr, "%u.%u.%u.%u", gwTMP[0], gwTMP[1], gwTMP[2], gwTMP[3])==4){
+      for(index=0; index<4; index++){
+        gw[index] = gwTMP[index];
+      }
+      resLen = sprintf(resBuff, "gateway%S%d.%d.%d.%d%S", WillSet, gw[0], gw[1], gw[2], gw[3], IfUpdate);
+    }else{
+        resLen = sprintf(resBuff, "gateway is %d.%d.%d.%d%Sgateway addr\n", gw[0], gw[1], gw[2], gw[3], UpdateOption);
+    }
+  }
+  send(sock, (uint8_t *)resBuff, resLen);
+}
+
+void handleMac(uint8_t sock, char* paramsStr){
+  int8_t index;
+  int16_t resLen=0;
+  uint8_t macTMP[6];
+  if(*paramsStr == '\0'){
+      resLen = sprintf(resBuff, "mac is %x:%x:%x:%x:%x:%x\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+  }else{
+    if(sscanf(paramsStr, "%x:%x:%x:%x:%x:%x", macTMP[0], macTMP[1], macTMP[2], macTMP[3], macTMP[4], macTMP[5])==6){
+      for(index=0; index<4; index++){
+        mac[index] = macTMP[index];
+      }
+      resLen = sprintf(resBuff, "mac%S%x:%x:%x:%x:%x:%x%S", WillSet, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], IfUpdate);
+    }else{
+      resLen = sprintf(resBuff, "mac is %x:%x:%x:%x:%x:%x%Smac addr\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], UpdateOption);
+    }
+  }
+  send(sock, (uint8_t *)resBuff, resLen);
+}
+
+void handlePort(uint8_t sock, char* paramsStr){
+  int16_t resLen=0;
+  if(*paramsStr == '\0'){
+    resLen = sprintf(resBuff, "port is %d\n", port);
+  }else{
+    if(sscanf(paramsStr, "%u", port)==1){
+      resLen = sprintf(resBuff, "port%S%d%S", WillSet, port, IfUpdate);
+    }else{
+      resLen = sprintf(resBuff, "port is %d%Sport\n", port, UpdateOption);
+    }
+  }
+  send(sock, (uint8_t *)resBuff, resLen);
+}
+
+void handleReset(uint8_t sock, char* paramsStr){
   int16_t resLen=0;
   uint8_t index;
   resLen = sprintf(resBuff, "%S%d.%d.%d.%d:%d\n",WillReset, ip[0], ip[1], ip[2], ip[3], port);
@@ -163,145 +272,40 @@ void reset(){
   beginService();
 }
 
-void execCMD(uint8_t sock, char * buff, int8_t len){
-  int16_t resLen=0;
-  uint8_t params[MAX_PARAM_COUNT];
-  int8_t paramCounter =0;
+void handleIpDB(uint8_t sock, char* paramsStr){
   int8_t index;
-  struct cmd cmd;
-  printf("Compare  %s\n\r", buff);
-  for(index= 0; index<cmdLen; index++){
-    cmd = cmds[index];
-    if(strncmp_P(buff, cmd.name, cmd.nameLen)==0){
-      // cmd params should be seperated with the cmd name by a arbitary character
-      cmd.handle(sock, buff+cmd.nameLen);
-      return;
-    }
-
-  }
-  resLen = sprintf(resBuff, "Usage: TODO\n");
-  send(sock, (uint8_t *)resBuff, resLen);
-  return;
-  // TODO lengh include \0 ???
-  if(strncmp(buff, "twiaddr", 7) == 0){
-		uint8_t synerr = 1;
-		if(len>7){
-			uint8_t old_addr, new_addr;
-			if(sscanf(buff+7, "%u %u", &old_addr, &new_addr) ==2){
-			//if(buff[4]=='g'){
-				synerr = 0;
-				if(twi_set_address(old_addr, new_addr)){
-					resLen = sprintf(resBuff, "success\n");
-				}else{
-					resLen = sprintf(resBuff, "failed\n");
-				}
-			}
-		}
-		if (synerr){
-			resLen = sprintf(resBuff, "Usage: twiaddr <old> <new>\n");
-		}
-	}else
-  if(strncmp(buff, "ip", 2) == 0){
-    if(len>2){
-      paramCounter = convertParamToBytes(buff+2, len-2, params);
-      if(paramCounter==5){
-        for(index=0; index<4; index++){
-          ip[index] = params[index];
-        }
-        subnet = params[4]; 
-        resLen = sprintf(resBuff, "ip %S%d.%d.%d.%d/%d%S", WillSet, ip[0], ip[1], ip[2], ip[3], subnet, IfUpdate);
-      }else{
-        resLen = sprintf(resBuff, "ip is %d.%d.%d.%d/%d%Sip addr/subnet\n", ip[0], ip[1], ip[2], ip[3], subnet, UpdateOption);
-      }
-    }else{
-      resLen = sprintf(resBuff, "ip is %d.%d.%d.%d/%d\n", ip[0], ip[1], ip[2], ip[3], subnet);
-    }
-  } else
-  if (strncmp(buff, "gateway", 7) == 0){
-    if(len>7){
-      paramCounter = convertParamToBytes(buff+7, len-7, params);
-      if(paramCounter==4){
-        for(index=0; index<4; index++){
-          gateway[index] = params[index];
-        }
-        resLen = sprintf(resBuff, "gateway%S%d.%d.%d.%d%S", WillSet, gateway[0], gateway[1], gateway[2], gateway[3], IfUpdate);
-      }else{
-        resLen = sprintf(resBuff, "gateway is %d.%d.%d.%d%Sgateway addr\n", gateway[0], gateway[1], gateway[2], gateway[3], UpdateOption);
-      }
-    }else{
-      resLen = sprintf(resBuff, "gateway is %d.%d.%d.%d\n", gateway[0], gateway[1], gateway[2], gateway[3]);
-    }
-  } else
-  if( strncmp(buff, "mac", 3) == 0){
-  printf("TEST\n\r");
-    if(len>3){
-      paramCounter = convertParamToBytes(buff+3, len-3, params);
-      if(paramCounter==6){
-        for(index=0; index<6; index++){
-          mac[index] = params[index];
-        }
-        resLen = sprintf(resBuff, "mac%S%x:%x:%x:%x:%x:%x%S", WillSet, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], IfUpdate);
-  printf("TEST %d\n\r", resLen);
-      }else{
-        resLen = sprintf(resBuff, "mac is %x:%x:%x:%x:%x:%x%Smac addr\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], UpdateOption);
-  printf("TEST %d\n\r", resLen);
-      }
-    }else{
-      resLen = sprintf(resBuff, "mac is %x:%x:%x:%x:%x:%x\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-  printf("TEST %d\n\r", resLen);
-    }
-  } else
-  if(strncmp(buff, "port", 4) == 0){
-    if(len>4){
-      paramCounter = convertParamToBytes(buff+4, len-4, params);
-      if(paramCounter==1){
-        port = params[0];
-        resLen = sprintf(resBuff, "port%S%d%S", WillSet, port, IfUpdate);
-      }else{
-        resLen = sprintf(resBuff, "port is %d%Sport\n", port, UpdateOption);
-      }
-    }else{
-      resLen = sprintf(resBuff, "port is %d\n", port);
-    }
-  } else
-  if(strcmp(buff, "reset") == 0){
-    reset();
-    return;
-  //} else
-  //if(strncmp(buff, "ip-db", 5) == 0){
-  //  if(len>5){
-  //    paramCounter = convertParamToBytes(buff+5, len-5, params);
-  //    if(paramCounter==4){
-  //      for(index=0; index<4; index++){
-  //        ip_db[index] = params[index];
-  //      }
-  //      // TODO update db ip
-  //      resLen = sprintf(resBuff, "ip of the datebase is set to %d.%d.%d.%d now!\n", ip_db[0], ip_db[1], ip_db[2], ip_db[3]);
-  //    }else{
-  //      resLen = sprintf(resBuff, "ip of the datebase is %d.%d.%d.%d (To update the ip address: ip-db addr like the output format!)\n", ip_db[0], ip_db[1], ip_db[2], ip_db[3]);
-  //    }
-  //  }else{
-  //    resLen = sprintf(resBuff, "ip of the database is %d.%d.%d.%d\n", ip_db[0], ip_db[1], ip_db[2], ip_db[3]);
-  //  }
-  //} else
-  //if(strncmp(buff, "port-db", 7) == 0){
-  //  if(len>7){
-  //    paramCounter = convertParamToBytes(buff+7, len-7, params);
-  //    if(paramCounter==1){
-  //      port_db = params[0];
-  //      resLen = sprintf(resBuff, "port of the database is set to %d now!\n", port_db);
-  //    }else{
-  //      resLen = sprintf(resBuff, "port of the databse is %d (To update the port: port-db number like the output format!)\n", port_db);
-  //    }
-  //  }else{
-  //    resLen = sprintf(resBuff, "port of the database is %d\n", port_db);
-  //  }
+  int16_t resLen=0;
+  uint8_t ipTMP[4];
+  uint8_t subnetTMP; 
+  if(*paramsStr == '\0'){
+    resLen = sprintf(resBuff, "db ip %S%d.%d.%d.%d/%d%S", WillSet, ip_db[0], ip_db[1], ip_db[2], ip_db[3], subnet, IfUpdate);
   } else {
-    // TODO usage:
-    resLen = sprintf(resBuff, "Usage: TODO\n");
+    if(sscanf(paramsStr, "%u.%u.%u.%u/%u", ipTMP[0], ipTMP[1], ipTMP[2], ipTMP[3], subnet)==5){
+      for(index=0; index<4; index++){
+        ip_db[index] = ipTMP[index];
+      }
+      resLen = sprintf(resBuff, "db ip %S%d.%d.%d.%d/%d%S", WillSet, ip_db[0], ip_db[1], ip_db[2], ip_db[3], subnet, IfUpdate);
+    } else {
+      resLen = sprintf(resBuff, "db ip is %d.%d.%d.%d/%d%Sip addr/subnet\n", ip_db[0], ip_db[1], ip_db[2], ip_db[3], subnet, UpdateOption);
+    }
   }
   send(sock, (uint8_t *)resBuff, resLen);
- }
+}
+
+void handlePortDB(uint8_t sock, char* paramsStr){
+  int8_t index;
+  int16_t resLen=0;
+  if(*paramsStr == '\0'){
+    resLen = sprintf(resBuff, "db port is %d\n", port);
+  }else{
+    if(sscanf(paramsStr, "%u", port)==1){
+      resLen = sprintf(resBuff, "db port%S%d%S", WillSet, port, IfUpdate);
+    }else{
+      resLen = sprintf(resBuff, "db port is %d%Sport\n", port, UpdateOption);
+    }
+  } 
+  send(sock, (uint8_t *)resBuff, resLen);
+}
 
 void send_result(struct dummy_packet * packets, uint8_t sock){
   char buffer[10];
@@ -341,7 +345,7 @@ void send_result(struct dummy_packet * packets, uint8_t sock){
   }
 }
 
-int8_t handleDoMeasurement(uint8_t sock, char* paramsStr){
+void handleDoMeasurement(uint8_t sock, char* paramsStr){
   twi_start_measurement(0);
 	uint8_t iaddr;
 	uint8_t addr;
@@ -359,12 +363,12 @@ int8_t handleDoMeasurement(uint8_t sock, char* paramsStr){
 
 }
 
-int8_t handleTwiaddr(uint8_t sock, char * paramsStr){
+void handleTwiaddr(uint8_t sock, char * paramsStr){
   uint8_t resLen;
   uint8_t synerr = 1;
   if(paramsStr[0]!='\0'){
     uint8_t old_addr, new_addr;
-    if(sscanf(paramsStr + 1, "%u %u", &old_addr, &new_addr) ==2){
+    if(sscanf(paramsStr, "%u %u", &old_addr, &new_addr) ==2){
       //if(buff[4]=='g'){
       synerr = 0;
       if(twi_set_address(old_addr, new_addr)){
@@ -379,23 +383,6 @@ int8_t handleTwiaddr(uint8_t sock, char * paramsStr){
     }
     send(sock, (uint8_t *)resBuff, resLen);
 
-}
-
-int8_t handleIp(uint8_t sock, char* paramsStr){
-  int16_t resLen=0;
-  resLen = sprintf(resBuff, "IP: TODO\n");
-  send(sock, (uint8_t *)resBuff, resLen);
-
-}
-int8_t handleMac(uint8_t sock, char* paramsStr){
-  int16_t resLen=0;
-  resLen = sprintf(resBuff, "MAC: TODO\n");
-  send(sock, (uint8_t *)resBuff, resLen);
-}
-int8_t handleGw(uint8_t sock, char* paramsStr){
-  int16_t resLen=0;
-  resLen = sprintf(resBuff, "GW: TODO\n");
-  send(sock, (uint8_t *)resBuff, resLen);
 }
 
 inline void sendError(uint8_t sock){
