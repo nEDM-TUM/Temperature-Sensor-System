@@ -192,6 +192,8 @@ uint8_t print4dotarr(FILE *stream, uint8_t * arr){
 }
 
 void handleIp(uint8_t sock, char* paramsStr){
+	printf("ip received\n\r");
+	fprintf(&res_stream, "Hello world\n");
   int8_t index;
   int16_t paramsCount=0;
   uint8_t ipTMP[4];
