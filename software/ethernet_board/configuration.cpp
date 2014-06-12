@@ -395,7 +395,7 @@ void handleDoMeasurement(uint8_t sock, char* paramsStr){
   struct dummy_packet received[8];
 	for (iaddr=0;iaddr<num_boards;iaddr++){
 		addr = scanresults[iaddr];
-		printf("# %u # ", addr);
+		//printf("# %u # ", addr);
 		state = twi_receive_data(addr, ((uint8_t*)received),8*sizeof(struct dummy_packet));
     if (state){
       send_result(received, sock);

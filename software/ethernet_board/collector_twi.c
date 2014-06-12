@@ -50,15 +50,21 @@ uint8_t twi_wait(void){
 	}
 	return 1;
 }
+
 uint8_t twi_wait_timeout(uint16_t milliseconds){
-	uint16_t i;
+	uint16_t i, ms;
 	i = 0;
+  ms = 0;
 	while(!(TWCR & (1<<TWINT))){
-		_delay_ms(1);
-		if (i>milliseconds){
-			return 0;
-		}
-		i++;
+    _delay_us(5);
+    if(i>=2000){
+      i=0;
+      ms++;
+      if (ms>milliseconds){
+        return 0;
+      }
+    }
+    i++;
 		// wait for interrupt
 	}
 	return 1;
@@ -93,8 +99,9 @@ uint8_t twi_scan(uint8_t * result, uint8_t max_results){
 uint8_t twi_start(){
 	//do{
 		//printf("sending start\n\r");
-		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
-		_delay_us(200);
+		//TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
+		//_delay_us(200);
+    _delay_us(5);
 		TWBR = 20;
 		TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
 		twi_wait_timeout(5);
