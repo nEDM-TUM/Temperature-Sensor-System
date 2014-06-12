@@ -50,8 +50,9 @@ void handleIpDB(uint8_t sock, char* paramsStr);
 void handlePortDB(uint8_t sock, char* paramsStr);
 void handleTwiaddr(uint8_t sock, char* paramsStr);
 void handleDoMeasurement(uint8_t sock, char* paramsStr);
+void handleScan(uint8_t sock, char * paramsStr);
 
-const uint8_t cmdLen = 9;
+const uint8_t cmdLen = 10;
 struct cmd cmds[]={
   {"ip", handleIp},
   {"port", handlePort},
@@ -61,7 +62,8 @@ struct cmd cmds[]={
   {"ip-db", handleIpDB},
   {"port-db", handlePortDB},
   {"twiaddr", handleTwiaddr},
-  {"m", handleDoMeasurement}
+  {"m", handleDoMeasurement},
+  {"s", handleScan}
 };
 
 const char WillSet[] PROGMEM = " will be set to ";
@@ -364,7 +366,7 @@ void handleDoMeasurement(uint8_t sock, char* paramsStr){
 
 
 }
-int8_t handleScan(uint8_t sock, char * paramsStr){
+void handleScan(uint8_t sock, char * paramsStr){
 
 	uint8_t i;
 	char buf[10];
@@ -374,7 +376,7 @@ int8_t handleScan(uint8_t sock, char * paramsStr){
 	for (i=0;i<num_boards;i++){
 		printf("%u", scanresults[i]);
 		uint8_t t;
-		t = sprintf(buf, "%u", scanresults[i]);
+		t = sprintf(buf, " %u", scanresults[i]);
 		send(sock, (uint8_t *)buf, t);
 
 	}

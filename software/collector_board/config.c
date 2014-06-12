@@ -29,14 +29,14 @@ void config_reset_eeprom(){
 	eeprom_update_byte((void *)3, 42);
 }
 
-uint8_t config_write(struct config * cfg){
+uint8_t config_write(struct config * pcfg){
 	void * eeaddr = eeprom_read_word((void *)1);
 	while(1){
 		// 
-		eeprom_update_block(cfg, eeaddr, sizeof(struct config));
+		eeprom_update_block(pcfg, eeaddr, sizeof(struct config));
 		struct config newcfg;
 		eeprom_read_block(&newcfg, eeaddr, sizeof(struct config) );
-		if( ! memcmp(&newcfg, cfg, sizeof(struct config)) ){
+		if( ! memcmp(&newcfg, pcfg, sizeof(struct config)) ){
 			eeprom_update_word((void *)1, (uint16_t)eeaddr);
 			return 1;
 		}
@@ -48,8 +48,8 @@ uint8_t config_write(struct config * cfg){
 	return 0;
 }
 
-void config_read(struct config * cfg){
+void config_read(struct config * pcfg){
 	uint16_t eeaddr = eeprom_read_word((void *)1);
-	eeprom_read_block(cfg, (void *)eeaddr, sizeof(struct config) );
+	eeprom_read_block(pcfg, (void *)eeaddr, sizeof(struct config) );
 	return;
 }
