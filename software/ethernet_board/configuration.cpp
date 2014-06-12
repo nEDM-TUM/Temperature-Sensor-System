@@ -7,6 +7,7 @@
 #include <avr/pgmspace.h>
 #include <util/delay.h>
 #include "usart.h"
+#include "response.h"
 #include <Ethernet.h>
 #include "w5100.h"
 #include "socket.h"
@@ -52,10 +53,7 @@ void handleDoMeasurement(uint8_t sock, char* paramsStr);
 void handleScan(uint8_t sock, char * paramsStr);
 
 //Response buff block
-static FILE  res_stream;
 char resBuff[MAX_RESPONSE_LEN];
-uint8_t resBuffPointer = 0;
-uint8_t currResSock = MAX_SERVER_SOCK_NUM;
 
 const uint8_t cmdLen = 10;
 struct cmd cmds[]={
@@ -77,31 +75,6 @@ const char UpdateOption[] PROGMEM = ", update option: ";
 const char WillReset[] PROGMEM = "The ethernet service will be reset, the future login is ";
 const char Addr[] PROGMEM = " <addr>\n";
 
-int res_flush(){
-  printf("TEST Flush\n\r");
-  if((resBuffPointer > 0) && (currResSock < MAX_SERVER_SOCK_NUM)){
-    printf("send to sock %d\n\r", currResSock);
-    send(currResSock, (uint8_t *)resBuff, resBuffPointer);
-  }
-  resBuffPointer =0;
-}
-int res_putchar(char c, FILE *stream){
-  if(resBuffPointer == MAX_RESPONSE_LEN){
-    res_flush();
-  }
-  resBuff[resBuffPointer++] = c;
-}
-
-void res_set_sock(uint8_t sock){
-  res_flush();
-  currResSock = sock;
-}
-
-
-void res_init(){
-  fdev_setup_stream(&res_stream, res_putchar, NULL, _FDEV_SETUP_WRITE);
-  //fdev_set_udata(res_stream, u);
-}
 
 int8_t toSubnetMask(uint8_t subnet, uint8_t* addr){
   int8_t indexByte = 0;

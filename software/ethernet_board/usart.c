@@ -1,4 +1,3 @@
-
 #include "usart.h"
 
 #define BAUD 9600UL      // Baudrate
