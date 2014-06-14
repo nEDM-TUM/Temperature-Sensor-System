@@ -79,6 +79,7 @@ void loop2(){
 					}else{
 						loop_state = LOOP_IDLE;
 					}
+					printf("measurement finished\n\r");
 					break;
 				case TWI_RCV_ERROR:
 					// receive encountered an error
