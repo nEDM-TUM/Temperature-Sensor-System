@@ -14,5 +14,6 @@
 void beginService(void);
 void serve(void);
 void setupServer(void);
+void ui_loop();
 #endif
 

@@ -36,6 +36,12 @@ uint8_t closedSock = MAX_SERVER_SOCK_NUM;
 char receiveBuff[MAX_SERVER_SOCK_NUM][MAX_CMD_LEN];
 uint8_t writeBuffPointer[MAX_SERVER_SOCK_NUM] = {0}; // Point to a byte, which will be written
 
+void (*twi_access_fun)();
+
+#define UI_READY 0
+#define UI_TWILOCK 1
+uint8_t ui_state = UI_READY;
+
 struct cmd{
   const char * name;
   void (*handle)(uint8_t, char*);
@@ -391,8 +397,10 @@ void handleDoMeasurement(uint8_t sock, char* paramsStr){
 
 
 }
-void handleScan(uint8_t sock, char * paramsStr){
 
+void handleScan_access(void){
+	// FIXME: socket number is hardcoded here
+	uint8_t sock = 0;
 	uint8_t i;
 	char buf[10];
 	num_boards = twi_scan(scanresults, 20);
@@ -407,6 +415,12 @@ void handleScan(uint8_t sock, char * paramsStr){
 	}
 	printf("\n\r");
 	send(sock, (uint8_t *)"\n", 1);
+}
+
+void handleScan(uint8_t sock, char * paramsStr){
+	//printf("sc\n\r");
+	twi_access_fun = handleScan_access;
+	ui_state = UI_TWILOCK;
 }
 
 void handleTwiaddr(uint8_t sock, char * paramsStr){
@@ -513,6 +527,27 @@ void serve(){
     socket(closedSock, SnMR::TCP, port, 0);    
     listen(closedSock);
   }
+}
+
+void ui_loop(){
+	switch(ui_state){
+		case UI_READY:
+			serve();
+			break;
+		case UI_TWILOCK:
+			printf("tl\n\r");
+			// we do not process new socket inputs, as we have to wait for the twi bus to become ready:
+			if(twi_try_lock_bus()){
+				// we aquired the bus
+				// now we have to do our access as fast as possible, as others might wait for bus access:
+				// call command handler, who waits for access to the bus:
+				twi_access_fun();
+				// we again accept commands
+				ui_state = UI_READY;
+				twi_free_bus();
+			}
+			break;
+	}
 }
 
 void setupServer() {

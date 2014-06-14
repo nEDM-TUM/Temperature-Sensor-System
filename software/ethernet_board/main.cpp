@@ -215,6 +215,6 @@ int main (void)
 	// main event loop
 	while (1) {
 		loop2();
-		serve();
+		ui_loop();
 	}
 }
