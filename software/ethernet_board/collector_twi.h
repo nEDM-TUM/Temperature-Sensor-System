@@ -20,6 +20,8 @@ extern "C" {
 extern uint8_t scanresults[20];
 extern uint8_t num_boards;
 
+uint8_t twi_try_lock_bus();
+void twi_free_bus();
 void twi_interpret(uint8_t * data);
 void printarray(uint8_t * arr, uint8_t len);
 uint8_t twi_computeCRC(uint8_t * data, uint8_t len, uint8_t crc);

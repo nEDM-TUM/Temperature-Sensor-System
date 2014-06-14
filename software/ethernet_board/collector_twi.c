@@ -6,6 +6,26 @@
 uint8_t scanresults[20];
 uint8_t num_boards;
 
+// this is not a interrupt/threadsafe mutex
+// this only works for event loop code
+uint8_t twi_bus_mutex;
+
+uint8_t twi_try_lock_bus(){
+	if (twi_bus_mutex == 0){
+		twi_bus_mutex = 1;
+		printf(" bus locked\n\r");
+		return 1;
+	}else{
+		printf(" bus busy\n\r");
+		return 0;
+	}
+}
+
+void twi_free_bus(){
+	printf(" bus free\n\r");
+	twi_bus_mutex = 0;
+}
+
 void printarray(uint8_t * arr, uint8_t len){
   uint8_t i;
   for (i=0;i<len;i++){
