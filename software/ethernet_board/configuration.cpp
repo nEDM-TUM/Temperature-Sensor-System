@@ -7,33 +7,38 @@
 #include <avr/pgmspace.h>
 #include <util/delay.h>
 #include "usart.h"
+#include "socket.h"
 #include "sock_stream.h"
 #include <Ethernet.h>
 #include "w5100.h"
-#include "socket.h"
 #include "collector_twi.h"
-#include "packet.h"
 // set debug mode
 // #define DEBUG
 
-uint8_t mac[] = { 0x90, 0xA2, 0xDA, 0x00, 0xE3, 0x5B};
-uint8_t ip[] = {10,0,1, 100};
-uint8_t gw[] = {10,0,1, 1 };
-uint8_t subnet = 16;
-uint8_t subnetM[] = {255, 255, 0, 0};
-uint16_t port = 8888;
-uint8_t ip_db[] = {10,0,1, 100};
-uint16_t port_db = 8888;
+
+struct config cfg = {
+  /*.mac = */{0x90, 0xA2, 0xDA, 0x00, 0xE3, 0x5B},
+  /*.ip = */{10,0,1, 100},
+  /*.subnet = */16,
+  /*.gw = */{10, 0, 1, 1},
+  /*.port = */8888,
+  /*.ip_db = */{10, 0, 1, 99},
+  /*.port_db = */8888
+};
 uint8_t clientSock = MAX_SERVER_SOCK_NUM;
 uint8_t serverSock[MAX_SERVER_SOCK_NUM];
 
 uint8_t listeningSock = MAX_SERVER_SOCK_NUM;
 uint8_t closedSock = MAX_SERVER_SOCK_NUM;
 
+uint8_t data_request[MAX_SERVER_SOCK_NUM] = {0};
+uint32_t measure_interval = 1000;
+
 char cmdBuff[MAX_CMD_LEN];
 char receiveBuff[MAX_SERVER_SOCK_NUM][MAX_CMD_LEN];
 uint8_t receiveBuffPointer[MAX_SERVER_SOCK_NUM] = {0}; // Point to a byte, which will be written
 
+void send_result(struct dummy_packet * packets);
 void (*twi_access_fun)();
 
 #define UI_READY 0
@@ -41,17 +46,9 @@ void (*twi_access_fun)();
 uint8_t ui_state = UI_READY;
 
 
-const char WillSet[] PROGMEM = " will be set to ";
-const char IfUpdate[] PROGMEM = " (update option: reset)\n";
-const char UpdateOption[] PROGMEM = ", update option: ";
-const char WillReset[] PROGMEM = "The ethernet service will be reset, the future login is ";
-const char Addr[] PROGMEM = " <addr>\n";
-
-
 int8_t toSubnetMask(uint8_t subnet, uint8_t* addr){
   int8_t indexByte = 0;
   int8_t indexBit = 0;
-  printf("Subnet Mask: %d.%d.%d.%d\n\r", subnetM[0], subnetM[1], subnetM[2], subnetM[3]);
   while((subnet >> 3) >0 ){
   printf("Subnet: %d %d\n\r", subnet, subnet-8<subnet);
     addr[indexByte] = 255;
@@ -69,22 +66,25 @@ int8_t toSubnetMask(uint8_t subnet, uint8_t* addr){
       return 0;
     }
   }
-  printf("Subnet Mask: %d.%d.%d.%d\n\r", subnetM[0], subnetM[1], subnetM[2], subnetM[3]);
   return 1;
 }
 
 
 void beginService() {
+#ifdef EEPROM
+  // TODO read eeprom 
+#endif
+  uint8_t sn[4];
   //Init and config ethernet device w5100
-  toSubnetMask(subnet, subnetM);
   W5100.init();
-  W5100.setMACAddress(mac);
-  W5100.setIPAddress(ip);
-  W5100.setGatewayIp(gw);
-  W5100.setSubnetMask(subnetM);
+  W5100.setMACAddress(cfg.mac);
+  W5100.setIPAddress(cfg.ip);
+  W5100.setGatewayIp(cfg.gw);
+  toSubnetMask(cfg.subnet, sn);
+  W5100.setSubnetMask(sn);
   // TODO reset client to db
   // Create the first server socket
-  socket(0, SnMR::TCP, port, 0);
+  socket(0, SnMR::TCP, cfg.port, 0);
   serverSock[0] = W5100.readSnSR(0);
   while(!listen(0)){
     // wait a second and try again
@@ -92,6 +92,19 @@ void beginService() {
   }
 }
 
+
+
+void dataAvailable(struct dummy_packet * received, uint8_t src_addr){
+	uint8_t i;
+	for(i=0; i< MAX_SERVER_SOCK_NUM; i++){
+		// TODO: check if socket is still connected.
+		if (data_request[i]){
+			stream_set_sock(i);
+			fprintf(&sock_stream, "%u :: ", src_addr);
+			send_result(received);
+		}
+	}
+}
 
 void serve(){
   uint8_t i;
@@ -140,7 +153,7 @@ void serve(){
   printf("Listening socket %d, closed socket %d\n\r",listeningSock, closedSock);
 #endif
   if(listeningSock == MAX_SERVER_SOCK_NUM && closedSock < MAX_SERVER_SOCK_NUM){
-    socket(closedSock, SnMR::TCP, port, 0);    
+    socket(closedSock, SnMR::TCP, cfg.port, 0);    
     listen(closedSock);
   }
 }
@@ -151,7 +164,6 @@ void ui_loop(){
 			serve();
 			break;
 		case UI_TWILOCK:
-			printf("tl\n\r");
 			// we do not process new socket inputs, as we have to wait for the twi bus to become ready:
 			if(twi_try_lock_bus()){
 				// we aquired the bus

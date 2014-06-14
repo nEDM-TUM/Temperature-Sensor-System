@@ -1,23 +1,51 @@
 #include "user_cmd.h"
+#include "sock_stream.h"
+#include "configuration.h"
+#include "socket.h"
+#include "packet.h"
+#include <util/delay.h>
+
+
+const char WillSet[] PROGMEM = " will be set to ";
+const char IfUpdate[] PROGMEM = " (update option: reset)\n";
+const char UpdateOption[] PROGMEM = ", update option: ";
+const char WillReset[] PROGMEM = "The ethernet service will be reset, the future login is ";
+const char Addr[] PROGMEM = " <addr>\n";
+
 
 uint8_t print4dotarr(FILE *stream, uint8_t * arr){
   return fprintf(stream, "%d.%d.%d.%d", arr[0], arr[1], arr[2], arr[3]);
+}
+
+void handleViewMeasurement(uint8_t sock, char* paramsStr){
+	uint8_t socket = stream_get_sock();
+	data_request[socket] = (!data_request[socket]);
+}
+
+void handleInterval(uint8_t sock, char* paramsStr){
+  int16_t paramsCount=0;
+	uint32_t interval_tmp;
+  paramsCount = fscanf(&sock_stream, "%lu", &interval_tmp);
+	if(paramsCount == 1){
+		measure_interval = interval_tmp*1000;
+		fprintf(&sock_stream, "OK\n");
+	}
+  fprintf(&sock_stream, "interval: %lu\n", measure_interval/1000);
 }
 
 void handleIp(uint8_t sock, char* paramsStr){
   int8_t index;
   int16_t paramsCount=0;
   uint8_t ipTMP[4];
-  uint8_t subnetTMP; 
   fprintf(&sock_stream, "ip: ");
-  paramsCount = fscanf(&sock_stream, "%u.%u.%u.%u/%u", ipTMP, ipTMP+1, ipTMP+2, ipTMP+3, &subnet);
+  paramsCount = fscanf(&sock_stream, "%u.%u.%u.%u/%u", ipTMP, ipTMP+1, ipTMP+2, ipTMP+3, &(cfg.subnet));
   if(paramsCount==5){
     for(index=0; index<4; index++){
-      ip[index] = ipTMP[index];
+      cfg.ip[index] = ipTMP[index];
     }
   }
-  print4dotarr(&sock_stream, ip);
-  fprintf(&sock_stream, "/%d", subnet);
+  print4dotarr(&sock_stream, cfg.ip);
+  fprintf(&sock_stream, "/%d", cfg.subnet);
   if(paramsCount!=5){
     fprintf(&sock_stream, "%S", UpdateOption);
   }else{
@@ -33,10 +61,10 @@ void handleGw(uint8_t sock, char* paramsStr){
   paramsCount = sscanf(paramsStr, "%u.%u.%u.%u", gwTMP, gwTMP+1, gwTMP+2, gwTMP+3);
   if(paramsCount == 4){
     for(index=0; index<4; index++){
-      gw[index] = gwTMP[index];
+      cfg.gw[index] = gwTMP[index];
     }
   }
-  print4dotarr(&sock_stream, gw);
+  print4dotarr(&sock_stream, cfg.gw);
   if(paramsCount!=4){
     fprintf(&sock_stream, "%S", UpdateOption);
   }else{
@@ -52,10 +80,10 @@ void handleMac(uint8_t sock, char* paramsStr){
   paramsCount = sscanf(paramsStr, "%x:%x:%x:%x:%x:%x", macTMP, macTMP+1, macTMP+2, macTMP+3, macTMP+4, macTMP+5);
   if(paramsCount == 6){
     for(index=0; index<4; index++){
-      mac[index] = macTMP[index];
+      cfg.mac[index] = macTMP[index];
     }
   }
-  fprintf(&sock_stream, "%d:%d:%d:%d:%d:%d", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+  fprintf(&sock_stream, "%d:%d:%d:%d:%d:%d", cfg.mac[0], cfg.mac[1], cfg.mac[2], cfg.mac[3], cfg.mac[4], cfg.mac[5]);
   if(paramsCount!=6){
     fprintf(&sock_stream, "%S", UpdateOption);
   }else{
@@ -65,7 +93,7 @@ void handleMac(uint8_t sock, char* paramsStr){
 
 void handlePort(uint8_t sock, char* paramsStr){
   fprintf(&sock_stream, "port: ");
-  if(sscanf(paramsStr, "%u", &port)==1){
+  if(sscanf(paramsStr, "%u", &(cfg.port))==1){
     fprintf(&sock_stream, "%S", UpdateOption);
   }else{
     fprintf(&sock_stream, "%S", IfUpdate);
@@ -77,9 +105,12 @@ void handleReset(uint8_t sock, char* paramsStr){
   // broadcast
   stream_set_sock(MAX_SERVER_SOCK_NUM); 
   fprintf(&sock_stream, "%S", WillReset);
-  print4dotarr(&sock_stream, ip);
-  fprintf(&sock_stream, ":%d\n", port);
+  print4dotarr(&sock_stream, cfg.ip);
+  fprintf(&sock_stream, ":%d\n", cfg.port);
   sock_stream_flush();
+#ifdef EEPROM
+  // TODO update eeprom
+#endif
   for(index= 0; index<MAX_SERVER_SOCK_NUM; index++){
     disconnect(index);
   }
@@ -103,10 +134,10 @@ void handleIpDB(uint8_t sock, char* paramsStr){
   paramsCount = sscanf(paramsStr, "%u.%u.%u.%u/%u", ipTMP, ipTMP+1, ipTMP+2, ipTMP+3);
   if(paramsCount==4){
     for(index=0; index<4; index++){
-      ip_db[index] = ipTMP[index];
+      cfg.ip_db[index] = ipTMP[index];
     }
   }
-  print4dotarr(&sock_stream, ip_db);
+  print4dotarr(&sock_stream, cfg.ip_db);
   if(paramsCount!=4){
     fprintf(&sock_stream, "%S", UpdateOption);
   }else{
@@ -116,14 +147,14 @@ void handleIpDB(uint8_t sock, char* paramsStr){
 
 void handlePortDB(uint8_t sock, char* paramsStr){
   fprintf(&sock_stream, "db port: ");
-  if(sscanf(paramsStr, "%u", &port)==1){
+  if(sscanf(paramsStr, "%u", &(cfg.port_db))==1){
     fprintf(&sock_stream, "%S", UpdateOption);
   }else{
     fprintf(&sock_stream, "%S", IfUpdate);
   } 
 }
 
-void send_result(struct dummy_packet * packets, uint8_t sock){
+void send_result(struct dummy_packet * packets){
   char buffer[10];
 	uint8_t s;
 	int16_t temp;
@@ -150,8 +181,8 @@ void send_result(struct dummy_packet * packets, uint8_t sock){
     }else{
       fprintf(&sock_stream,  "---nc---");
     }
-    fprintf(&sock_stream,  "\n");
   }
+  fprintf(&sock_stream,  "\n");
 }
 
 void handleDoMeasurement(uint8_t sock, char* paramsStr){
@@ -166,7 +197,7 @@ void handleDoMeasurement(uint8_t sock, char* paramsStr){
 		//printf("# %u # ", addr);
 		state = twi_receive_data(addr, ((uint8_t*)received),8*sizeof(struct dummy_packet));
     if (state){
-      send_result(received, sock);
+      send_result(received);
     }
   }
 
@@ -243,7 +274,7 @@ void execCMD(uint8_t sock, char * buff){
   char * cmpedBuff;
   struct cmd cmd;
   printf("Compare %s\n\r", buff);
-  for(index= 0; index<cmdLen; index++){
+  for(index= 0; index<DEFINED_CMD_COUNT; index++){
     cmd = cmds[index];
     cmpedBuff = cmpCMD(buff, cmd.name);
     if(cmpedBuff!=NULL){

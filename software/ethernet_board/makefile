@@ -21,7 +21,7 @@ FORMAT = ihex
 
 # Project files
 PROJECT_PATH = .
-PROJECT_C_OBJS = usart.o collector_twi.o
+PROJECT_C_OBJS = usart.o collector_twi.o eeprom_storage.o
 PROJECT_CPP_OBJS = main.o configuration.o sock_stream.o user_cmd.o
 #----------------------------------------------------------
 # Programmer settings

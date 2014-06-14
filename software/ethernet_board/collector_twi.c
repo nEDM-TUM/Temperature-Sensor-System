@@ -13,16 +13,15 @@ uint8_t twi_bus_mutex;
 uint8_t twi_try_lock_bus(){
 	if (twi_bus_mutex == 0){
 		twi_bus_mutex = 1;
-		printf(" bus locked\n\r");
+		//printf(" bus locked\n\r");
 		return 1;
 	}else{
-		printf(" bus busy\n\r");
+		//printf(" bus busy\n\r");
 		return 0;
 	}
 }
 
 void twi_free_bus(){
-	printf(" bus free\n\r");
 	twi_bus_mutex = 0;
 }
 

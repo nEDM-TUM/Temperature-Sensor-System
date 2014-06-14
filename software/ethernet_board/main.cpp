@@ -32,7 +32,6 @@ uint32_t time_receive_start;
 struct dummy_packet received[8];
 
 
-uint32_t measure_interval = 1000;
 
 uint32_t get_time_delta(uint32_t a, uint32_t b){
   if(a>b){
@@ -71,6 +70,8 @@ void loop2(){
 			rcv_state = twi_try_receive_data(addr_current_board, ((uint8_t*)received),8*sizeof(struct dummy_packet), rcv_state);
 			switch (rcv_state){
 				case TWI_RCV_FIN:
+					printf("measurement finished\n\r");
+					dataAvailable(received, addr_current_board);
 					// switch to next board:
 					loop_current_board ++;
 					if(loop_current_board < num_boards){
@@ -87,7 +88,6 @@ void loop2(){
 						twi_free_bus();
 						loop_state = LOOP_IDLE;
 					}
-					printf("measurement finished\n\r");
 					break;
 				case TWI_RCV_ERROR:
 					// receive encountered an error

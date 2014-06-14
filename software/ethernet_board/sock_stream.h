@@ -12,6 +12,7 @@ extern FILE sock_stream;
 void sock_stream_init(void);
 int sock_stream_flush();
 void stream_set_sock(uint8_t sock);
+uint8_t stream_get_sock();
 static int sock_putchar(char c, FILE *stream);
 #endif
 #ifdef __cplusplus
