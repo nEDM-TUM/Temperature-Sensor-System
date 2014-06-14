@@ -29,14 +29,18 @@ uint8_t ip_db[] = {10,0,1, 100};
 uint16_t port_db = 8888;
 uint8_t clientSock = MAX_SERVER_SOCK_NUM;
 uint8_t serverSock[MAX_SERVER_SOCK_NUM];
+uint8_t data_request[MAX_SERVER_SOCK_NUM] = {0};
 
 uint8_t listeningSock = MAX_SERVER_SOCK_NUM;
 uint8_t closedSock = MAX_SERVER_SOCK_NUM;
+
+uint32_t measure_interval = 1000;
 
 char cmdBuff[MAX_CMD_LEN];
 char receiveBuff[MAX_SERVER_SOCK_NUM][MAX_CMD_LEN];
 uint8_t receiveBuffPointer[MAX_SERVER_SOCK_NUM] = {0}; // Point to a byte, which will be written
 
+void send_result(struct dummy_packet * packets);
 void (*twi_access_fun)();
 
 #define UI_READY 0
@@ -49,7 +53,7 @@ struct cmd{
 };
 
 // XXX cmdLen should be always the length of the registered cmd array below! 
-const uint8_t cmdLen = 10;
+const uint8_t cmdLen = 12;
 struct cmd cmds[]={
   {"ip", handleIp},
   {"port", handlePort},
@@ -60,7 +64,9 @@ struct cmd cmds[]={
   {"port-db", handlePortDB},
   {"twiaddr", handleTwiaddr},
   {"s", handleScan},
-  {"m", handleDoMeasurement}
+  {"m", handleDoMeasurement},
+  {"v", handleViewMeasurement},
+  {"i", handleInterval}
 };
 
 const char WillSet[] PROGMEM = " will be set to ";
@@ -146,6 +152,35 @@ void beginService() {
 
 uint8_t print4dotarr(FILE *stream, uint8_t * arr){
   return fprintf(stream, "%d.%d.%d.%d", arr[0], arr[1], arr[2], arr[3]);
+}
+
+
+void dataAvailable(struct dummy_packet * received, uint8_t src_addr){
+	uint8_t i;
+	for(i=0; i< MAX_SERVER_SOCK_NUM; i++){
+		// TODO: check if socket is still connected.
+		if (data_request[i]){
+			stream_set_sock(i);
+			fprintf(&sock_stream, "%u :: ", src_addr);
+			send_result(received);
+		}
+	}
+}
+
+void handleViewMeasurement(uint8_t sock, char* paramsStr){
+	uint8_t socket = stream_get_sock();
+	data_request[socket] = (!data_request[socket]);
+}
+
+void handleInterval(uint8_t sock, char* paramsStr){
+  int16_t paramsCount=0;
+	uint32_t interval_tmp;
+  paramsCount = fscanf(&sock_stream, "%lu", &interval_tmp);
+	if(paramsCount == 1){
+		measure_interval = interval_tmp*1000;
+		fprintf(&sock_stream, "OK\n");
+	}
+  fprintf(&sock_stream, "interval: %lu\n", measure_interval/1000);
 }
 
 void handleIp(uint8_t sock, char* paramsStr){
@@ -267,7 +302,7 @@ void handlePortDB(uint8_t sock, char* paramsStr){
   } 
 }
 
-void send_result(struct dummy_packet * packets, uint8_t sock){
+void send_result(struct dummy_packet * packets){
   char buffer[10];
 	uint8_t s;
 	int16_t temp;
@@ -294,8 +329,8 @@ void send_result(struct dummy_packet * packets, uint8_t sock){
     }else{
       fprintf(&sock_stream,  "---nc---");
     }
-    fprintf(&sock_stream,  "\n");
   }
+  fprintf(&sock_stream,  "\n");
 }
 
 void handleDoMeasurement(uint8_t sock, char* paramsStr){
@@ -310,7 +345,7 @@ void handleDoMeasurement(uint8_t sock, char* paramsStr){
 		//printf("# %u # ", addr);
 		state = twi_receive_data(addr, ((uint8_t*)received),8*sizeof(struct dummy_packet));
     if (state){
-      send_result(received, sock);
+      send_result(received);
     }
   }
 
@@ -490,7 +525,6 @@ void ui_loop(){
 			serve();
 			break;
 		case UI_TWILOCK:
-			printf("tl\n\r");
 			// we do not process new socket inputs, as we have to wait for the twi bus to become ready:
 			if(twi_try_lock_bus()){
 				// we aquired the bus

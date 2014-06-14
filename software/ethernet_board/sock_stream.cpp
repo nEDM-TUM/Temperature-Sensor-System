@@ -41,6 +41,10 @@ static int sock_readchar(FILE *stream){
   return EOF;
 }
 
+uint8_t stream_get_sock(){
+	return currSock;
+}
+
 void stream_set_sock(uint8_t sock){
   int8_t flag=1;
   uint8_t b;  
