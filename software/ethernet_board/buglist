@@ -2,3 +2,5 @@
 if one unplugs ALL boards at some specific moment,
 ethernet board goes into a weird state: "start! is always printed out very fast
 bus is then somehow locked, a twi command (like scan) will freeze the ui
+IDEA:
+	This looks like a twi mutex deadlock
