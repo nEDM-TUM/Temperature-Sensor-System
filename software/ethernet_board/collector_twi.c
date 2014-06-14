@@ -260,7 +260,7 @@ uint8_t twi_try_receive_data(uint8_t address, uint8_t * buffer, uint8_t len, uin
 
 					// Data byte will be received and ACK will be returned
 					TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWEA);
-					return TWI_RCV_RECEIVE
+					return TWI_RCV_RECEIVE;
 					break;
 				case 0x48:
 					// SLA+R has been transmitted;

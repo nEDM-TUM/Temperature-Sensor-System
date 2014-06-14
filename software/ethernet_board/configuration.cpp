@@ -519,9 +519,9 @@ void setupServer() {
   res_init();
   printf("Set up server\n\r");
   beginService();
-  while(1){
-    serve();
-  }
+  //while(1){
+  //  serve();
+  //}
 }
 
 
