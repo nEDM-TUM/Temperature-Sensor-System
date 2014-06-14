@@ -15,6 +15,8 @@ void serve(void);
 void setupServer(void);
 
 
+void ui_loop();
+
 void handleIp(uint8_t sock, char* paramsStr);
 void handlePort(uint8_t sock, char* paramsStr);
 void handleMac(uint8_t sock, char* paramsStr);
@@ -25,6 +27,5 @@ void handlePortDB(uint8_t sock, char* paramsStr);
 void handleTwiaddr(uint8_t sock, char* paramsStr);
 void handleDoMeasurement(uint8_t sock, char* paramsStr);
 void handleScan(uint8_t sock, char * paramsStr);
-
 #endif
 
