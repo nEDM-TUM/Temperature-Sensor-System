@@ -374,10 +374,10 @@ void handleScan(uint8_t sock, char * paramsStr){
 	ui_state = UI_TWILOCK;
 }
 
-void handleTwiaddr_access(uint8_t sock, char * paramsStr){
+void handleTwiaddr_access(void){
   uint8_t synerr = 1;
 	uint8_t old_addr, new_addr;
-	if(fscanf(&sock_stream, "%u %u", &old_addr, &new_addr) ==2){
+	if(fscanf(&sock_stream, "%u.%u", &old_addr, &new_addr) ==2){
 		printf("par %u, %u", old_addr, new_addr);
 		//if(buff[4]=='g'){
 		synerr = 0;
@@ -393,8 +393,26 @@ void handleTwiaddr_access(uint8_t sock, char * paramsStr){
 }
 
 void handleTwiaddr(uint8_t sock, char * paramsStr){
-	twi_access_fun = handleTwiaddr_access;
-	ui_state = UI_TWILOCK;
+	//twi_access_fun = handleTwiaddr_access;
+	//ui_state = UI_TWILOCK;
+  uint8_t synerr = 1;
+	uint8_t old_addr;
+	uint8_t new_addr;
+  int16_t paramsCount=0;
+  paramsCount = fscanf(&sock_stream, "%u.%u", &old_addr, &new_addr);
+	if(paramsCount == 2){
+		printf("par %u, %u", old_addr, new_addr);
+		//if(buff[4]=='g'){
+		synerr = 0;
+		//if(twi_set_address(old_addr, new_addr)){
+		//	fprintf(&sock_stream, "success\n");
+		//}else{
+		//	fprintf(&sock_stream, "failed\n");
+		//}
+	}
+  if (synerr){
+    fprintf(&sock_stream, "Usage: twiaddr <old>%S", Addr);
+  }
 }
 
 inline void sendError(uint8_t sock){
