@@ -1,36 +1,66 @@
 #include "response.h"
 #include "socket.h"
+#include "configuration.h"
 
 FILE res_stream;
-uint8_t resBuff2Pointer = 0;
-uint8_t currResSock = MAX_SERVER_SOCK_NUM;
+uint8_t currSock = MAX_SERVER_SOCK_NUM;
 
-char resBuff2[MAX_RESPONSE_LEN];
+uint8_t resBuffPointer = 0;
+char resBuff[MAX_RESPONSE_LEN];
 
 int res_flush(){
-  printf("TEST Flush\n\r");
-  if((resBuff2Pointer > 0) && (currResSock < MAX_SERVER_SOCK_NUM)){
-    printf("send to sock %d\n\r", currResSock);
-    send(currResSock, (uint8_t *)resBuff2, resBuff2Pointer);
+  uint8_t index;
+  if(resBuffPointer > 0){
+    if (currSock < MAX_SERVER_SOCK_NUM){
+      printf("send to sock %d\n\r", currSock);
+      send(currSock, (uint8_t *)resBuff, resBuffPointer);
+    } else {
+      for(index= 0; index<MAX_SERVER_SOCK_NUM; index++){
+        if(W5100.readSnSR(index) == SnSR::ESTABLISHED){
+          send(index, (uint8_t *)resBuff, resBuffPointer);
+        }
+      }
+    }
   }
-  resBuff2Pointer =0;
+  resBuffPointer =0;
 }
 
 static int res_putchar(char c, FILE *stream){
-  printf("TEST put char\n\r");
-  if(resBuff2Pointer == MAX_RESPONSE_LEN){
+  if(resBuffPointer == MAX_RESPONSE_LEN){
     res_flush();
   }
-  resBuff2[resBuff2Pointer++] = c;
+  resBuff[resBuffPointer++] = c;
+  return (int)c;
+}
+
+static int res_readchar(FILE *stream){
+  uint8_t b;  
+  if(recv(currSock, &b, 1) >0){
+    if(b==' '){
+      return EOF;
+    }
+    if(b==';'){
+      return (int)'\n';
+    }
+    return (int)b;
+  }
+  return EOF;
 }
 
 void res_set_sock(uint8_t sock){
+  int8_t flag=1;
+  while(W5100.getRXReceivedSize(sock) && recv(sock, &b, 1) >0){
+    if(flag){
+      fprintf(&res_stream, "State Error");
+    }
+  }
   res_flush();
-  currResSock = sock;
+  
+  currSock = sock;
 }
 
 
 void res_init(){
 	fdev_setup_stream(&res_stream, res_putchar, NULL, _FDEV_SETUP_WRITE);
-  resBuff2Pointer = 0;
+  resBuffPointer = 0;
 }

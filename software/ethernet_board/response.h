@@ -5,9 +5,9 @@ extern "C" {
 #define RESPONSE_H
 #include <avr/io.h>
 #include <stdio.h>
-#include "configuration.h"
 
 extern FILE res_stream;
+#define MAX_RESPONSE_LEN 5
 
 void res_init(void);
 int res_flush();
