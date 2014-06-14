@@ -7,3 +7,6 @@ sudo avrdude -p atmega88p -c usbasp -U lfuse:w:0b11110111:m
 
 preserve eeprom during chip erase
 sudo avrdude -p atmega88p -c usbasp -U hfuse:w:0b11010111:m
+
+preserve eeprom + enable brown out detection 4.5V
+sudo avrdude -p atmega88p -c usbasp -U hfuse:w:0b11010011:m
