@@ -11,6 +11,12 @@ extern "C" {
 #define CMD_START_MEASUREMENT 1
 #define CMD_SET_ADDRESS 2
 
+
+#define TWI_RCV_FIN 0
+#define TWI_RCV_START 1 
+#define TWI_RCV_RECEIVE 2
+#define TWI_RCV_ERROR 3
+
 extern uint8_t scanresults[20];
 extern uint8_t num_boards;
 
@@ -22,6 +28,7 @@ uint8_t twi_wait_timeout(uint16_t milliseconds);
 uint8_t twi_start(void);
 uint8_t twi_start_measurement(uint8_t addr);
 uint8_t twi_receive_data(uint8_t address, uint8_t * buffer, uint8_t len);
+uint8_t twi_try_receive_data(uint8_t address, uint8_t * buffer, uint8_t len, uint8_t state);
 uint8_t twi_scan(uint8_t * result, uint8_t max_results);
 uint8_t twi_set_address(uint8_t addr, uint8_t new_addr);
 

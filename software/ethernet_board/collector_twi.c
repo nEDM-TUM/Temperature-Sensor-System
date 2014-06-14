@@ -233,6 +233,90 @@ uint8_t twi_start_measurement(uint8_t addr){
   }
 }
 
+uint8_t twi_try_receive_data(uint8_t address, uint8_t * buffer, uint8_t len, uint8_t state){
+	switch(state){
+		case TWI_RCV_START:
+			if (!twi_start()){
+				TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
+				return TWI_RCV_ERROR;
+			}
+			TWDR = (address<<1) | 1;
+			// send read request:
+			TWCR = (1<<TWINT) | (1<<TWEN);
+			twi_wait_timeout(5);
+			switch(TWSR){
+				case 0x38:
+					// Arbitration lost in SLA+R or NOT ACK bit
+
+					// 2-wire Serial Bus will be released and not addressed
+					// Slave mode will be entered
+					TWCR = (1<<TWINT)|(1<<TWEN);
+					printf("error 0x38\n\r");
+					return TWI_RCV_ERROR;
+					break;
+				case 0x40:
+					// SLA+R has been transmitted;
+					// ACK has been received
+
+					// Data byte will be received and ACK will be returned
+					TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWEA);
+					return TWI_RCV_RECEIVE
+					break;
+				case 0x48:
+					// SLA+R has been transmitted;
+					// NOT ACK has been received
+
+					// STOP condition will be transmitted and TWSTO Flag
+					// will be reset
+					TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);
+
+					printf("error 0x48\n\r");
+					return TWI_RCV_ERROR;
+					break;
+				case 0xf8:
+				default:
+					// No relevant state information
+					// available; TWINT = “0”
+					// FIXME: this reaction causes a bus error
+					TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
+					printf("no new state\n\r");
+					return TWI_RCV_ERROR;
+					break;
+			}
+			break;
+		case TWI_RCV_RECEIVE:
+			if (TWCR & (1<<TWINT)){
+				while(TWSR == 0x50 && len > 0){
+					//printf("byte received!\n\r");
+					*buffer = TWDR;
+					buffer++;
+					len--;
+					if (len == 1){
+						TWCR = (1<<TWINT)|(1<<TWEN);
+					}else{
+						TWCR = (1<<TWINT)|(1<<TWEN)|(1<<TWEA);
+					}
+					if(!twi_wait_timeout(5)){
+						printf("timeout\n\r");
+						TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);
+						return TWI_RCV_ERROR;
+					}
+					//printf("TWSR = %x\n\r", TWSR);
+				}
+				*buffer = TWDR;
+				TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);
+				//printf("len = %d\n\r", len);
+				if(len==1){
+					return TWI_RCV_FIN;
+				}else{
+					return TWI_RCV_ERROR;
+				}
+			}else{
+				return TWI_RCV_RECEIVE;
+			}
+	}
+}
+
 uint8_t twi_receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 	//printf("receive_data\n\r");
 	// send start condition:

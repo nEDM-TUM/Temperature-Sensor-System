@@ -17,6 +17,72 @@
 uint8_t scanresults[20];
 uint8_t num_boards;
 
+uint32_t measure_interval = 1000;
+
+uint32_t get_time_delta(uint32_t a, uint32_t b){
+  if(a>b){
+    return  UINT32_MAX - a + b;
+  }else{
+    return b-a;
+  }
+}
+
+void loop2(){
+	uint32_t current_time = millis();
+	switch (loop_state){
+		case IDLE:
+			if(get_time_delta(time_last_measurement, current_time) >= measure_interval){
+				time_last_measurement = current_time;
+				twi_start_measurement(0x00);
+				loop_current_board = 0;
+				if(loop_current_board < num_boards){
+					time_receive_start = current_time;
+					addr_current_board = scanresults[loop_current_board];
+					rcv_state = twi_try_receive_data(addr, ((uint8_t*)received),8*sizeof(struct dummy_packet), TWI_RCV_START);
+					if(rcv_state != TWI_RCV_ERROR){
+						loop_state = MEASURE;
+					}
+				}
+			}
+			break;
+
+		case MEASURE:
+
+			rcv_state = twi_try_receive_data(addr, ((uint8_t*)received),8*sizeof(struct dummy_packet), rcv_state);
+			switch (rcv_state){
+				case TWI_RCV_FIN:
+					// switch to next board:
+					loop_current_board ++;
+					if(loop_current_board < num_boards){
+						addr_current_board = scanresults[loop_current_board];
+						rcv_state = twi_try_receive_data(addr, ((uint8_t*)received),8*sizeof(struct dummy_packet), TWI_RCV_START);
+						if(rcv_state != TWI_RCV_ERROR){
+							loop_state = MEASURE;
+						}else{
+							loop_state = IDLE;
+						}
+					}else{
+						loop_state = IDLE;
+					}
+					break;
+				case TWI_RCV_ERROR:
+					// receive encountered an error
+					loop_state = IDLE;
+					break;
+				default:
+					// we still have to receive:
+					loop_state = MEASURE;
+					if(get_time_delta(time_receive_start, current_time) >= 800){
+						// timeout occured, the collector board takes too long to return data!
+						loop_state = IDLE;
+						// FIXME: what will be the TWI state here?
+					}
+					break;
+			}
+
+			break
+	}
+}
 
 
 void loop(){
