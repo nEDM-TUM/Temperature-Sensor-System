@@ -14,7 +14,6 @@ void beginService(void);
 void serve(void);
 void setupServer(void);
 
-
 void ui_loop();
 
 void handleIp(uint8_t sock, char* paramsStr);
