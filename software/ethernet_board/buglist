@@ -4,3 +4,8 @@ ethernet board goes into a weird state: "start! is always printed out very fast
 bus is then somehow locked, a twi command (like scan) will freeze the ui
 IDEA:
 	This looks like a twi mutex deadlock
+Analysis:
+	-> it was a deadlock, which happened when 0 boards were connected.
+	-> after fixing the deadlock, i could not reproduce a problem
+	   when randomly unplugging boards.
+

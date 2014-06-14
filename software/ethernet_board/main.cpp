@@ -61,6 +61,8 @@ void loop2(){
 						}else{
 							twi_free_bus();
 						}
+					}else{
+						twi_free_bus();
 					}
 				}
 			}
