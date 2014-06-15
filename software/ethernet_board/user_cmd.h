@@ -9,8 +9,8 @@
 
 struct cmd{
   const char * name;
-  void (*handle)(void);
-  // TODO add option
+  int8_t (*handle)(void);
+  const char * param_format PROGMEM;
 };
 
 

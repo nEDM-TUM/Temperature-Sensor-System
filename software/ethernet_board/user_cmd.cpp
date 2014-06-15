@@ -5,61 +5,75 @@
 #include "packet.h"
 #include <util/delay.h>
 
-void handleIp();
-void handlePort();
-void handleMac();
-void handleGw();
-void handleReset();
-void handleIpDB();
-void handlePortDB();
-void handleTwiaddr();
-void handleDoMeasurement();
-void handleScan();
-void handleViewMeasurement();
-void handleInterval();
+// set debug mode
+// #define DEBUG
+
+int8_t handleIp();
+int8_t handlePort();
+int8_t handleMac();
+int8_t handleGw();
+int8_t handleReset();
+int8_t handleIpDB();
+int8_t handlePortDB();
+int8_t handleTwiaddr();
+int8_t handleDoMeasurement();
+int8_t handleScan();
+int8_t handleViewMeasurement();
+int8_t handleInterval();
+
+// parameter format string in progmem
+const char Uint[] PROGMEM = "%u";
+const char ULong[] PROGMEM = "%ul";
+const char UintArrow_2[] PROGMEM = "%u > %u";
+const char UintDot_4[] PROGMEM = "%u.%u.%u.%u";
+const char UintDot_4Slash[] PROGMEM = "%u.%u.%u.%u/%u";
+const char UintColon_6[] PROGMEM = "%u:%u:%u:%u:%u:%u";
 
 // XXX cmdLen should be always the length of the registered cmd array below! 
 #define DEFINED_CMD_COUNT 12
 struct cmd cmds[]={
-  {"ip", handleIp},
-  {"port", handlePort},
-  {"mac", handleMac},
-  {"gw", handleGw},
-  {"reset", handleReset},
-  {"ip-db", handleIpDB},
-  {"port-db", handlePortDB},
-  {"twiaddr", handleTwiaddr},
-  {"s", handleScan},
-  {"m", handleDoMeasurement},
-  {"v", handleViewMeasurement},
-  {"i", handleInterval}
+  {"ip", handleIp, UintDot_4Slash},
+  {"port", handlePort, Uint},
+  {"mac", handleMac, UintColon_6},
+  {"gw", handleGw, UintDot_4},
+  {"reset", handleReset, NULL},
+  {"ip-db", handleIpDB, UintDot_4},
+  {"port-db", handlePortDB, Uint},
+  {"twiaddr", handleTwiaddr, UintArrow_2},
+  {"s", handleScan, NULL},
+  {"m", handleDoMeasurement, NULL},
+  {"v", handleViewMeasurement, NULL},
+  {"i", handleInterval, ULong}
 };
-const char WillSet[] PROGMEM = " will be set to ";
-const char IfUpdate[] PROGMEM = " (update option: reset)\n";
-const char UpdateOption[] PROGMEM = ", update option: ";
+
+const char Usage[] PROGMEM = "Usage: ";
+const char Colon[] PROGMEM = ": ";
+
+const char UpdateOption[] PROGMEM = "\nupdate option:\n\treset";
 const char WillReset[] PROGMEM = "The ethernet service will be reset, the future login is ";
-const char Addr[] PROGMEM = " <addr>\n";
 
 char cmdBuff[MAX_CMD_LEN];
 
 uint8_t print4dotarr(FILE *stream, uint8_t * arr){
-  return fprintf(stream, "%d.%d.%d.%d", arr[0], arr[1], arr[2], arr[3]);
+  return fprintf_P(stream, UintDot_4, arr[0], arr[1], arr[2], arr[3]);
 }
 
-void handleViewMeasurement(){
+int8_t handleViewMeasurement(){
 	uint8_t socket = stream_get_sock();
 	data_request[socket] = (!data_request[socket]);
+  return 1;
 }
 
-void handleInterval(){
+int8_t handleInterval(){
   int16_t paramsCount=0;
 	uint32_t interval_tmp;
-  paramsCount = fscanf(&sock_stream, "%lu", &interval_tmp);
+  paramsCount = fscanf_P(&sock_stream, ULong, &interval_tmp);
 	if(paramsCount == 1){
 		measure_interval = interval_tmp*1000;
-		fprintf(&sock_stream, "OK\n");
 	}
-  fprintf(&sock_stream, "interval: %lu\n", measure_interval/1000);
+  fprintf_P(&sock_stream, Colon);
+  fprintf_P(&sock_stream, ULong, measure_interval/1000);
+  return 1;
 }
 
 void send_result(struct dummy_packet * packets){
@@ -93,8 +107,10 @@ void send_result(struct dummy_packet * packets){
   fprintf(&sock_stream,  "\n");
 }
 
-void handleDoMeasurement(){
-	printf("handler do measure\n\r");
+int8_t handleDoMeasurement(){
+#ifdef DEBUG
+	printf("handle do measure\n\r");
+#endif
   twi_start_measurement(0);
 	uint8_t iaddr;
 	uint8_t addr;
@@ -108,148 +124,169 @@ void handleDoMeasurement(){
       send_result(received);
     }
   }
-
-
+  return 1;
 }
 
-void handleScan_access(void){
+void accessScan(void){
 	// FIXME: socket number is hardcoded here
 	uint8_t sock = 0;
 	uint8_t i;
 	num_boards = twi_scan(scanresults, 20);
   fprintf(&sock_stream, "found boards");
+#ifdef DEBUG
 	printf("found boards: ");
+#endif
 	for (i=0;i<num_boards;i++){
-		printf("%u", scanresults[i]);
 		uint8_t t;
     fprintf(&sock_stream, " %u", scanresults[i]);
+#ifdef DEBUG
+		printf(" %u", scanresults[i]);
+#endif
 	}
-	printf("\n\r");
   fprintf(&sock_stream,  "\n");
+#ifdef DEBUG
+	printf("\n\r");
+#endif
+  sock_stream_flush();
 }
 
-void handleScan(){
-	//printf("sc\n\r");
-	twi_access_fun = handleScan_access;
+int8_t handleScan(){
+#ifdef DEBUG
+	printf("handle scan\n\r");
+#endif
+	twi_access_fun = accessScan;
 	ui_state = UI_TWILOCK;
+  return 1;
 }
 
-void handleTwiaddr_access(void){
-  uint8_t synerr = 1;
-	uint8_t old_addr, new_addr;
-	if(fscanf(&sock_stream, "%u.%u", &old_addr, &new_addr) ==2){
+void accessTwiaddr(void){
+  int8_t success = 0;
+	uint16_t old_addr, new_addr;
+	if(fscanf(&sock_stream, "%u>%u", &old_addr, &new_addr) ==2){
 		printf("par %u, %u", old_addr, new_addr);
 		//if(buff[4]=='g'){
-		synerr = 0;
+		success = 1;
 		if(twi_set_address(old_addr, new_addr)){
 			fprintf(&sock_stream, "success\n");
 		}else{
 			fprintf(&sock_stream, "failed\n");
 		}
 	}
-  if (synerr){
-    fprintf(&sock_stream, "Usage: twiaddr <old>%S", Addr);
-  }
 }
 
-void handleTwiaddr(){
+int8_t handleTwiaddr(){
 	//twi_access_fun = handleTwiaddr_access;
 	//ui_state = UI_TWILOCK;
-  uint8_t synerr = 1;
-	uint8_t old_addr;
-	uint8_t new_addr;
+  int8_t success = 0;
+	uint16_t old_addr=1;
+	uint16_t new_addr=1;
   int16_t paramsCount=0;
-  paramsCount = fscanf(&sock_stream, "%u.%u", &old_addr, &new_addr);
+  paramsCount = fscanf_P(&sock_stream, UintArrow_2, &old_addr, &new_addr);
 	if(paramsCount == 2){
-		printf("par %u, %u", old_addr, new_addr);
+#ifdef DEBUG
+		printf("change twi addr %u to %u\n\r", old_addr, new_addr);
+#endif
 		//if(buff[4]=='g'){
-		synerr = 0;
+		success = 1;
 		//if(twi_set_address(old_addr, new_addr)){
 		//	fprintf(&sock_stream, "success\n");
 		//}else{
 		//	fprintf(&sock_stream, "failed\n");
 		//}
 	}
-  if (synerr){
-    fprintf(&sock_stream, "Usage: twiaddr <old>%S", Addr);
-  }
+  return success;
 }
 
 
-void handleIp(){
+int8_t handleIp(){
   int8_t index;
   int16_t paramsCount=0;
-  uint8_t ipTMP[4];
-  fprintf(&sock_stream, "ip: ");
-  paramsCount = fscanf(&sock_stream, "%u.%u.%u.%u/%u", ipTMP, ipTMP+1, ipTMP+2, ipTMP+3, &(cfg.subnet));
+  uint16_t ipTMP[4];
+  paramsCount = fscanf_P(&sock_stream, UintDot_4Slash, ipTMP, ipTMP+1, ipTMP+2, ipTMP+3, &(cfg.subnet));
   if(paramsCount==5){
     for(index=0; index<4; index++){
-      cfg.ip[index] = ipTMP[index];
+      cfg.ip[index] = (uint8_t)ipTMP[index];
     }
+  } else if(paramsCount>=0){
+    // not success by parsing
+    return 0;
   }
-  print4dotarr(&sock_stream, cfg.ip);
-  fprintf(&sock_stream, "/%d", cfg.subnet);
-  if(paramsCount!=5){
-    fprintf(&sock_stream, "%S", UpdateOption);
-  }else{
-    fprintf(&sock_stream, "%S", IfUpdate);
+  fprintf_P(&sock_stream, Colon);
+  fprintf_P(&sock_stream, UintDot_4Slash, cfg.ip, cfg.ip+1, cfg.ip+2, cfg.ip+3, cfg.subnet);
+  if(paramsCount==5){
+    fprintf_P(&sock_stream, UpdateOption);
   }
+  return 1;
 }
 
-void handleGw(){
+int8_t handleGw(){
   int8_t index;
   int16_t paramsCount=0;
-  uint8_t gwTMP[4];
-  fprintf(&sock_stream, "gw: ");
-  paramsCount = fscanf(&sock_stream, "%u.%u.%u.%u", gwTMP, gwTMP+1, gwTMP+2, gwTMP+3);
+  uint16_t gwTMP[4];
+  paramsCount = fscanf_P(&sock_stream, UintDot_4, gwTMP, gwTMP+1, gwTMP+2, gwTMP+3);
   if(paramsCount == 4){
     for(index=0; index<4; index++){
-      cfg.gw[index] = gwTMP[index];
+      cfg.gw[index] = (uint8_t)gwTMP[index];
+    } 
+  } else if(paramsCount >= 0){
+      // not success by parsing
+      return 0;
     }
-  }
+  fprintf_P(&sock_stream, Colon);
   print4dotarr(&sock_stream, cfg.gw);
-  if(paramsCount!=4){
-    fprintf(&sock_stream, "%S", UpdateOption);
-  }else{
-    fprintf(&sock_stream, "%S", IfUpdate);
+  if(paramsCount==4){
+    fprintf_P(&sock_stream, UpdateOption);
   }
+  return 1;
 }
 
-void handleMac(){
+int8_t handleMac(){
   int8_t index;
   int16_t paramsCount=0;
-  uint8_t macTMP[6];
-  fprintf(&sock_stream, "mac: ");
-  paramsCount = fscanf(&sock_stream, "%x:%x:%x:%x:%x:%x", macTMP, macTMP+1, macTMP+2, macTMP+3, macTMP+4, macTMP+5);
+  uint16_t macTMP[6];
+  paramsCount = fscanf_P(&sock_stream, UintColon_6, macTMP, macTMP+1, macTMP+2, macTMP+3, macTMP+4, macTMP+5);
   if(paramsCount == 6){
-    for(index=0; index<4; index++){
-      cfg.mac[index] = macTMP[index];
+    for(index=0; index<6; index++){
+      cfg.mac[index] = (uint8_t)macTMP[index];
     }
+  }else if(paramsCount > 0){
+    // not success by parsing
+    return 0;
   }
-  fprintf(&sock_stream, "%d:%d:%d:%d:%d:%d", cfg.mac[0], cfg.mac[1], cfg.mac[2], cfg.mac[3], cfg.mac[4], cfg.mac[5]);
-  if(paramsCount!=6){
-    fprintf(&sock_stream, "%S", UpdateOption);
-  }else{
-    fprintf(&sock_stream, "%S", IfUpdate);
+  fprintf_P(&sock_stream, Colon);
+  fprintf_P(&sock_stream, UintColon_6, cfg.mac[0], cfg.mac[1], cfg.mac[2], cfg.mac[3], cfg.mac[4], cfg.mac[5]);
+  if(paramsCount==6){
+    fprintf_P(&sock_stream, UpdateOption);
   }
+  return 1;
 }
 
-void handlePort(){
-  fprintf(&sock_stream, "port: ");
-  if(fscanf(&sock_stream, "%u", &(cfg.port))==1){
-    fprintf(&sock_stream, "%S", UpdateOption);
-  }else{
-    fprintf(&sock_stream, "%S", IfUpdate);
+int8_t handlePort(){
+  int16_t paramsCount=fscanf_P(&sock_stream, Uint, &(cfg.port));
+
+  if(paramsCount==1){
+    fprintf_P(&sock_stream, Colon);
+    fprintf_P(&sock_stream, Uint, cfg.port);
+    fprintf_P(&sock_stream, UpdateOption);
+    return 1;
   }
+  if(paramsCount < 0){
+    fprintf(&sock_stream, Uint, cfg.port);
+    return 1;
+  }
+  return 0;
 }
 
-void handleReset(){
+int8_t handleReset(){
   uint8_t index;
   // broadcast
+  fprintf_P(&sock_stream, PSTR("\n"));
   stream_set_sock(MAX_SERVER_SOCK_NUM); 
   fprintf(&sock_stream, "%S", WillReset);
   print4dotarr(&sock_stream, cfg.ip);
-  fprintf(&sock_stream, ":%d\n", cfg.port);
+  fprintf_P(&sock_stream, PSTR(" "));
+  fprintf_P(&sock_stream, Uint, cfg.port);
+  fprintf_P(&sock_stream, PSTR("\n"));
   sock_stream_flush();
 #ifdef EEPROM
   // TODO update eeprom
@@ -269,32 +306,40 @@ void handleReset(){
   beginService();
 }
 
-void handleIpDB(){
+int8_t handleIpDB(){
   int8_t index;
-  uint8_t ipTMP[4];
+  uint16_t ipTMP[4];
   int16_t paramsCount=0;
-  fprintf(&sock_stream, "db ip: ");
   paramsCount = fscanf(&sock_stream, "%u.%u.%u.%u/%u", ipTMP, ipTMP+1, ipTMP+2, ipTMP+3);
   if(paramsCount==4){
     for(index=0; index<4; index++){
-      cfg.ip_db[index] = ipTMP[index];
+      cfg.ip_db[index] = (uint8_t)ipTMP[index];
     }
+  }else if(paramsCount >= 0){
+    // not success by parsing
+    return 0;
   }
+  fprintf_P(&sock_stream, Colon);
   print4dotarr(&sock_stream, cfg.ip_db);
-  if(paramsCount!=4){
+  if(paramsCount==4){
     fprintf(&sock_stream, "%S", UpdateOption);
-  }else{
-    fprintf(&sock_stream, "%S", IfUpdate);
   }
 }
 
-void handlePortDB(){
-  fprintf(&sock_stream, "db port: ");
-  if(fscanf(&sock_stream, "%u", &(cfg.port_db))==1){
-    fprintf(&sock_stream, "%S", UpdateOption);
-  }else{
-    fprintf(&sock_stream, "%S", IfUpdate);
-  } 
+int8_t handlePortDB(){
+  int16_t paramsCount=fscanf_P(&sock_stream, Uint, &(cfg.port_db));
+
+  if(paramsCount==1){
+    fprintf_P(&sock_stream, Colon);
+    fprintf_P(&sock_stream, Uint, cfg.port);
+    fprintf_P(&sock_stream, UpdateOption);
+    return 1;
+  }
+  if(paramsCount < 0){
+    fprintf(&sock_stream, Uint, cfg.port);
+    return 1;
+  }
+  return 0;
 }
 
 inline void sendError(uint8_t sock){

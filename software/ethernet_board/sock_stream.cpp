@@ -11,7 +11,7 @@ char sockBuff[MAX_RESPONSE_LEN];
 int sock_stream_flush(){
   uint8_t index;
   if(sockBuffPointer > 0){
-    if (currSock < MAX_SERVER_SOCK_NUM){
+    if (currSock < MAX_SERVER_SOCK_NUM && W5100.readSnSR(currSock) == SnSR::ESTABLISHED){
       send(currSock, (uint8_t *)sockBuff, sockBuffPointer);
     } else {
       for(index= 0; index<MAX_SERVER_SOCK_NUM; index++){
