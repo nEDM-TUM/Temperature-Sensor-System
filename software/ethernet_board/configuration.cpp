@@ -178,9 +178,6 @@ void setupServer() {
   sock_stream_init();
   printf("Set up server\n\r");
   beginService();
-  //while(1){
-  //  serve();
-  //}
 }
 
 

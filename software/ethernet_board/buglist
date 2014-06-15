@@ -8,4 +8,26 @@ Analysis:
 	-> it was a deadlock, which happened when 0 boards were connected.
 	-> after fixing the deadlock, i could not reproduce a problem
 	   when randomly unplugging boards.
+-> marked fixed
+
+---
+
+ERROR is displayed, when connecting humidity board.
+-> this seems to be an error in collector board chescksum validation
+
+---
+
+Feature request:
+	command for led control via netcat user interface
+  -> would allow easy tracking of boards:
+	"what is board with address xxx"
+
+---
+
+Sending to couch db
+Open Questions:
+	- What do we send to DB?
+	  -> only valid packets?
+		-> one document for each sensor?
+
 
