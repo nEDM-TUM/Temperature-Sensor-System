@@ -34,7 +34,7 @@ uint8_t twi_receive_data(uint8_t address, uint8_t * buffer, uint8_t len);
 uint8_t twi_try_receive_data(uint8_t address, uint8_t * buffer, uint8_t len, uint8_t state);
 uint8_t twi_scan(uint8_t * result, uint8_t max_results);
 uint8_t twi_set_address(uint8_t addr, uint8_t new_addr);
-uint8_t twi_set_led(uint8_t on, uint8_t num);
+uint8_t twi_set_led(uint8_t addr, uint8_t on, uint8_t num);
 
 
 #ifdef __cplusplus
