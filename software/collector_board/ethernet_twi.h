@@ -10,9 +10,13 @@
 #define WAIT_ADDRESS 2
 #define START_MEASUREMENT 4
 #define ADDR_FIN 5
+#define WAIT_LED_ON 6
+#define WAIT_LED_OFF 7
 
 #define CMD_START_MEASUREMENT 1
 #define CMD_SET_ADDRESS 2
+#define CMD_LED_ON 3
+#define CMD_LED_OFF 4
 
 uint8_t bufferpointer;
 uint8_t * end_of_transmit;

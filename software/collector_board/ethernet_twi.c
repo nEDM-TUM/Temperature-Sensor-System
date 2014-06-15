@@ -76,6 +76,16 @@ void twi_handle(){
 								TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
 								cstate = WAIT_ADDRESS;
 								break;
+							case CMD_LED_ON:
+								// Data byte will be received and ACK will be returned
+								TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+								cstate = WAIT_LED_ON;
+								break;
+							case CMD_LED_OFF:
+								// Data byte will be received and ACK will be returned
+								TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+								cstate = WAIT_LED_OFF;
+								break;
 							default:
 								// Data byte will be received and NOT ACK will be returned
 								TWCR = (1<<TWEN) | (1<<TWINT);
@@ -84,9 +94,50 @@ void twi_handle(){
 						}
 						break;
 
+					case WAIT_LED_ON:
+						switch (TWDR){
+							case 1:
+								LED1_PORT |= (1<<LED1);
+								break;
+							case 2:
+								LED2_PORT |= (1<<LED2);
+								break;
+							case 3:
+								LED3_PORT |= (1<<LED3);
+								break;
+							case 4:
+								LED4_PORT |= (1<<LED4);
+								break;
+							default:
+								break;
+						}
+						// we stay in WAIT_LED_ON state here, to allow more led arguments to arrive
+						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+						break;
+
+					case WAIT_LED_OFF:
+						switch (TWDR){
+							case 1:
+								LED1_PORT &= ~(1<<LED1);
+								break;
+							case 2:
+								LED2_PORT &= ~(1<<LED2);
+								break;
+							case 3:
+								LED3_PORT &= ~(1<<LED3);
+								break;
+							case 4:
+								LED4_PORT &= ~(1<<LED4);
+								break;
+							default:
+								break;
+						}
+						// we stay in WAIT_LED_ON state here, to allow more led arguments to arrive
+						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
+						break;
+
 					case WAIT_ADDRESS:
 						// Data byte will be received and NOT ACK will be returned
-						LED2_PORT ^= (1<<LED2);
             cfg.twi_addr = TWDR;
 						TWCR = (1<<TWEN) | (1<<TWINT);
             cstate = ADDR_FIN;
@@ -116,7 +167,6 @@ void twi_handle(){
 				break;
 
 			case 0xa0:
-				LED1_PORT ^= (1<<LED1);
 				// A STOP condition or repeated
 				// START condition has been
 				// received while still addressed as
@@ -138,9 +188,7 @@ void twi_handle(){
 						break;
           case ADDR_FIN:
 						// Switched to the not addressed Slave mode; own SLA will be recognized;
-						LED3_PORT ^= (1<<LED3);
 						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
-            LED1_PORT ^= (1<<LED1);
             config_write(&cfg);
             twi_init(cfg.twi_addr);
             cstate = IDLE;

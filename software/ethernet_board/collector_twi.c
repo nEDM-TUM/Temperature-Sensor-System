@@ -236,7 +236,7 @@ uint8_t twi_set_address(uint8_t addr, uint8_t new_addr){
   if(TWSR == 0x28){
 		// Data byte has been transmitted;
 		// ACK has been received
-		_delay_ms(5);
+		//_delay_ms(5);
 		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
     return 1;
   }else{
@@ -244,6 +244,34 @@ uint8_t twi_set_address(uint8_t addr, uint8_t new_addr){
 		printf("new addr not successful\n\r");
     return 0;
   }
+}
+
+uint8_t twi_set_led(uint8_t addr, uint8_t on, uint8_t num){
+	uint8_t cmd;
+	if(on){
+		cmd = CMD_LED_ON;
+	}else{
+		cmd = CMD_LED_OFF;
+	}
+  if(!twi_send_cmd(addr, cmd)){
+		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
+		printf("cmd not successful\n\r");
+    return 0;
+  }
+  TWDR = num;
+	TWCR = (1<<TWINT) | (1<<TWEN);
+	twi_wait_timeout(5);
+  if(TWSR == 0x28){
+		// Data byte has been transmitted;
+		// ACK has been received
+		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
+    return 1;
+  }else{
+		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
+		printf("new addr not successful\n\r");
+    return 0;
+  }
+
 }
 
 uint8_t twi_start_measurement(uint8_t addr){
