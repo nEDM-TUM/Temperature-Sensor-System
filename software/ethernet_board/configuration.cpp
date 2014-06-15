@@ -178,6 +178,9 @@ void ui_loop(){
 				// we again accept commands
 				ui_state = UI_READY;
 				twi_free_bus();
+
+				// handle other already existing commands in the buffer
+				handleCMD(stream_get_sock());
 			}
 			break;
 	}
