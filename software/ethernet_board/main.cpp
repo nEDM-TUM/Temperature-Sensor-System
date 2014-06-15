@@ -49,6 +49,7 @@ void loop2(){
 				printf("start!\n\r");
 				if(twi_try_lock_bus()){
 					time_last_measurement = current_time;
+					num_boards = twi_scan(scanresults, 20);
 					twi_start_measurement(0x00);
 					loop_current_board = 0;
 					if(loop_current_board < num_boards){
@@ -60,6 +61,8 @@ void loop2(){
 						}else{
 							twi_free_bus();
 						}
+					}else{
+						twi_free_bus();
 					}
 				}
 			}

@@ -62,6 +62,120 @@ void handleInterval(){
   fprintf(&sock_stream, "interval: %lu\n", measure_interval/1000);
 }
 
+void send_result(struct dummy_packet * packets){
+  char buffer[10];
+	uint8_t s;
+	int16_t temp;
+  for (s=0;s<8;s++){
+    fprintf(&sock_stream, " | P%u: ", s+1);
+    if(packets[s].header.error && packets[s].header.connected){
+      fprintf(&sock_stream, " ERROR ");
+    }
+    if(packets[s].header.connected){
+      switch(packets[s].header.type){
+        case PACKET_TYPE_TSIC:
+          temp =  ((struct tsic_packet *)(packets) )[s].temperature;
+          fprintf(&sock_stream, "T = %d.%02d", temp/100, temp%100);
+          //printf(" T = %d", ( (struct tsic_packet *)(packets) )[s].temperature);
+          break;
+        case PACKET_TYPE_HYT:
+          fprintf(&sock_stream, "T = %d", ( (struct hyt_packet *)(packets) )[s].temperature);
+          fprintf(&sock_stream, " H = %d", ( (struct hyt_packet *)(packets) )[s].humidity);
+          break;
+        default:
+          fprintf(&sock_stream, "---?---");
+          break;
+      }
+    }else{
+      fprintf(&sock_stream,  "---nc---");
+    }
+  }
+  fprintf(&sock_stream,  "\n");
+}
+
+void handleDoMeasurement(){
+	printf("handler do measure\n\r");
+  twi_start_measurement(0);
+	uint8_t iaddr;
+	uint8_t addr;
+  uint8_t state;
+  struct dummy_packet received[8];
+	for (iaddr=0;iaddr<num_boards;iaddr++){
+		addr = scanresults[iaddr];
+		//printf("# %u # ", addr);
+		state = twi_receive_data(addr, ((uint8_t*)received),8*sizeof(struct dummy_packet));
+    if (state){
+      send_result(received);
+    }
+  }
+
+
+}
+
+void handleScan_access(void){
+	// FIXME: socket number is hardcoded here
+	uint8_t sock = 0;
+	uint8_t i;
+	num_boards = twi_scan(scanresults, 20);
+  fprintf(&sock_stream, "found boards");
+	printf("found boards: ");
+	for (i=0;i<num_boards;i++){
+		printf("%u", scanresults[i]);
+		uint8_t t;
+    fprintf(&sock_stream, " %u", scanresults[i]);
+	}
+	printf("\n\r");
+  fprintf(&sock_stream,  "\n");
+}
+
+void handleScan(){
+	//printf("sc\n\r");
+	twi_access_fun = handleScan_access;
+	ui_state = UI_TWILOCK;
+}
+
+void handleTwiaddr_access(void){
+  uint8_t synerr = 1;
+	uint8_t old_addr, new_addr;
+	if(fscanf(&sock_stream, "%u.%u", &old_addr, &new_addr) ==2){
+		printf("par %u, %u", old_addr, new_addr);
+		//if(buff[4]=='g'){
+		synerr = 0;
+		if(twi_set_address(old_addr, new_addr)){
+			fprintf(&sock_stream, "success\n");
+		}else{
+			fprintf(&sock_stream, "failed\n");
+		}
+	}
+  if (synerr){
+    fprintf(&sock_stream, "Usage: twiaddr <old>%S", Addr);
+  }
+}
+
+void handleTwiaddr(){
+	//twi_access_fun = handleTwiaddr_access;
+	//ui_state = UI_TWILOCK;
+  uint8_t synerr = 1;
+	uint8_t old_addr;
+	uint8_t new_addr;
+  int16_t paramsCount=0;
+  paramsCount = fscanf(&sock_stream, "%u.%u", &old_addr, &new_addr);
+	if(paramsCount == 2){
+		printf("par %u, %u", old_addr, new_addr);
+		//if(buff[4]=='g'){
+		synerr = 0;
+		//if(twi_set_address(old_addr, new_addr)){
+		//	fprintf(&sock_stream, "success\n");
+		//}else{
+		//	fprintf(&sock_stream, "failed\n");
+		//}
+	}
+  if (synerr){
+    fprintf(&sock_stream, "Usage: twiaddr <old>%S", Addr);
+  }
+}
+
+
 void handleIp(){
   int8_t index;
   int16_t paramsCount=0;
@@ -181,96 +295,6 @@ void handlePortDB(){
   }else{
     fprintf(&sock_stream, "%S", IfUpdate);
   } 
-}
-
-void send_result(struct dummy_packet * packets){
-  char buffer[10];
-	uint8_t s;
-	int16_t temp;
-  for (s=0;s<8;s++){
-    fprintf(&sock_stream, " | P%u: ", s+1);
-    if(packets[s].header.error && packets[s].header.connected){
-      fprintf(&sock_stream, " ERROR ");
-    }
-    if(packets[s].header.connected){
-      switch(packets[s].header.type){
-        case PACKET_TYPE_TSIC:
-          temp =  ((struct tsic_packet *)(packets) )[s].temperature;
-          fprintf(&sock_stream, "T = %d.%02d", temp/100, temp%100);
-          //printf(" T = %d", ( (struct tsic_packet *)(packets) )[s].temperature);
-          break;
-        case PACKET_TYPE_HYT:
-          fprintf(&sock_stream, "T = %d", ( (struct hyt_packet *)(packets) )[s].temperature);
-          fprintf(&sock_stream, " H = %d", ( (struct hyt_packet *)(packets) )[s].humidity);
-          break;
-        default:
-          fprintf(&sock_stream, "---?---");
-          break;
-      }
-    }else{
-      fprintf(&sock_stream,  "---nc---");
-    }
-  }
-  fprintf(&sock_stream,  "\n");
-}
-
-void handleDoMeasurement(){
-	printf("handler do measure\n\r");
-  twi_start_measurement(0);
-	uint8_t iaddr;
-	uint8_t addr;
-  uint8_t state;
-  struct dummy_packet received[8];
-	for (iaddr=0;iaddr<num_boards;iaddr++){
-		addr = scanresults[iaddr];
-		//printf("# %u # ", addr);
-		state = twi_receive_data(addr, ((uint8_t*)received),8*sizeof(struct dummy_packet));
-    if (state){
-      send_result(received);
-    }
-  }
-
-
-}
-
-void handleScan_access(void){
-	// FIXME: socket number is hardcoded here
-	uint8_t sock = 0;
-	uint8_t i;
-	num_boards = twi_scan(scanresults, 20);
-  fprintf(&sock_stream, "found boards");
-	printf("found boards: ");
-	for (i=0;i<num_boards;i++){
-		printf("%u", scanresults[i]);
-		uint8_t t;
-    fprintf(&sock_stream, " %u", scanresults[i]);
-	}
-	printf("\n\r");
-  fprintf(&sock_stream,  "\n");
-}
-
-void handleScan(){
-	//printf("sc\n\r");
-	twi_access_fun = handleScan_access;
-	ui_state = UI_TWILOCK;
-}
-
-void handleTwiaddr(){
-  uint8_t synerr = 1;
-  uint8_t old_addr, new_addr;
-  if(fscanf(&sock_stream, "%u %u", &old_addr, &new_addr) ==2){
-    printf("par %u, %u", old_addr, new_addr);
-    //if(buff[4]=='g'){
-    synerr = 0;
-    if(twi_set_address(old_addr, new_addr)){
-      fprintf(&sock_stream, "success\n");
-    }else{
-      fprintf(&sock_stream, "failed\n");
-    }
-  }
-  if (synerr){
-    fprintf(&sock_stream, "Usage: twiaddr <old>%S", Addr);
-  }
 }
 
 inline void sendError(uint8_t sock){

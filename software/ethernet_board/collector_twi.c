@@ -98,7 +98,11 @@ uint8_t twi_scan(uint8_t * result, uint8_t max_results){
 			
 			TWDR = (i<<1);
 			TWCR = (1<<TWINT) | (1<<TWEN);
-			twi_wait_timeout(5);
+			if(!twi_wait_timeout(2)){
+				// if timeout happens, someone is blocking the bus
+				// we immediately give up.
+				return 0;
+			}
 			if(TWSR == 0x18){
 				result[n] = i;
 				n++;
