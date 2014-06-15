@@ -14,5 +14,5 @@ struct cmd{
 };
 
 
-void handleCMD(uint8_t sock);
+uint8_t handleCMD(uint8_t sock);
 #endif
