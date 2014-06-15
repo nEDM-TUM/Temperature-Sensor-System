@@ -1,4 +1,4 @@
-#include "config.h"
+#include "eeprom_storage.h"
 #include <avr/eeprom.h>
 #include <string.h>
 #include <inttypes.h>

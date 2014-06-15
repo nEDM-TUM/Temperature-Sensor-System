@@ -11,7 +11,6 @@
 #include "sock_stream.h"
 #include <Ethernet.h>
 #include "w5100.h"
-#include "collector_twi.h"
 // set debug mode
 // #define DEBUG
 
@@ -34,15 +33,12 @@ uint8_t closedSock = MAX_SERVER_SOCK_NUM;
 uint8_t data_request[MAX_SERVER_SOCK_NUM] = {0};
 uint32_t measure_interval = 1000;
 
-char cmdBuff[MAX_CMD_LEN];
 char receiveBuff[MAX_SERVER_SOCK_NUM][MAX_CMD_LEN];
 uint8_t receiveBuffPointer[MAX_SERVER_SOCK_NUM] = {0}; // Point to a byte, which will be written
 
 void send_result(struct dummy_packet * packets);
 void (*twi_access_fun)();
 
-#define UI_READY 0
-#define UI_TWILOCK 1
 uint8_t ui_state = UI_READY;
 
 
