@@ -45,6 +45,7 @@ struct cmd cmds[]={
   {"m", handleDoMeasurement, NULL},
   {"v", handleViewMeasurement, NULL},
   {"i", handleInterval, ULong},
+  // XXX the help handler should be always at the end
   {"help", handleHelp, NULL}
 };
 
@@ -54,6 +55,7 @@ const char Colon[] PROGMEM = ": ";
 
 const char UpdateOption[] PROGMEM = "\nupdate option:\n\treset";
 const char WillReset[] PROGMEM = "The ethernet service will be reset, the future login is ";
+const char CmdNotFound[] PROGMEM = "cmd not found! type 'help' to view options";
 
 char cmdBuff[MAX_CMD_LEN];
 
@@ -73,6 +75,7 @@ int8_t handleInterval(){
   paramsCount = fscanf_P(&sock_stream, ULong, &interval_tmp);
 	if(paramsCount == 1){
 		measure_interval = interval_tmp*1000;
+    fputs_P(New, &sock_stream);
 	}
   fputs_P(Colon, &sock_stream);
   fprintf_P(&sock_stream, ULong, measure_interval/1000);
@@ -206,10 +209,12 @@ int8_t handleIp(){
   int16_t paramsCount=0;
   uint16_t ipTMP[4];
   paramsCount = fscanf_P(&sock_stream, UintDot_4Slash, ipTMP, ipTMP+1, ipTMP+2, ipTMP+3, &(cfg.subnet));
+  fprintf_P(&sock_stream, PSTR("TEST %d TEST\n"), paramsCount);
   if(paramsCount==5){
     for(index=0; index<4; index++){
       cfg.ip[index] = (uint8_t)ipTMP[index];
     }
+    fputs_P(New, &sock_stream);
   } else if(paramsCount>=0){
     // not success by parsing
     return 0;
@@ -231,6 +236,7 @@ int8_t handleGw(){
     for(index=0; index<4; index++){
       cfg.gw[index] = (uint8_t)gwTMP[index];
     } 
+    fputs_P(New, &sock_stream);
   } else if(paramsCount >= 0){
       // not success by parsing
       return 0;
@@ -252,6 +258,7 @@ int8_t handleMac(){
     for(index=0; index<6; index++){
       cfg.mac[index] = (uint8_t)macTMP[index];
     }
+    fputs_P(New, &sock_stream);
   }else if(paramsCount > 0){
     // not success by parsing
     return 0;
@@ -268,12 +275,14 @@ int8_t handlePort(){
   int16_t paramsCount=fscanf_P(&sock_stream, Uint, &(cfg.port));
 
   if(paramsCount==1){
+    fputs_P(New, &sock_stream);
     fputs_P(Colon, &sock_stream);
     fprintf_P(&sock_stream, Uint, cfg.port);
     fputs_P(UpdateOption, &sock_stream);
     return 1;
   }
   if(paramsCount < 0){
+    fputs_P(Colon, &sock_stream);
     fprintf(&sock_stream, Uint, cfg.port);
     return 1;
   }
@@ -318,6 +327,7 @@ int8_t handleIpDB(){
     for(index=0; index<4; index++){
       cfg.ip_db[index] = (uint8_t)ipTMP[index];
     }
+    fputs_P(New, &sock_stream);
   }else if(paramsCount >= 0){
     // not success by parsing
     return 0;
@@ -334,12 +344,14 @@ int8_t handlePortDB(){
   int16_t paramsCount=fscanf_P(&sock_stream, Uint, &(cfg.port_db));
 
   if(paramsCount==1){
+    fputs_P(New, &sock_stream);
     fputs_P(Colon, &sock_stream);
     fprintf_P(&sock_stream, Uint, cfg.port);
     fputs_P(UpdateOption, &sock_stream);
     return 1;
   }
   if(paramsCount < 0){
+    fputs_P(Colon, &sock_stream);
     fprintf(&sock_stream, Uint, cfg.port);
     return 1;
   }
@@ -374,7 +386,11 @@ void printOption(struct cmd cmd){
 }
 
 int8_t handleHelp(){
-  fprintf(&sock_stream, "Usage: TODO\n");
+  int8_t index;
+  for(index= 0; index<DEFINED_CMD_COUNT - 1; index++){
+    fputs_P(Usage, &sock_stream);
+    printOption(cmds[index]);
+  }
   return 1;
 }
 
@@ -397,6 +413,8 @@ void execCMD(uint8_t sock, char * buff){
       return;
     }
   }
+  fputs_P(CmdNotFound, &sock_stream);
+  sock_stream_flush();
 }
 
 void handleCMD(uint8_t sock){
