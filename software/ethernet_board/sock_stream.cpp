@@ -46,19 +46,10 @@ uint8_t stream_get_sock(){
 }
 
 void stream_set_sock(uint8_t sock){
-  int8_t flag=1;
   uint8_t b;  
   if( sock== currSock ){
     return;
   }
-  while(W5100.getRXReceivedSize(currSock) && recv(currSock, &b, 1) >0){
-    if(flag){
-      //FIXME
-      fprintf(&sock_stream, "State Error, get %c %u\n", b, b);
-      flag=0;
-    }
-  }
-  sock_stream_flush();
   currSock = sock;
 }
 

@@ -20,18 +20,20 @@ int8_t handleDoMeasurement();
 int8_t handleScan();
 int8_t handleViewMeasurement();
 int8_t handleInterval();
+int8_t handleLED();
 int8_t handleHelp();
 
 // parameter format string in progmem
 const char Uint[] PROGMEM = "%u";
-const char ULong[] PROGMEM = "%ul";
+const char ULong[] PROGMEM = "%lu";
+const char Uint_2_Char[] PROGMEM = "%u %u %c";
 const char UintArrow_2[] PROGMEM = "%u > %u";
 const char UintDot_4[] PROGMEM = "%u.%u.%u.%u";
 const char UintDot_4Slash[] PROGMEM = "%u.%u.%u.%u/%u";
 const char HexColon_6[] PROGMEM = "%x:%x:%x:%x:%x:%x";
 
 // XXX cmdLen should be always the length of the registered cmd array below! 
-#define DEFINED_CMD_COUNT 13
+#define DEFINED_CMD_COUNT 14
 struct cmd cmds[]={
   {"ip", handleIp, UintDot_4Slash},
   {"port", handlePort, Uint},
@@ -46,6 +48,7 @@ struct cmd cmds[]={
   {"v", handleViewMeasurement, NULL},
   {"i", handleInterval, ULong},
   // XXX the help handler should be always at the end
+  {"led", handleLED, Uint_2_Char},
   {"help", handleHelp, NULL}
 };
 
@@ -161,6 +164,31 @@ int8_t handleScan(){
 	printf("handle scan\n\r");
 #endif
 	twi_access_fun = accessScan;
+	ui_state = UI_TWILOCK;
+  return 1;
+}
+
+void accessLED(void){
+	char onoff;
+	uint16_t addr;
+	uint16_t lednum;
+  uint8_t paramsCount = fscanf_P(&sock_stream, Uint_2_Char, &addr, &lednum, &onoff);
+	if(paramsCount == 3){
+		if(twi_set_led(addr, onoff=='1', lednum)){
+			fprintf(&sock_stream, "success\n");
+		}else{
+			fprintf(&sock_stream, "failed\n");
+		}
+	}else{
+		fprintf(&sock_stream, "led <addr> <num> <1|0>\n");
+	}
+}
+
+int8_t handleLED(){
+#ifdef DEBUG
+	printf("handle scan\n\r");
+#endif
+	twi_access_fun = accessLED;
 	ui_state = UI_TWILOCK;
   return 1;
 }
