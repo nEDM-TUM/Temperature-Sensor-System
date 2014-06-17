@@ -190,7 +190,8 @@ int8_t handleLED(){
 #endif
 	twi_access_fun = accessLED;
 	ui_state = UI_TWILOCK;
-  return 1;
+	// FIXME: replace 2 with macro
+  return 2;
 }
 
 void accessTwiaddr(void){
@@ -422,7 +423,7 @@ int8_t handleHelp(){
   return 1;
 }
 
-void execCMD(uint8_t sock, char * buff){
+uint8_t execCMD(uint8_t sock, char * buff){
   int8_t index;
   // TODO some prefix
   struct cmd cmd;
@@ -431,37 +432,55 @@ void execCMD(uint8_t sock, char * buff){
     cmd = cmds[index];
     if(!(strcmp(buff, cmd.name))){
       fputs(cmd.name, &sock_stream);
-      if(!cmd.handle() && cmd.param_format!=NULL){
+			uint8_t handle_state = cmd.handle();
+      if(!handle_state && cmd.param_format!=NULL){
         fputs_P(PSTR(" "), &sock_stream);
         fputs_P(Usage, &sock_stream);
         printOption(cmd);
       }
       fputs_P(PSTR("\n"), &sock_stream);
       sock_stream_flush();
-      return;
+			if(handle_state == 2){
+				// FIXME: replace 2 with macro
+				return 2;
+			}else{
+				return 1;
+			}
     }
   }
   fputs_P(CmdNotFound, &sock_stream);
   sock_stream_flush();
 }
 
-void handleCMD(uint8_t sock){
+uint8_t handleCMD(uint8_t sock){
   uint8_t pointer=0;
   int16_t b;
   int8_t cmd_flag=1;
   stream_set_sock(sock); 
   while((b=fgetc(&sock_stream)) != EOF){
     if(b == ' ' || b == '\n' || b == ';'){
+			uint8_t cmd_success = 0;
       if(pointer>0){
         cmdBuff[pointer++] = '\0';
-        execCMD(sock, cmdBuff);
+        cmd_success = execCMD(sock, cmdBuff);
         cmd_flag = 0;
       }
       if(b == '\n' || b == ';'){
         cmd_flag=1;
       }
       pointer = 0;
-      continue;
+			if (cmd_success == 2){
+				// FIXME: replace 2 with macro
+				// we have to wait, and not eat the socket contents
+				// as we are waiting for the twi bus to become free, to
+				// continue processing the current command
+				//
+				// with the return value, we also notify server, to not
+				// handle any more sockets:
+				return 2;
+			}else{
+				continue;
+			}
     }
     if(pointer >= MAX_CMD_LEN){
       pointer = 0;
@@ -470,5 +489,6 @@ void handleCMD(uint8_t sock){
       cmdBuff[pointer++] = b;
     }
   }
+	return 1;
 }
 

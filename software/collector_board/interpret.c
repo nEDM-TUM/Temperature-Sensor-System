@@ -64,7 +64,7 @@ uint8_t interpret_generatePacket(uint8_t * data, uint8_t connected, uint8_t * bu
 		hyt->header.type = PACKET_TYPE_HYT;
 		hyt->header.reserved = 0;
 		hyt->header.connected = (connected != 0);
-		hyt->header.error = (checksum_computeCRC(data, 4, data[4]) == 0);
+		hyt->header.error = (checksum_computeCRC(data, 4, data[4]) != 0);
 		hyt->temperature = interpret_analyzeHYTtemp(data);
 		hyt->humidity = interpret_analyzeHYThum(data);
 		hyt->crc = checksum_computeCRC(buffer, 5, 0);

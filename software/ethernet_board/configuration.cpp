@@ -100,6 +100,7 @@ void dataAvailable(struct dummy_packet * received, uint8_t src_addr){
 			send_result(received);
 		}
 	}
+	sock_stream_flush();
 }
 
 void serve(){
@@ -125,7 +126,14 @@ void serve(){
         listeningSock = i;
         break;
       case SnSR::ESTABLISHED:
-        handleCMD(i);
+				uint8_t cmd_state;
+        cmd_state = handleCMD(i);
+				if(cmd_state == 2){
+					// FIXME: replace 2 with macro
+					// handleCMD requested, to not accept new commands,
+					// so we return here:
+					return;
+				}
         break;
       case SnSR::CLOSING:
         // TODO if readCMD??
@@ -166,9 +174,13 @@ void ui_loop(){
 				// now we have to do our access as fast as possible, as others might wait for bus access:
 				// call command handler, who waits for access to the bus:
 				twi_access_fun();
+				sock_stream_flush();
 				// we again accept commands
 				ui_state = UI_READY;
 				twi_free_bus();
+
+				// handle other already existing commands in the buffer
+				handleCMD(stream_get_sock());
 			}
 			break;
 	}

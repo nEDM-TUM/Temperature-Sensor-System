@@ -94,7 +94,7 @@ void twi_handle(){
 						}
 						break;
 
-					case WAIT_LED_ON:
+					case WAIT_LED_OFF:
 						switch (TWDR){
 							case 1:
 								LED1_PORT |= (1<<LED1);
@@ -115,7 +115,7 @@ void twi_handle(){
 						TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWINT);
 						break;
 
-					case WAIT_LED_OFF:
+					case WAIT_LED_ON:
 						switch (TWDR){
 							case 1:
 								LED1_PORT &= ~(1<<LED1);
