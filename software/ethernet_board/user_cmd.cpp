@@ -47,8 +47,8 @@ struct cmd cmds[]={
   {"m", handleDoMeasurement, NULL},
   {"v", handleViewMeasurement, NULL},
   {"i", handleInterval, ULong},
-  // XXX the help handler should be always at the end
   {"led", handleLED, Uint_2_Char},
+  // XXX the help handler should be always at the end
   {"help", handleHelp, NULL}
 };
 
