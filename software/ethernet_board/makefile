@@ -23,6 +23,10 @@ FORMAT = ihex
 PROJECT_PATH = .
 PROJECT_C_OBJS = usart.o collector_twi.o eeprom_storage.o
 PROJECT_CPP_OBJS = main.o configuration.o sock_stream.o user_cmd.o
+
+PROJECT_UTIL_PATH = ../util
+PROJECT_UTIL_C_OBJS = checksum.o
+
 #----------------------------------------------------------
 # Programmer settings
 AVRDUDE_PROGRAMMER = stk500v1
@@ -102,6 +106,7 @@ ARDUINO_CORE_LIBC_C_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ARDUINO_CORE_LIBC_C_OBJ
 ARDUINO_CORE_C_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ARDUINO_CORE_C_OBJS))
 ETHERNET_UTIL_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ETHERNET_UTIL_OBJS))
 ETHERNET_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(ETHERNET_OBJS))
+PROJECT_UTIL_C_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(PROJECT_UTIL_C_OBJS))
 PROJECT_C_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(PROJECT_C_OBJS))
 PROJECT_CPP_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(PROJECT_CPP_OBJS))
 
@@ -123,7 +128,7 @@ hex: $(TARGET).hex
 
 # link everything together:
 $(TARGET).elf: core ethernet spi project
-	$(CPP) $(CPP_FLAGS) $(SPI_OBJS_FIN) $(ARDUINO_CORE_C_OBJS_FIN) $(ARDUINO_CORE_OBJS_FIN) $(ETHERNET_OBJS_FIN) $(ETHERNET_UTIL_OBJS_FIN) $(PROJECT_C_OBJS_FIN) $(PROJECT_CPP_OBJS_FIN) -o $(TARGET).elf $(LDFLAGS)
+	$(CPP) $(CPP_FLAGS) $(SPI_OBJS_FIN) $(ARDUINO_CORE_C_OBJS_FIN) $(ARDUINO_CORE_OBJS_FIN) $(ETHERNET_OBJS_FIN) $(ETHERNET_UTIL_OBJS_FIN) $(PROJECT_C_OBJS_FIN) $(PROJECT_CPP_OBJS_FIN) $(PROJECT_UTIL_C_OBJS_FIN) -o $(TARGET).elf $(LDFLAGS)
 
 # convert elf to hex file for programmer:
 # exclude eeprom section, in case it exists
@@ -140,7 +145,7 @@ spi: $(SPI_OBJS_FIN)
 
 core: $(ARDUINO_CORE_OBJS_FIN) $(ARDUINO_CORE_C_OBJS_FIN) $(ARDUINO_CORE_LIBC_C_OBJS_FIN)
 
-project: $(PROJECT_CPP_OBJS_FIN) $(PROJECT_C_OBJS_FIN)
+project: $(PROJECT_CPP_OBJS_FIN) $(PROJECT_C_OBJS_FIN) $(PROJECT_UTIL_C_OBJS_FIN)
 
 # build arduino core
 $(ARDUINO_CORE_OBJS_FIN): %.o: 
@@ -163,6 +168,10 @@ $(ETHERNET_UTIL_OBJS_FIN): %.o:
 # build Project files
 $(PROJECT_CPP_OBJS_FIN): %.o: $(patsubst %.o,%.cpp,$(PROJECT_CPP_OBJS))
 	$(CPP) -c $(CPP_FLAGS) $(PROJECT_PATH)/$(subst $(BUILD_DIR)/,,$*).cpp -o $*.o
+
+# build Project util files #FIXME: no dependency here
+$(PROJECT_UTIL_C_OBJS_FIN): %.o:
+	$(CC) -c $(C_FLAGS) $(PROJECT_UTIL_PATH)/$(subst $(BUILD_DIR)/,,$*).c -o $*.o
 
 # build Project files
 $(PROJECT_C_OBJS_FIN): %.o: $(patsubst %.o,%.c,$(PROJECT_C_OBJS))

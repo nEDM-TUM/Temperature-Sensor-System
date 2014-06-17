@@ -2,6 +2,7 @@
 #include <util/delay.h>
 #include <avr/io.h>
 #include <stdio.h>
+#include "../util/checksum.h"
 
 uint8_t scanresults[20];
 uint8_t num_boards;
@@ -282,6 +283,20 @@ uint8_t twi_start_measurement(uint8_t addr){
 		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
     return 0;
   }
+}
+
+uint8_t twi_verify_checksums(struct dummy_packet * packet, uint8_t num){
+	uint8_t err = 0;
+	while(num>0){
+		if(checksum_computeCRC((uint8_t*)packet, 5, packet->crc) !=0){
+			(packet->header).error = 2;
+			err = 1;
+		}
+		packet++;
+		num--;
+	}
+	return err;
+
 }
 
 uint8_t twi_try_receive_data(uint8_t address, uint8_t * buffer, uint8_t len, uint8_t state){
