@@ -70,6 +70,7 @@ void loop2(){
 			switch (rcv_state){
 				case TWI_RCV_FIN:
 					printf("measurement finished\n\r");
+					twi_verify_checksums(received, 8);
 					dataAvailable(received, addr_current_board);
 					// switch to next board:
 					loop_current_board ++;

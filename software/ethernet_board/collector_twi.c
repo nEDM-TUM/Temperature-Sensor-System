@@ -3,7 +3,6 @@
 #include <avr/io.h>
 #include <stdio.h>
 #include "../util/checksum.h"
-#include "packet.h"
 
 uint8_t scanresults[20];
 uint8_t num_boards;
@@ -293,6 +292,8 @@ uint8_t twi_verify_checksums(struct dummy_packet * packet, uint8_t num){
 			(packet->header).error = 2;
 			err = 1;
 		}
+		packet++;
+		num--;
 	}
 	return err;
 
