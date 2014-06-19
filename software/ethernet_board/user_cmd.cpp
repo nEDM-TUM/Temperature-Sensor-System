@@ -47,8 +47,8 @@ struct cmd cmds[]={
   {"m", handleDoMeasurement, NULL},
   {"v", handleViewMeasurement, NULL},
   {"i", handleInterval, ULong},
-  // XXX the help handler should be always at the end
   {"led", handleLED, Uint_2_Char},
+  // XXX the help handler should be always at the end
   {"help", handleHelp, NULL}
 };
 
@@ -75,14 +75,16 @@ int8_t handleViewMeasurement(){
 int8_t handleInterval(){
   int16_t paramsCount=0;
 	uint32_t interval_tmp;
+  int8_t result = FAILED_PARAMS_PARSE;
   paramsCount = fscanf_P(&sock_stream, ULong, &interval_tmp);
 	if(paramsCount == 1){
 		measure_interval = interval_tmp*1000;
     fputs_P(New, &sock_stream);
+    result = SUCCESS_PARAMS_PARSE;
 	}
   fputs_P(Colon, &sock_stream);
   fprintf_P(&sock_stream, ULong, measure_interval/1000);
-  return 1;
+  return paramsCount;
 }
 
 void send_result(struct dummy_packet * packets){
@@ -133,7 +135,7 @@ int8_t handleDoMeasurement(){
       send_result(received);
     }
   }
-  return 1;
+  return NO_PARAMS_PARSE;
 }
 
 void accessScan(void){
@@ -191,7 +193,7 @@ int8_t handleLED(){
 	twi_access_fun = accessLED;
 	ui_state = UI_TWILOCK;
 	// FIXME: replace 2 with macro
-  return 2;
+  return SUSPEND;
 }
 
 void accessTwiaddr(void){
@@ -212,7 +214,7 @@ void accessTwiaddr(void){
 int8_t handleTwiaddr(){
 	//twi_access_fun = handleTwiaddr_access;
 	//ui_state = UI_TWILOCK;
-  int8_t success = 0;
+  int8_t result = FAILED_PARAMS_PARSE;
 	uint16_t old_addr=1;
 	uint16_t new_addr=1;
   int16_t paramsCount=0;
@@ -222,14 +224,15 @@ int8_t handleTwiaddr(){
 		printf("change twi addr %u to %u\n\r", old_addr, new_addr);
 #endif
 		//if(buff[4]=='g'){
-		success = 1;
+		result = SUCCESS_PARAMS_PARSE;
 		//if(twi_set_address(old_addr, new_addr)){
 		//	fprintf(&sock_stream, "success\n");
 		//}else{
 		//	fprintf(&sock_stream, "failed\n");
 		//}
 	}
-  return success;
+  return result;
+  //return SUSPEND;
 }
 
 
@@ -237,6 +240,7 @@ int8_t handleIp(){
   int8_t index;
   int16_t paramsCount=0;
   uint16_t ipTMP[4];
+  int8_t result = FAILED_PARAMS_PARSE;
   paramsCount = fscanf_P(&sock_stream, UintDot_4Slash, ipTMP, ipTMP+1, ipTMP+2, ipTMP+3, &(cfg.subnet));
   fprintf_P(&sock_stream, PSTR("TEST %d TEST\n"), paramsCount);
   if(paramsCount==5){
@@ -244,38 +248,35 @@ int8_t handleIp(){
       cfg.ip[index] = (uint8_t)ipTMP[index];
     }
     fputs_P(New, &sock_stream);
-  } else if(paramsCount>=0){
-    // not success by parsing
-    return 0;
   }
   fputs_P(Colon, &sock_stream);
   fprintf_P(&sock_stream, UintDot_4Slash, cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet);
   if(paramsCount==5){
     fprintf_P(&sock_stream, UpdateOption);
+    result = SUCCESS_PARAMS_PARSE;
   }
-  return 1;
+  return result;
 }
 
 int8_t handleGw(){
   int8_t index;
   int16_t paramsCount=0;
   uint16_t gwTMP[4];
+  int8_t result = FAILED_PARAMS_PARSE;
   paramsCount = fscanf_P(&sock_stream, UintDot_4, gwTMP, gwTMP+1, gwTMP+2, gwTMP+3);
   if(paramsCount == 4){
     for(index=0; index<4; index++){
       cfg.gw[index] = (uint8_t)gwTMP[index];
     } 
     fputs_P(New, &sock_stream);
-  } else if(paramsCount >= 0){
-      // not success by parsing
-      return 0;
-    }
+  }
   fputs_P(Colon, &sock_stream);
   print4dotarr(&sock_stream, cfg.gw);
   if(paramsCount==4){
     fprintf_P(&sock_stream, UpdateOption);
+    result = SUCCESS_PARAMS_PARSE;
   }
-  return 1;
+  return result;
 }
 
 int8_t handleMac(){
