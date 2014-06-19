@@ -27,7 +27,7 @@ int8_t handleHelp();
 const char Uint[] PROGMEM = "%u";
 const char ULong[] PROGMEM = "%lu";
 const char Uint_2_Char[] PROGMEM = "%u %u %c";
-const char UintArrow_2[] PROGMEM = "%u > %u";
+const char Uint_2[] PROGMEM = "%u %u";
 const char UintDot_4[] PROGMEM = "%u.%u.%u.%u";
 const char UintDot_4Slash[] PROGMEM = "%u.%u.%u.%u/%u";
 const char HexColon_6[] PROGMEM = "%x:%x:%x:%x:%x:%x";
@@ -42,7 +42,7 @@ struct cmd cmds[]={
   {"reset", handleReset, NULL},
   {"ip-db", handleIpDB, UintDot_4},
   {"port-db", handlePortDB, Uint},
-  {"twiaddr", handleTwiaddr, UintArrow_2},
+  {"twiaddr", handleTwiaddr, Uint_2},
   {"s", handleScan, NULL},
   {"m", handleDoMeasurement, NULL},
   {"v", handleViewMeasurement, NULL},
@@ -197,42 +197,31 @@ int8_t handleLED(){
 }
 
 void accessTwiaddr(void){
-  int8_t success = 0;
-	uint16_t old_addr, new_addr;
-	if(fscanf(&sock_stream, "%u>%u", &old_addr, &new_addr) ==2){
-		printf("par %u, %u", old_addr, new_addr);
-		//if(buff[4]=='g'){
-		success = 1;
+
+	uint16_t old_addr=1;
+	uint16_t new_addr=1;
+  int16_t paramsCount=0;
+  paramsCount = fscanf_P(&sock_stream, Uint_2, &old_addr, &new_addr);
+
+	if(paramsCount == 2){
+		if(new_addr < 8 || new_addr >=120 ){
+			fprintf(&sock_stream, "7<addr<120\n");
+			return;
+		}
 		if(twi_set_address(old_addr, new_addr)){
 			fprintf(&sock_stream, "success\n");
 		}else{
 			fprintf(&sock_stream, "failed\n");
 		}
+	}else{
+		fprintf(&sock_stream, "twiaddr <old> <new>\n");
 	}
 }
 
 int8_t handleTwiaddr(){
-	//twi_access_fun = handleTwiaddr_access;
-	//ui_state = UI_TWILOCK;
-  int8_t result = FAILED_PARAMS_PARSE;
-	uint16_t old_addr=1;
-	uint16_t new_addr=1;
-  int16_t paramsCount=0;
-  paramsCount = fscanf_P(&sock_stream, UintArrow_2, &old_addr, &new_addr);
-	if(paramsCount == 2){
-#ifdef DEBUG
-		printf("change twi addr %u to %u\n\r", old_addr, new_addr);
-#endif
-		//if(buff[4]=='g'){
-		result = SUCCESS_PARAMS_PARSE;
-		//if(twi_set_address(old_addr, new_addr)){
-		//	fprintf(&sock_stream, "success\n");
-		//}else{
-		//	fprintf(&sock_stream, "failed\n");
-		//}
-	}
-  return result;
-  //return SUSPEND;
+	twi_access_fun = accessTwiaddr;
+	ui_state = UI_TWILOCK;
+  return SUSPEND;
 }
 
 
