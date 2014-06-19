@@ -94,7 +94,7 @@ void send_result(struct dummy_packet * packets){
   for (s=0;s<8;s++){
     fprintf(&sock_stream, " | P%u: ", s+1);
     if(packets[s].header.error && packets[s].header.connected){
-      fprintf(&sock_stream, " ERROR ");
+      fprintf(&sock_stream, " ERROR %u ", packets[s].header.error);
     }
     if(packets[s].header.connected){
       switch(packets[s].header.type){
