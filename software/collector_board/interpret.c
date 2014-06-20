@@ -77,7 +77,8 @@ uint8_t interpret_generatePacket(uint8_t * data, uint8_t connected, uint8_t * bu
 		tsic->header.connected = (connected != 0);
 		tsic->padding = 0;
 		tsic->header.error = interpret_analyzeTSIC(data, &(tsic->temperature));
-		tsic->crc = checksum_computeCRC(buffer, 3, 0);
+		// we are claculating checksum also ove rpadding here
+		tsic->crc = checksum_computeCRC(buffer, 5, 0);
 		return sizeof(struct tsic_packet);
 	}
 }

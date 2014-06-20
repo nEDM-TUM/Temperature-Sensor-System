@@ -39,6 +39,7 @@ uint32_t get_time_delta(uint32_t a, uint32_t b){
 
 void loop2(){
 	uint32_t current_time = millis();
+	uint8_t crc_state;
 	switch (loop_state){
 		case LOOP_IDLE:
 			if(get_time_delta(time_last_measurement, current_time) >= measure_interval){
@@ -70,7 +71,8 @@ void loop2(){
 			switch (rcv_state){
 				case TWI_RCV_FIN:
 					printf("measurement finished\n\r");
-					twi_verify_checksums(received, 8);
+					crc_state = twi_verify_checksums(received, 8);
+
 					dataAvailable(received, addr_current_board);
 					// switch to next board:
 					loop_current_board ++;
