@@ -4,6 +4,7 @@
 %\usepackage{newcent}   % uses new century schoolbook postscript font 
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
+\usepackage{amsmath}
 \usepackage{eurosym}
 \usepackage{cite}
 % the following commands control the margins:
@@ -83,6 +84,9 @@ In order to minimize soldering heat, which would influence the calibration, we u
 \end{figure}
 \subsection{Software}
 \section{Collector board}
+The collector board decodes the ZAC protocol and provides an I2C interface for
+reading out temperature, as well as humidity values of connected sensors.
+Care was taken, to ensure a response time of $<1\,\mathrm{s}$.
 \subsection{Hardware}
 \begin{figure}
 	\centering
@@ -91,6 +95,40 @@ In order to minimize soldering heat, which would influence the calibration, we u
 	\label{fig:schem_collect}
 \end{figure}
 \subsection{Software}
+\subsubsection{ZAC decoding}
+AVR controllers do not have hardware support for decoding the ZAC one wire
+protocol (protocol definition is explained in chapter \ref{chap:zac}). Hence we
+implemented a software decoder. However our implementation
+does not follow the method suggested by \cite{zac} because of timing reasons.\\
+To decode one ZAC protocol sensor, we use one 8 bit timer, the corresponding timer
+overflow interrupt and the pin change interrupt (PCINT) of the pin, connected to the sensor.
+\paragraph{Pin change Interrupt:}On every pin change interrupt, the following actions are executed:\\
+Every time:
+\begin{itemize}
+	\item The current current value is stored to a temporary variable $T_{timer}$, to be able to still access it later.
+	\item The timer is reset.
+	\item If the timer is not jet running, it is started now.
+\end{itemize}
+On a falling edge:
+\begin{itemize}
+	\item If $\left|T_{low} - T_{timer}\right| < T_{thresh}$ with a constant $T_{thresh} << T_{crit}$, we have observed a start bit.\\
+		We now update the critical sampling time\footnote{$T_{crit} = 0.5\cdot(T_{timer} + T_{low})$ would be more accurate, but would consume more time to calculate.}: $T_{crit} = T_{timer}$.
+
+\end{itemize}
+On a rising edge:
+\begin{itemize}
+	\item The current timer value is stored as $T_{low}$. If we already observed a falling edge, this represents the time, the signal was low.
+	\item If we already have seen a start bit, we now sample a data bit\footnote{Note, that a repeated start bit would also be sampled as a data bit with an unpredictable value}:\\
+	$\mathrm{bit} = \begin{cases} 1 & \text{if } T_{timer}<T_{crit} \\ 0 & \text{else}\end{cases}$
+\end{itemize}
+
+
+As we have up to 8 sensors connected to the Atmega88, we have to do one measurement
+after another. as one sample of a measurement takes $>100\,\mathrm{ms}$ we would run
+into problems reaching the desired sampling rate of $>1\,\mathrm{Hz}$.\\
+
+
+\subsubsection{I2C interface}
 \begin{figure}
 	\centering
 	\includegraphics[width=0.7\textwidth]{img/zac_timing.pdf}
