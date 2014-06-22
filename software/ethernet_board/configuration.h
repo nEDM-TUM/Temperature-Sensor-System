@@ -6,12 +6,14 @@
 #include "user_cmd.h"
 #include "collector_twi.h"
 
+#define DB_CLIENT_SOCK 0
+#define FIRST_SERVER_SOCK 1
 #define MAX_SERVER_SOCK_NUM 3
 #define UI_READY 0
 #define UI_TWILOCK 1
 
 // set eeprom to store the whole configuration
-#define EEPROM
+//#define EEPROM
 
 struct config {
   uint8_t mac[6] ;
