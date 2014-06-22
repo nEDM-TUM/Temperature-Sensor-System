@@ -39,5 +39,6 @@ void setupServer(void);
 void ui_loop();
 
 void dataAvailable(struct dummy_packet * received, uint8_t src_addr);
+void sendResultToDB(struct dummy_packet *packets);
 #endif
 

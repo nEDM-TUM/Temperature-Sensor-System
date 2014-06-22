@@ -39,6 +39,11 @@ void (*twi_access_fun)();
 
 uint8_t ui_state = UI_READY;
 
+const char UintDot_4Colon[] PROGMEM = "%u.%u.%u.%u:%u";
+// TODO make it configurable and store in eeprom
+const char Database[] PROGMEM = "nedm%2Ftemperature";
+const char Cookie[] PROGMEM = "c29sYXI6NTIwNEU4OTA66nT2KHyr9n5RrouelBtLnBru00c"; 
+
 
 int8_t toSubnetMask(uint8_t subnet, uint8_t* addr){
   int8_t indexByte = 0;
@@ -63,6 +68,32 @@ int8_t toSubnetMask(uint8_t subnet, uint8_t* addr){
   return 1;
 }
 
+void sendResultToDB(struct dummy_packet * packets){
+  uint8_t index;
+  stream_set_sock(DB_CLIENT_SOCK);
+  fputs_P(PSTR("POST http://"), &sock_stream);
+  fprintf_P(&sock_stream, UintDot_4Colon, cfg.ip_db[0], cfg.ip_db[1], cfg.ip_db[2], cfg.ip_db[3], cfg.port_db);
+  fputs_P(Database, &sock_stream);
+  // TODO to compute content length??? fix??
+  fputs_P(PSTR("/_design/nedm_default/_update/insert_with_timestamp HTTP/1.0\nContent-Length: ###\nCookie: AuthSession="), &sock_stream);
+  fputs_P(Cookie, &sock_stream);
+  fputs_P(PSTR("\nX-CouchDB-WWW-Authenticate: Cookie\nContent-Type: application/json\n\n"), &sock_stream);
+  // TODO convert packet data to json format
+  //fprintf_P(&sock_stream, PSTR("{\"%s\"["), packet_name_or_addr);
+  //for(index = 0; index < 8; index++){
+  //  if(datavalid??){
+  //    if(!first??){
+  //      fputs_P(PSTR(","), &sock_stream);
+
+  //    } 
+  //    fprintf_P(&sock_stream, PSTR("{\"%s\":%u.%u,\"%s\":\"%s\"i}"), valueAttribute, value, otherAttribute, otherValue);
+  //  }
+  //}
+  //fputs_P(PSTR("]}"), &sock_stream);
+  // TODO if ok to send small packet for http
+  sock_stream_flush();
+  
+}
 
 void beginService() {
 #ifdef EEPROM
