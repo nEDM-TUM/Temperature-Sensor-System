@@ -151,13 +151,30 @@ When sampling the start bit we get an error for our critical time $T_{crit}$:
 $$T_{min} := T_h - t_e < T_{crit} < T_h + t_e$$
 When using $T_{crit}$ to determine a bit value, we are again influenced by the possibly delayed preceeding falling edge. We get:
 $$T_{min} < T_{crit}' < T_h + 2 \cdot t_e =: T_{max}$$
-Our algorithm will fail, if
-$$T_{min} < 0.5\cdot T_h + t_e$$
+Our algorithm will only work correctly, if
+$$T_{min} > 0.5\cdot T_h + t_e$$
 or
-$$T_{max} > \frac{3}{2}\cdot T_h\text{.}$$
+$$T_{max} < \frac{3}{2}\cdot T_h\text{.}$$
 Both inequations simplify to
-$$t_e > \frac{1}{4}\cdot T_h$$
-
+$$t_e < \frac{1}{4}\cdot T_h\text{.}$$
+According to \cite{zac}, the nominal value for $T_h$ is $\frac{125}{2}\,\mu\mathrm{s}$. Hence our error due to interrupt latency has to be smaller than $15.625\,\mu\mathrm{s}$.\\
+As the microcontroller runs at a clock speed of $20\,\mathrm{MHz}$, we have to complete previous interrupts, start the interrupt handler of the new interrupt and sample the current timer value within 332 clock cycles, to not harm the above limit on the error.\\
+We implemented a simple branch aware Worst Case Execution Time (WCET) analyzer for the AVR instruction set.
+It is able to calculate the maximum execution time of individual sections in the compiled code\footnote{Note that,
+whereas branches are considered, only branches to addresses in the future are handled correctly. Loops i.e.
+branches to already executed code cause undefined, possibly non terminating behaviour of the analyzer. As our code
+does not contain loops, this did not cause problems and loop handling was not implemented}. Figure \ref{fig:wcet}
+shows the WCET analyzer output for the Pin change interrupt handler. The worst case execution time for the total
+handler is $100$ cycles. The timer interrupt takes less than $50$ cycles to complete. For a complete analysis one
+additionally has to consider the time for jumping to the interrupt handler ($<20$ cycles) and the time we need to read out the
+timer value in the new interrupt handler ($<29$ cycles). This gives us a total latency of less than $199$ clock
+cycles, which is well within the allowed range.
+\begin{figure}
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/wcet/vector_4.pdf}
+  \caption{Branch aware WCET analysis of the Interrupt handler for vector\_4 (Pin change interrupt). Nodes represent program addresses, arrows represent branches. Red arrows point to the branch with the highest execution time}
+	\label{fig:wcet}
+\end{figure}
 
 \subsection{I2C interface}
 \section{Ethernet board}
