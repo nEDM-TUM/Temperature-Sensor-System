@@ -8,7 +8,6 @@
 #define MAX_CMD_LEN 10
 
 // CMD handler state
-#define WRONG_PARAMS_PARSE -1
 #define FAILED_PARAMS_PARSE 0
 #define SUCCESS_PARAMS_PARSE 1 
 #define SUSPEND 2
