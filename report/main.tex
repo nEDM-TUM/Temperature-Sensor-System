@@ -172,7 +172,7 @@ cycles, which is well within the allowed range.
 \begin{figure}
 	\centering
 	\includegraphics[width=0.5\textwidth]{img/wcet/vector_4.pdf}
-  \caption{Branch aware WCET analysis of the Interrupt handler for vector\_4 (Pin change interrupt). Nodes represent program addresses, arrows represent branches. Red arrows point to the branch with the highest execution time}
+  \caption{Branch aware WCET analysis of the Interrupt handler for vector\_4 (Pin change interrupt). Nodes represent program addresses, arrows represent branches. Red arrows point to the branch with the highest execution time. The values near the arrows represent the execution time from the previous node's address to the instruction causing the branch.}
 	\label{fig:wcet}
 \end{figure}
 
