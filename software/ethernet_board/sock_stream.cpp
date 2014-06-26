@@ -1,6 +1,6 @@
 #include "sock_stream.h"
 #include "socket.h"
-#include "configuration.h"
+#include "networking.h"
 
 FILE sock_stream;
 uint8_t currSock = MAX_SERVER_SOCK_NUM + FIRST_SERVER_SOCK;

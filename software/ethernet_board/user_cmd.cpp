@@ -1,6 +1,7 @@
 #include "user_cmd.h"
 #include "sock_stream.h"
-#include "configuration.h"
+#include "networking.h"
+#include "config.h"
 #include "socket.h"
 #include "packet.h"
 #include <util/delay.h>

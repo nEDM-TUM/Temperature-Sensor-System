@@ -5,7 +5,7 @@
 #include <Arduino.h>
 #include <util/delay.h>
 #include "usart.h"
-#include "configuration.h"
+#include "networking.h"
 #include "collector_twi.h"
 #include "packet.h"
 

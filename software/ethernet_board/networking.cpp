@@ -1,4 +1,4 @@
-#include "configuration.h"
+#include "networking.h"
 
 //#include <avr/io.h>
 #include <stdio.h>
@@ -7,23 +7,13 @@
 #include <avr/pgmspace.h>
 #include <util/delay.h>
 #include "usart.h"
+#include "config.h"
 #include "socket.h"
 #include "sock_stream.h"
 #include <Ethernet.h>
 #include "w5100.h"
 // set debug mode
 // #define DEBUG
-
-
-struct config cfg = {
-  /*.mac = */{0x90, 0xA2, 0xDA, 0x00, 0xE3, 0x5B},
-  /*.ip = */{10,0,1, 100},
-  /*.subnet = */16,
-  /*.gw = */{10, 0, 1, 1},
-  /*.port = */8888,
-  /*.ip_db = */{10, 0, 1, 99},
-  /*.port_db = */8888
-};
 
 uint8_t listeningSock = MAX_SERVER_SOCK_NUM + FIRST_SERVER_SOCK;
 uint8_t closedSock = MAX_SERVER_SOCK_NUM + FIRST_SERVER_SOCK;
@@ -127,7 +117,7 @@ void dataAvailable(struct dummy_packet * received, uint8_t src_addr){
 	uint8_t i;
 	for(i=FIRST_SERVER_SOCK; i< MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; i++){
 		// TODO: check if socket is still connected.
-		if (data_request[i]){
+		if (data_request[i-FIRST_SERVER_SOCK]){
 			stream_set_sock(i);
 			fprintf(&sock_stream, "%u :: ", src_addr);
 			send_result(received);
