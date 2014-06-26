@@ -12,10 +12,6 @@
 #define UI_READY 0
 #define UI_TWILOCK 1
 
-// set eeprom to store the whole configuration
-//#define EEPROM
-
-
 extern uint8_t ui_state;
 
 extern uint8_t data_request[MAX_SERVER_SOCK_NUM];

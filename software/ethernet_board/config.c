@@ -3,7 +3,16 @@
 #include <string.h>
 
 struct config cfg;
-struct config eevars EEMEM= {
+
+struct {
+	uint8_t magic;
+	uint16_t start_pointer;
+	struct config init_cfg;
+	
+} eevars EEMEM = {
+	.magic = EEPROM_MAGIC,
+	.start_pointer = 3,
+	.init_cfg ={
   /*.mac = */{0x90, 0xA2, 0xDA, 0x00, 0xE3, 0x5B},
   /*.ip = */{10,0,1, 100},
   /*.subnet = */16,
@@ -11,6 +20,7 @@ struct config eevars EEMEM= {
   /*.port = */8888,
   /*.ip_db = */{10, 0, 1, 99},
   /*.port_db = */8888
+						}
 };
 
 uint8_t config_write(struct config * pcfg){

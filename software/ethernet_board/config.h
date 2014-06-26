@@ -5,6 +5,8 @@ extern "C" {
 #define EEPROM_STORAGE_H
 #include <inttypes.h>
 
+#define EEPROM_MAGIC 171
+
 struct config {
   uint8_t mac[6] ;
   uint8_t ip[4] ;

@@ -312,9 +312,7 @@ int8_t handleReset(){
   fprintf_P(&sock_stream, Uint, cfg.port);
   fputs_P(PSTR("\n"), &sock_stream);
   sock_stream_flush();
-#ifdef EEPROM
-  config_write(cfg);
-#endif
+  config_write(&cfg);
   for(index= FIRST_SERVER_SOCK; index<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; index++){
     disconnect(index);
   }

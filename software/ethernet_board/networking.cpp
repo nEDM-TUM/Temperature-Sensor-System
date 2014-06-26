@@ -86,11 +86,10 @@ void sendResultToDB(struct dummy_packet * packets){
 }
 
 void beginService() {
-#ifdef EEPROM
   config_read(&cfg);
-#endif
   uint8_t sn[4];
   //Init and config ethernet device w5100
+	printf("ip: %u.%u.%u.%u\n\r", cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3]);
   W5100.init();
   W5100.setMACAddress(cfg.mac);
   W5100.setIPAddress(cfg.ip);

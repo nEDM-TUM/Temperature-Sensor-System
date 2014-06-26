@@ -33,9 +33,9 @@ PROJECT_OBJS = main.o usart.o ethernet_twi.o zac.o interpret.o checksum.o config
 #----------------------------------------------------------
 # Programmer settings
 # set clock source to external crystal 20MHz:
-FUSE_LOW = 0b11110111
+FUSE_LOW = 0b11110111:m
 # enable burn out detection 4.5V, preserve eeprom on chip erase:
-FUSE_HIGH = 0b11010011
+FUSE_HIGH = 0b11010011:m
 AVRDUDE_PROGRAMMER = usbasp
 AVRDUDE_PORT = /dev/ttyACM0
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
