@@ -86,7 +86,7 @@ void sendResultToDB(struct dummy_packet * packets){
   //      fputs_P(PSTR(","), &sock_stream);
 
   //    } 
-  //    fprintf_P(&sock_stream, PSTR("{\"%s\":%u.%u,\"%s\":\"%s\"i}"), valueAttribute, value, otherAttribute, otherValue);
+  //    fprintf_P(&sock_stream, PSTR("{\"%s\":%u.%u,\"%s\":\"%s\"}"), valueAttribute, value, otherAttribute, otherValue);
   //  }
   //}
   //fputs_P(PSTR("]}"), &sock_stream);
