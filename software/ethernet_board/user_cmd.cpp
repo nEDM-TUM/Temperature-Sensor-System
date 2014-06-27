@@ -1,6 +1,7 @@
 #include "user_cmd.h"
 #include "sock_stream.h"
-#include "configuration.h"
+#include "networking.h"
+#include "config.h"
 #include "socket.h"
 #include "packet.h"
 #include <util/delay.h>
@@ -311,9 +312,7 @@ int8_t handleReset(){
   fprintf_P(&sock_stream, Uint, cfg.port);
   fputs_P(PSTR("\n"), &sock_stream);
   sock_stream_flush();
-#ifdef EEPROM
-  config_write(cfg);
-#endif
+  config_write(&cfg);
   for(index= FIRST_SERVER_SOCK; index<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; index++){
     disconnect(index);
   }
@@ -326,7 +325,7 @@ int8_t handleReset(){
       close(index);
     }
   }
-  beginService();
+  net_beginService();
   return NO_PARAMS_PARSE;
 }
 
@@ -426,7 +425,7 @@ uint8_t execCMD(uint8_t sock, char * buff, int8_t hasParams){
   sock_stream_flush();
 }
 
-uint8_t handleCMD(uint8_t sock){
+uint8_t ui_handleCMD(uint8_t sock){
   uint8_t pointer=0;
   int16_t b;
   int8_t new_cmd_flag=1;

@@ -5,7 +5,7 @@
 #include <Arduino.h>
 #include <util/delay.h>
 #include "usart.h"
-#include "configuration.h"
+#include "networking.h"
 #include "collector_twi.h"
 #include "packet.h"
 
@@ -73,7 +73,7 @@ void loop2(){
 					printf("measurement finished\n\r");
 					crc_state = twi_verify_checksums(received, 8);
 
-					dataAvailable(received, addr_current_board);
+					net_dataAvailable(received, addr_current_board);
 					// switch to next board:
 					loop_current_board ++;
 					if(loop_current_board < num_boards){
@@ -136,11 +136,11 @@ int main (void)
 	}
 	printf("\n\r");
 
-  setupServer();
+  net_setupServer();
 
 	// main event loop
 	while (1) {
 		loop2();
-		ui_loop();
+		net_loop();
 	}
 }

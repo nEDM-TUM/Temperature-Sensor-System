@@ -1,4 +1,4 @@
-#include "configuration.h"
+#include "networking.h"
 
 //#include <avr/io.h>
 #include <stdio.h>
@@ -7,23 +7,13 @@
 #include <avr/pgmspace.h>
 #include <util/delay.h>
 #include "usart.h"
+#include "config.h"
 #include "socket.h"
 #include "sock_stream.h"
 #include <Ethernet.h>
 #include "w5100.h"
 // set debug mode
 // #define DEBUG
-
-
-struct config cfg = {
-  /*.mac = */{0x90, 0xA2, 0xDA, 0x00, 0xE3, 0x5B},
-  /*.ip = */{10,0,1, 100},
-  /*.subnet = */16,
-  /*.gw = */{10, 0, 1, 1},
-  /*.port = */8888,
-  /*.ip_db = */{10, 0, 1, 99},
-  /*.port_db = */8888
-};
 
 uint8_t listeningSock = MAX_SERVER_SOCK_NUM + FIRST_SERVER_SOCK;
 uint8_t closedSock = MAX_SERVER_SOCK_NUM + FIRST_SERVER_SOCK;
@@ -36,6 +26,7 @@ uint8_t receiveBuffPointer[MAX_SERVER_SOCK_NUM] = {0}; // Point to a byte, which
 
 void send_result(struct dummy_packet * packets);
 void (*twi_access_fun)();
+void serve();
 
 uint8_t ui_state = UI_READY;
 
@@ -68,7 +59,7 @@ int8_t toSubnetMask(uint8_t subnet, uint8_t* addr){
   return 1;
 }
 
-void sendResultToDB(struct dummy_packet * packets){
+void net_sendResultToDB(struct dummy_packet * packets){
   uint8_t index;
   stream_set_sock(DB_CLIENT_SOCK);
   fputs_P(PSTR("POST http://"), &sock_stream);
@@ -95,12 +86,11 @@ void sendResultToDB(struct dummy_packet * packets){
   
 }
 
-void beginService() {
-#ifdef EEPROM
+void net_beginService() {
   config_read(&cfg);
-#endif
   uint8_t sn[4];
   //Init and config ethernet device w5100
+	printf("ip: %u.%u.%u.%u\n\r", cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3]);
   W5100.init();
   W5100.setMACAddress(cfg.mac);
   W5100.setIPAddress(cfg.ip);
@@ -123,11 +113,11 @@ void beginService() {
 
 
 
-void dataAvailable(struct dummy_packet * received, uint8_t src_addr){
+void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
 	uint8_t i;
 	for(i=FIRST_SERVER_SOCK; i< MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; i++){
 		// TODO: check if socket is still connected.
-		if (data_request[i]){
+		if (data_request[i-FIRST_SERVER_SOCK]){
 			stream_set_sock(i);
 			fprintf(&sock_stream, "%u :: ", src_addr);
 			send_result(received);
@@ -160,7 +150,7 @@ void serve(){
         listeningSock = i;
         break;
       case SnSR::ESTABLISHED:
-        cmd_state = handleCMD(i);
+        cmd_state = ui_handleCMD(i);
 				if(cmd_state == SUSPEND){
 					// handleCMD requested, to not accept new commands,
 					// so we return here:
@@ -191,7 +181,7 @@ void serve(){
   }
 }
 
-void ui_loop(){
+void net_loop(){
 	switch(ui_state){
 		case UI_READY:
 			serve();
@@ -209,18 +199,18 @@ void ui_loop(){
 				twi_free_bus();
 
 				// handle other already existing commands in the buffer
-				handleCMD(stream_get_sock());
+				ui_handleCMD(stream_get_sock());
 			}
 			break;
 	}
 }
 
-void setupServer() {
+void net_setupServer() {
   sock_stream_init();
 #ifdef DEBUG
   printf("Set up server\n\r");
 #endif
-  beginService();
+  net_beginService();
 }
 
 

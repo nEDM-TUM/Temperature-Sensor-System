@@ -122,6 +122,9 @@ ISR(TEMPL_TMR_OVF_VECT){
 		TEMPL_BYTE_ARRAY [0] = 0xff;
 		// we also have to set the timer value to initial value
 		// this has to be done for spike detection to work correctly
+		// this is needed, that we do not get a start bit at the beginning
+		// TODO: this triggers an immediate overflow
+		// it might be a better idea to set this to 128
 		TEMPL_TCNT = 0xff;
 		// low time mightalso be 0xff -> this might cause problems
 		// if transmission starts again. so set it to default state 0:
@@ -219,7 +222,11 @@ ISR(TEMPL_PCINT_VECT){
 
 void TEMPL_START_MEASSURE (){
 	TEMPL_TCRIT = 0xff;
+	// this is needed, that we do not get a start bit at the beginning
+	// TODO: this triggers an immediate overflow
+	// it might be a better idea to set this to 128
 	TEMPL_TCNT = 0xff;
+	// this is needed, that we do not get a start bit at the beginning
 	TEMPL_LOWTIME = 0;
 	// this will be shifted through and help us to determine
 	// if we have received enough bits
