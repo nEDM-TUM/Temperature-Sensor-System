@@ -18,13 +18,12 @@ extern uint8_t data_request[MAX_SERVER_SOCK_NUM];
 extern uint32_t measure_interval;
 extern void (*twi_access_fun)();
 
-void beginService(void);
-void serve(void);
-void setupServer(void);
+void net_beginService(void);
+void net_setupServer(void);
 
-void ui_loop();
+void net_loop();
 
-void dataAvailable(struct dummy_packet * received, uint8_t src_addr);
-void sendResultToDB(struct dummy_packet *packets);
+void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr);
+void net_sendResultToDB(struct dummy_packet *packets);
 #endif
 

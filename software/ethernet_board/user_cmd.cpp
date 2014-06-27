@@ -325,7 +325,7 @@ int8_t handleReset(){
       close(index);
     }
   }
-  beginService();
+  net_beginService();
   return NO_PARAMS_PARSE;
 }
 
@@ -425,7 +425,7 @@ uint8_t execCMD(uint8_t sock, char * buff, int8_t hasParams){
   sock_stream_flush();
 }
 
-uint8_t handleCMD(uint8_t sock){
+uint8_t ui_handleCMD(uint8_t sock){
   uint8_t pointer=0;
   int16_t b;
   int8_t new_cmd_flag=1;
