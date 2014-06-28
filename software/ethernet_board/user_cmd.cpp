@@ -1,6 +1,7 @@
 #include "user_cmd.h"
 #include "sock_stream.h"
-#include "configuration.h"
+#include "networking.h"
+#include "config.h"
 #include "socket.h"
 #include "packet.h"
 #include <util/delay.h>
@@ -57,7 +58,6 @@ const char New[] PROGMEM = "(NEW)";
 const char Colon[] PROGMEM = ": ";
 
 const char UpdateOption[] PROGMEM = "\nupdate option:\n\treset";
-const char WillReset[] PROGMEM = "The ethernet service will be reset, the future login is ";
 const char CmdNotFound[] PROGMEM = "cmd not found! type 'help' to view options";
 
 char cmdBuff[MAX_CMD_LEN];
@@ -84,7 +84,7 @@ int8_t handleInterval(){
 	}
   fputs_P(Colon, &sock_stream);
   fprintf_P(&sock_stream, ULong, measure_interval/1000);
-  return paramsCount;
+  return result;
 }
 
 void send_result(struct dummy_packet * packets){
@@ -108,14 +108,14 @@ void send_result(struct dummy_packet * packets){
           fprintf(&sock_stream, " H = %d", ( (struct hyt_packet *)(packets) )[s].humidity);
           break;
         default:
-          fprintf(&sock_stream, "---?---");
+          fputs_P(PSTR("---?---"), &sock_stream);
           break;
       }
     }else{
-      fprintf(&sock_stream,  "---nc---");
+      fputs_P(PSTR("---nc---"), &sock_stream);
     }
   }
-  fprintf(&sock_stream,  "\n");
+  fputs_P(PSTR("\n"), &sock_stream);
 }
 
 int8_t handleDoMeasurement(){
@@ -143,7 +143,7 @@ void accessScan(void){
 	uint8_t sock = 0;
 	uint8_t i;
 	num_boards = twi_scan(scanresults, 20);
-  fprintf(&sock_stream, "found boards");
+  fputs_P(PSTR("found boards"), &sock_stream);
 #ifdef DEBUG
 	printf("found boards: ");
 #endif
@@ -154,7 +154,7 @@ void accessScan(void){
 		printf(" %u", scanresults[i]);
 #endif
 	}
-  fprintf(&sock_stream,  "\n");
+  fputs_P(PSTR("\n"), &sock_stream);
 #ifdef DEBUG
 	printf("\n\r");
 #endif
@@ -177,12 +177,12 @@ void accessLED(void){
   uint8_t paramsCount = fscanf_P(&sock_stream, Uint_2_Char, &addr, &lednum, &onoff);
 	if(paramsCount == 3){
 		if(twi_set_led(addr, onoff=='1', lednum)){
-			fprintf(&sock_stream, "success\n");
+      fputs_P(PSTR("success\n"), &sock_stream);
 		}else{
-			fprintf(&sock_stream, "failed\n");
+      fputs_P(PSTR("failed\n"), &sock_stream);
 		}
 	}else{
-		fprintf(&sock_stream, "led <addr> <num> <1|0>\n");
+    fputs_P(PSTR("led <addr> <num> <1|0>\n"), &sock_stream);
 	}
 }
 
@@ -205,16 +205,16 @@ void accessTwiaddr(void){
 
 	if(paramsCount == 2){
 		if(new_addr < 8 || new_addr >=120 ){
-			fprintf(&sock_stream, "7<addr<120\n");
+      fputs_P(PSTR("7<addr<120\n"), &sock_stream);
 			return;
 		}
 		if(twi_set_address(old_addr, new_addr)){
-			fprintf(&sock_stream, "success\n");
+      fputs_P(PSTR("success\n"), &sock_stream);
 		}else{
-			fprintf(&sock_stream, "failed\n");
+      fputs_P(PSTR("failed\n"), &sock_stream);
 		}
 	}else{
-		fprintf(&sock_stream, "twiaddr <old> <new>\n");
+		fputs_P(PSTR("twiaddr <old> <new>\n"), &sock_stream);
 	}
 }
 
@@ -231,18 +231,17 @@ int8_t handleIp(){
   uint16_t ipTMP[4];
   int8_t result = FAILED_PARAMS_PARSE;
   paramsCount = fscanf_P(&sock_stream, UintDot_4Slash, ipTMP, ipTMP+1, ipTMP+2, ipTMP+3, &(cfg.subnet));
-  fprintf_P(&sock_stream, PSTR("TEST %d TEST\n"), paramsCount);
   if(paramsCount==5){
     for(index=0; index<4; index++){
       cfg.ip[index] = (uint8_t)ipTMP[index];
     }
     fputs_P(New, &sock_stream);
+    result = SUCCESS_PARAMS_PARSE;
   }
   fputs_P(Colon, &sock_stream);
   fprintf_P(&sock_stream, UintDot_4Slash, cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet);
-  if(paramsCount==5){
-    fprintf_P(&sock_stream, UpdateOption);
-    result = SUCCESS_PARAMS_PARSE;
+  if(result == SUCCESS_PARAMS_PARSE){
+    fputs_P(UpdateOption, &sock_stream);
   }
   return result;
 }
@@ -258,12 +257,12 @@ int8_t handleGw(){
       cfg.gw[index] = (uint8_t)gwTMP[index];
     } 
     fputs_P(New, &sock_stream);
+    result = SUCCESS_PARAMS_PARSE;
   }
   fputs_P(Colon, &sock_stream);
   print4dotarr(&sock_stream, cfg.gw);
-  if(paramsCount==4){
-    fprintf_P(&sock_stream, UpdateOption);
-    result = SUCCESS_PARAMS_PARSE;
+  if(result == SUCCESS_PARAMS_PARSE){
+    fputs_P(UpdateOption, &sock_stream);
   }
   return result;
 }
@@ -272,22 +271,21 @@ int8_t handleMac(){
   int8_t index;
   int16_t paramsCount=0;
   uint16_t macTMP[6];
+  int8_t result = FAILED_PARAMS_PARSE;
   paramsCount = fscanf_P(&sock_stream, HexColon_6, macTMP, macTMP+1, macTMP+2, macTMP+3, macTMP+4, macTMP+5);
   if(paramsCount == 6){
     for(index=0; index<6; index++){
       cfg.mac[index] = (uint8_t)macTMP[index];
     }
     fputs_P(New, &sock_stream);
-  }else if(paramsCount > 0){
-    // not success by parsing
-    return 0;
+    result = SUCCESS_PARAMS_PARSE;
   }
   fputs_P(Colon, &sock_stream);
   fprintf_P(&sock_stream, HexColon_6, cfg.mac[0], cfg.mac[1], cfg.mac[2], cfg.mac[3], cfg.mac[4], cfg.mac[5]);
-  if(paramsCount==6){
-    fprintf_P(&sock_stream, UpdateOption);
+  if(result == SUCCESS_PARAMS_PARSE){
+    fputs_P(UpdateOption, &sock_stream);
   }
-  return 1;
+  return result;
 }
 
 int8_t handlePort(){
@@ -298,65 +296,58 @@ int8_t handlePort(){
     fputs_P(Colon, &sock_stream);
     fprintf_P(&sock_stream, Uint, cfg.port);
     fputs_P(UpdateOption, &sock_stream);
-    return 1;
+    return SUCCESS_PARAMS_PARSE;
   }
-  if(paramsCount < 0){
-    fputs_P(Colon, &sock_stream);
-    fprintf(&sock_stream, Uint, cfg.port);
-    return 1;
-  }
-  return 0;
+  return FAILED_PARAMS_PARSE;
 }
 
 int8_t handleReset(){
   uint8_t index;
   // broadcast
-  fprintf_P(&sock_stream, PSTR("\n"));
-  stream_set_sock(MAX_SERVER_SOCK_NUM); 
-  fprintf(&sock_stream, "%S", WillReset);
+  fputs_P(PSTR("\n"), &sock_stream);
+  stream_set_sock(MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK); 
+  fputs_P(PSTR("The ethernet service will be reset, the future login is "), &sock_stream);
   print4dotarr(&sock_stream, cfg.ip);
-  fprintf_P(&sock_stream, PSTR(" "));
+  fputs_P(PSTR(" "), &sock_stream);
   fprintf_P(&sock_stream, Uint, cfg.port);
-  fprintf_P(&sock_stream, PSTR("\n"));
+  fputs_P(PSTR("\n"), &sock_stream);
   sock_stream_flush();
-#ifdef EEPROM
-  // TODO update eeprom
-#endif
-  for(index= 0; index<MAX_SERVER_SOCK_NUM; index++){
+  config_write(&cfg);
+  for(index= FIRST_SERVER_SOCK; index<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; index++){
     disconnect(index);
   }
   // Wait a second to close all sockets
   _delay_ms(1000);
   // TODO LEDs action
-  for(index= 0; index<MAX_SERVER_SOCK_NUM; index++){
+  for(index= FIRST_SERVER_SOCK; index<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; index++){
     if(W5100.readSnSR(index) != SnSR::CLOSED){
       // If a socket is still not closed, force it
       close(index);
     }
   }
-  beginService();
+  net_beginService();
+  return NO_PARAMS_PARSE;
 }
 
 int8_t handleIpDB(){
   int8_t index;
   uint16_t ipTMP[4];
   int16_t paramsCount=0;
+  int8_t result = FAILED_PARAMS_PARSE;
   paramsCount = fscanf_P(&sock_stream, UintDot_4, ipTMP, ipTMP+1, ipTMP+2, ipTMP+3);
   if(paramsCount==4){
     for(index=0; index<4; index++){
       cfg.ip_db[index] = (uint8_t)ipTMP[index];
     }
     fputs_P(New, &sock_stream);
-  }else if(paramsCount >= 0){
-    // not success by parsing
-    return 0;
+    result = SUCCESS_PARAMS_PARSE;
   }
   fputs_P(Colon, &sock_stream);
   print4dotarr(&sock_stream, cfg.ip_db);
-  if(paramsCount==4){
-    fprintf(&sock_stream, "%S", UpdateOption);
+  if(result == SUCCESS_PARAMS_PARSE){
+    fputs_P(UpdateOption, &sock_stream);
   }
-  return 1;
+  return result;
 }
 
 int8_t handlePortDB(){
@@ -367,18 +358,13 @@ int8_t handlePortDB(){
     fputs_P(Colon, &sock_stream);
     fprintf_P(&sock_stream, Uint, cfg.port);
     fputs_P(UpdateOption, &sock_stream);
-    return 1;
+    return SUCCESS_PARAMS_PARSE;
   }
-  if(paramsCount < 0){
-    fputs_P(Colon, &sock_stream);
-    fprintf(&sock_stream, Uint, cfg.port);
-    return 1;
-  }
-  return 0;
+  return FAILED_PARAMS_PARSE;
 }
 
 inline void sendError(uint8_t sock){
-  fprintf(&sock_stream, "Error!\n");
+  fputs_P(PSTR("Error!\n"), &sock_stream);
 }
 
 char* cmpCMD(char* cmdstr, const char * cmd){
@@ -413,61 +399,63 @@ int8_t handleHelp(){
   return 1;
 }
 
-uint8_t execCMD(uint8_t sock, char * buff){
+uint8_t execCMD(uint8_t sock, char * buff, int8_t hasParams){
   int8_t index;
-  // TODO some prefix
   struct cmd cmd;
+  uint8_t handle_state;
+#ifdef DEBUG
   printf("Compare %s\n\r", buff);
-  for(index= 0; index<DEFINED_CMD_COUNT ; index++){
+#endif
+  for(index= 0; index<DEFINED_CMD_COUNT; index++){
     cmd = cmds[index];
     if(!(strcmp(buff, cmd.name))){
       fputs(cmd.name, &sock_stream);
-			uint8_t handle_state = cmd.handle();
-      if(!handle_state && cmd.param_format!=NULL){
+			handle_state= cmd.handle();
+      if(hasParams && handle_state==FAILED_PARAMS_PARSE && cmd.param_format!=NULL){
         fputs_P(PSTR(" "), &sock_stream);
         fputs_P(Usage, &sock_stream);
         printOption(cmd);
       }
       fputs_P(PSTR("\n"), &sock_stream);
       sock_stream_flush();
-			if(handle_state == 2){
-				// FIXME: replace 2 with macro
-				return 2;
-			}else{
-				return 1;
-			}
+      return handle_state;
     }
   }
   fputs_P(CmdNotFound, &sock_stream);
   sock_stream_flush();
 }
 
-uint8_t handleCMD(uint8_t sock){
+uint8_t ui_handleCMD(uint8_t sock){
   uint8_t pointer=0;
   int16_t b;
-  int8_t cmd_flag=1;
+  int8_t new_cmd_flag=1;
+  uint8_t cmd_result = NO_PARAMS_PARSE;
   stream_set_sock(sock); 
   while((b=fgetc(&sock_stream)) != EOF){
     if(b == ' ' || b == '\n' || b == ';'){
-			uint8_t cmd_success = 0;
       if(pointer>0){
         cmdBuff[pointer++] = '\0';
-        cmd_success = execCMD(sock, cmdBuff);
-        cmd_flag = 0;
+        if(b == '\n' || b == ';'){
+          // if the read char is new line or ';', that means, from now on, a new cmd will be expected 
+          new_cmd_flag=1;
+        } else {
+          new_cmd_flag = 0;
+        }
+        cmd_result = execCMD(sock, cmdBuff, !new_cmd_flag);
       }
       if(b == '\n' || b == ';'){
-        cmd_flag=1;
+        // if the read char is new line or ';', that means, from now on, a new cmd will be expected 
+        new_cmd_flag=1;
       }
       pointer = 0;
-			if (cmd_success == 2){
-				// FIXME: replace 2 with macro
+			if (cmd_result == SUSPEND){
 				// we have to wait, and not eat the socket contents
 				// as we are waiting for the twi bus to become free, to
 				// continue processing the current command
 				//
 				// with the return value, we also notify server, to not
 				// handle any more sockets:
-				return 2;
+				return cmd_result;
 			}else{
 				continue;
 			}
@@ -475,10 +463,12 @@ uint8_t handleCMD(uint8_t sock){
     if(pointer >= MAX_CMD_LEN){
       pointer = 0;
     }
-    if(cmd_flag){
+    // if new cmd is expected, the read char will be stored into buff
+    // if not, the read char will be ignored
+    if(new_cmd_flag){
       cmdBuff[pointer++] = b;
     }
   }
-	return 1;
+	return cmd_result;
 }
 

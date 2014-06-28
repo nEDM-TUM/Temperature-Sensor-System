@@ -1,9 +1,9 @@
 #include "sock_stream.h"
 #include "socket.h"
-#include "configuration.h"
+#include "networking.h"
 
 FILE sock_stream;
-uint8_t currSock = MAX_SERVER_SOCK_NUM;
+uint8_t currSock = MAX_SERVER_SOCK_NUM + FIRST_SERVER_SOCK;
 
 uint8_t sockBuffPointer = 0;
 char sockBuff[MAX_RESPONSE_LEN];
@@ -11,10 +11,11 @@ char sockBuff[MAX_RESPONSE_LEN];
 int sock_stream_flush(){
   uint8_t index;
   if(sockBuffPointer > 0){
-    if (currSock < MAX_SERVER_SOCK_NUM && W5100.readSnSR(currSock) == SnSR::ESTABLISHED){
+    if (currSock < MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK && W5100.readSnSR(currSock) == SnSR::ESTABLISHED){
       send(currSock, (uint8_t *)sockBuff, sockBuffPointer);
     } else {
-      for(index= 0; index<MAX_SERVER_SOCK_NUM; index++){
+      // broadcast for server socks
+      for(index=FIRST_SERVER_SOCK; index<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; index++){
         if(W5100.readSnSR(index) == SnSR::ESTABLISHED){
           send(index, (uint8_t *)sockBuff, sockBuffPointer);
         }

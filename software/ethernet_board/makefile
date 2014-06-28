@@ -21,25 +21,30 @@ FORMAT = ihex
 
 # Project files
 PROJECT_PATH = .
-PROJECT_C_OBJS = usart.o collector_twi.o eeprom_storage.o
-PROJECT_CPP_OBJS = main.o configuration.o sock_stream.o user_cmd.o
+PROJECT_C_OBJS = usart.o collector_twi.o config.o
+PROJECT_CPP_OBJS = main.o networking.o sock_stream.o user_cmd.o
 
 PROJECT_UTIL_PATH = ../util
 PROJECT_UTIL_C_OBJS = checksum.o
 
 #----------------------------------------------------------
 # Programmer settings
-AVRDUDE_PROGRAMMER = stk500v1
-AVRDUDE_PORT = /dev/ttyACM0
-AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
-AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
 # -F forces programming without checking device
 #  identifier.
 #  This is, because the arduino bootloader does
 #  not conform to the stk500v1 standard when sending
 #  the device identifier. Hence the device ID check
 #  always will fail.
-AVRDUDE_FLAGS += -F
+#AVRDUDE_FLAGS += -F
+AVRDUDE_PROGRAMMER = usbasp
+#AVRDUDE_PROGRAMMER = stk500v1 -F
+# enable burn out detection 4.5V, preserve eeprom on chip erase:
+FUSE_HIGH = 0b11010011:m
+AVRDUDE_PORT = /dev/ttyACM0
+AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
+AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET)_eeprom.hex
+AVRDUDE_WRITE_FUSES = -U hfuse:w:$(FUSE_HIGH)
+AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
 #----------------------------------------------------------
 # compiler suite
 CC=avr-gcc
@@ -118,13 +123,16 @@ build: elf hex
 # upload the program to the microcontroller flash:
 upload:
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH)
-
+eeprom:
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_EEPROM)
+fuse:
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FUSES)
 # analyze compiled program size:
 size:
 	$(SIZE) $(TARGET).elf
 
 elf: $(TARGET).elf
-hex: $(TARGET).hex
+hex: $(TARGET).hex $(TARGET)_eeprom.hex
 
 # link everything together:
 $(TARGET).elf: core ethernet spi project
@@ -135,6 +143,10 @@ $(TARGET).elf: core ethernet spi project
 # as we do not want to write this to flash
 $(TARGET).hex: $(TARGET).elf
 	$(OBJCOPY) -O $(FORMAT) -R .eeprom $< $@
+
+# generate eeprom hexfile:
+$(TARGET)_eeprom.hex: $(TARGET).elf
+	$(OBJCOPY) -O $(FORMAT) -j .eeprom --no-change-warnings --change-section-lma .eeprom=0 $< $@
 
 clean:
 	rm -rv $(BUILD_DIR)/*

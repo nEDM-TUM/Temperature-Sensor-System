@@ -8,7 +8,6 @@
 #define MAX_CMD_LEN 10
 
 // CMD handler state
-#define WRONG_PARAMS_PARSE -1
 #define FAILED_PARAMS_PARSE 0
 #define SUCCESS_PARAMS_PARSE 1 
 #define SUSPEND 2
@@ -21,5 +20,5 @@ struct cmd{
 };
 
 
-uint8_t handleCMD(uint8_t sock);
+uint8_t ui_handleCMD(uint8_t sock);
 #endif
