@@ -7,6 +7,7 @@
 \usepackage{amsmath}
 \usepackage{eurosym}
 \usepackage{cite}
+\usepackage{tabularx}
 % the following commands control the margins:
 %\topmargin=-1in    % Make letterhead start about 1 inch from top of page 
 %\textheight=8.5in    % text height can be bigger for a longer letter
@@ -131,8 +132,11 @@ After a overflow occurs, we check, if we received a whole transmission. If this 
 	\item Interrupts are enabled.
 \end{itemize}
 \paragraph{}
-Our algorithm is not able to see stop bits correctly, if $T_{ovf}$ is configured badly. However in our case we deliberately configured $T_{ovf}$ to be bigger that the maximum high time in case of a stop bit.
-This allows us to only see the end of the complete transmission, as a TSIC sensor also sends a useless stop bit after the first 9 bits.
+Our algorithm is not able to see stop bits correctly, if $T_{ovf}$ is configured badly.
+However in our case we deliberately configured $T_{ovf}$ to be bigger that the maximum
+high time in case of a stop bit.
+This allows us to only see the end of the complete transmission, as a TSIC sensor also
+sends a useless stop bit after the first 9 bits.
 \paragraph{}
 As we have up to 8 sensors connected to the Atmega88, we have to do one measurement
 after another. as one sample of a measurement takes $>100\,\mathrm{ms}$ we would run
@@ -158,7 +162,9 @@ $$T_{max} < \frac{3}{2}\cdot T_h\text{.}$$
 Both inequations simplify to
 $$t_e < \frac{1}{4}\cdot T_h\text{.}$$
 According to \cite{zac}, the nominal value for $T_h$ is $\frac{125}{2}\,\mu\mathrm{s}$. Hence our error due to interrupt latency has to be smaller than $15.625\,\mu\mathrm{s}$.\\
-As the microcontroller runs at a clock speed of $20\,\mathrm{MHz}$, we have to complete previous interrupts, start the interrupt handler of the new interrupt and sample the current timer value within 332 clock cycles, to not harm the above limit on the error.\\
+As the microcontroller runs at a clock speed of $20\,\mathrm{MHz}$, we have to complete previous interrupts,
+start the interrupt handler of the new interrupt and sample the current timer value within 332 clock cycles,
+to not harm the above limit on the error.\\
 We implemented a simple branch aware Worst Case Execution Time (WCET) analyzer for the AVR instruction set.
 It is able to calculate the maximum execution time of individual sections in the compiled code\footnote{Note that,
 whereas branches are considered, only branches to addresses in the future are handled correctly. Loops i.e.
@@ -172,11 +178,41 @@ cycles, which is well within the allowed range.
 \begin{figure}
 	\centering
 	\includegraphics[width=0.5\textwidth]{img/wcet/vector_4.pdf}
-  \caption{Branch aware WCET analysis of the Interrupt handler for vector\_4 (Pin change interrupt). Nodes represent program addresses, arrows represent branches. Red arrows point to the branch with the highest execution time. The values near the arrows represent the execution time from the previous node's address to the instruction causing the branch.}
+  \caption{Branch aware WCET analysis of the Interrupt handler for vector\_4 (Pin change interrupt).
+  Nodes represent program addresses, arrows represent branches. Red arrows point to the branch with the
+highest execution time. The values near the arrows represent the execution time from the previous node's
+address to the instruction causing the branch.}
 	\label{fig:wcet}
 \end{figure}
 
 \subsection{I2C interface}
+Communication with the collector board is done via I2C (Two Wire Interface). Thereby the board acts as an
+I2C slave, extending the clock, if it is currently not able to process incomming data.
+This is especially used while a measurement is in progress: As soon as new data byte arrives,
+it is buffered and the clock will be extended, signalling to the master, that no further data should be sent or received.\\
+If a write request (SLA+W) is sent, the following data is interpreted as a command. A list of implemented commands is given in table \ref{tab:i2c}. If a read request (SLA+R) is sent, the packet array from the last completed measurement will be sent out, starting with sensor 0. For details about the packet format see chapter \ref{chap:packet}. Not all packets have to be received, as soon as a STOP bit is received, the transmission is aborted. A new read request will again trigger the transmission of data starting at sensor 0.
+\begin{table}[Hh!]
+	\centering
+	\begin{tabularx}{\textwidth}{ | r | c | c | X | }
+		\hline
+    Name & Value & Parameters & Action\\
+		\hline
+		\hline
+    START\_MEASUREMENT & 0x01 & --- & All 8 sensor values will be captured and converted into a ready to send packet array.\\
+		\hline
+    SET\_ADDRESS & 0x02 & address & The own I2C address will be updated with the 1 byte value following the command. The address should be in the range from 8 to 112. The default address is 42\\
+		\hline
+    LED\_ON & 0x03 & number & The LED with the given number will be turned on.\\
+		\hline
+    LED\_OFF & 0x04 & number & The LED with the given number will be turned off.\\
+		\hline
+	\end{tabularx}
+	\caption{List of implemented I2C commands}
+	\label{tab:i2c}
+\end{table}
+\subsection{Measurement packet format}\label{chap:packet}
+After data was received via the ZAC-Wire protocol, it is interpreted and converted to a convenient packet, suitable for redirection via I2C.
+
 \section{Ethernet board}
 \subsection{Hardware}
 \subsection{Software}
