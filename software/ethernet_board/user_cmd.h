@@ -17,8 +17,10 @@ struct cmd{
   const char * name;
   int8_t (*handle)(void);
   const char * param_format PROGMEM;
+  const char * comment PROGMEM;
 };
 
 
 uint8_t ui_handleCMD(uint8_t sock);
+uint8_t ui_recvResponseDB();
 #endif

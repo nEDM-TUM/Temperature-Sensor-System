@@ -15,6 +15,10 @@ struct config {
   uint16_t port;
   uint8_t ip_db[4];
   uint16_t port_db;
+  char cookie_db[60];
+  char name_db[15];
+  char doc_db[20];
+  char func_db[25];
 };
 
 extern struct config cfg;

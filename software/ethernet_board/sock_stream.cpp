@@ -47,10 +47,6 @@ uint8_t stream_get_sock(){
 }
 
 void stream_set_sock(uint8_t sock){
-  uint8_t b;  
-  if( sock== currSock ){
-    return;
-  }
   currSock = sock;
 }
 

@@ -15,6 +15,7 @@
 extern uint8_t ui_state;
 
 extern uint8_t data_request[MAX_SERVER_SOCK_NUM];
+extern uint8_t db_response_request[MAX_SERVER_SOCK_NUM];
 extern uint32_t measure_interval;
 extern void (*twi_access_fun)();
 
@@ -25,5 +26,6 @@ void net_loop();
 
 void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr);
 void net_sendResultToDB(struct dummy_packet *packets);
+void net_sendTestToDB();
 #endif
 

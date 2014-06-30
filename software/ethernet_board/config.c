@@ -18,9 +18,13 @@ struct {
   /*.subnet = */16,
   /*.gw = */{10, 0, 1, 1},
   /*.port = */8888,
-  /*.ip_db = */{10, 0, 1, 99},
-  /*.port_db = */8888
-						}
+  /*.ip_db = */{127, 0, 0, 1},
+  /*.port_db = */8888,
+  /*.cookie_db[60] = */"c29sYXI6NTIwNEU4OTA66nT2KHyr9n5RrouelBtLnBru00c",
+  /*.name_db[15] = */"idp",
+  /*.doc_db[20] = */"nedm_default",
+  /*.func_db[25] = */"insert_with_timestamp"
+  }
 };
 
 uint8_t config_write(struct config * pcfg){

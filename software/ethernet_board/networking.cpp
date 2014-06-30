@@ -19,6 +19,7 @@ uint8_t listeningSock = MAX_SERVER_SOCK_NUM + FIRST_SERVER_SOCK;
 uint8_t closedSock = MAX_SERVER_SOCK_NUM + FIRST_SERVER_SOCK;
 
 uint8_t data_request[MAX_SERVER_SOCK_NUM] = {0};
+uint8_t db_response_request[MAX_SERVER_SOCK_NUM] = {0};
 uint32_t measure_interval = 1000;
 
 char receiveBuff[MAX_SERVER_SOCK_NUM][MAX_CMD_LEN];
@@ -31,10 +32,6 @@ void serve();
 uint8_t ui_state = UI_READY;
 
 const char UintDot_4Colon[] PROGMEM = "%u.%u.%u.%u:%u";
-// TODO make it configurable and store in eeprom
-const char Database[] PROGMEM = "nedm%2Ftemperature";
-const char Cookie[] PROGMEM = "c29sYXI6NTIwNEU4OTA66nT2KHyr9n5RrouelBtLnBru00c"; 
-
 
 int8_t toSubnetMask(uint8_t subnet, uint8_t* addr){
   int8_t indexByte = 0;
@@ -59,17 +56,48 @@ int8_t toSubnetMask(uint8_t subnet, uint8_t* addr){
   return 1;
 }
 
+void net_sendHeadToDB(uint16_t len){
+  // 1st line: POST /{name_db}/_design/{doc_db}/_update/{func_db} HTTP/1.1
+  fputs_P(PSTR("POST "), &sock_stream);
+  // TODO to compute content length??? fix??
+  fputs(cfg.name_db, &sock_stream);
+  fputs_P(PSTR("/_design/"), &sock_stream);
+  fputs(cfg.doc_db, &sock_stream);
+  fputs_P(PSTR("/_update/"), &sock_stream);
+  fputs(cfg.func_db, &sock_stream);
+  fputs_P(PSTR(" HTTP/1.1\n"), &sock_stream);
+  // 2nd line: Host: {ip}:{port}
+  fputs_P(PSTR("Host: "), &sock_stream);
+  fprintf_P(&sock_stream, UintDot_4Colon, cfg.ip_db[0], cfg.ip_db[1], cfg.ip_db[2], cfg.ip_db[3], cfg.port_db);
+  fputs_P(PSTR("\n"), &sock_stream);
+  // 3rd line: Cookie: AuthSession="{cookie_db}"
+  fputs_P(PSTR("Cookie: AuthenSeesion=\""), &sock_stream);
+  fputs(cfg.cookie_db, &sock_stream);
+  fputs_P(PSTR("\"\n"), &sock_stream);
+  // 4th line: X-CouchDB-WWW-Authenticate: Cookie
+  fputs_P(PSTR("X-CouchDB-WWW-Authenticate: Cookie\n"), &sock_stream);
+  // 5rd line: Content-type: application/json
+  fputs_P(PSTR("Content-type: application/json\n"), &sock_stream);
+  // 6th line: Content-Length: {len}
+  fprintf_P(&sock_stream, PSTR("Content-Length: %u\n"), len);
+  // 7th line: \newline
+  fputs_P(PSTR("\n"), &sock_stream);
+  // 8th line: {data}
+}
+
+void net_sendTestToDB(){
+  stream_set_sock(DB_CLIENT_SOCK);
+  net_sendHeadToDB(17);
+  fputs_P(PSTR("{\"value\": \"test\"}"), &sock_stream);
+  sock_stream_flush();
+}
+
 void net_sendResultToDB(struct dummy_packet * packets){
   uint8_t index;
   stream_set_sock(DB_CLIENT_SOCK);
-  fputs_P(PSTR("POST http://"), &sock_stream);
-  fprintf_P(&sock_stream, UintDot_4Colon, cfg.ip_db[0], cfg.ip_db[1], cfg.ip_db[2], cfg.ip_db[3], cfg.port_db);
-  fputs_P(Database, &sock_stream);
-  // TODO to compute content length??? fix??
-  fputs_P(PSTR("/_design/nedm_default/_update/insert_with_timestamp HTTP/1.0\nContent-Length: ###\nCookie: AuthSession="), &sock_stream);
-  fputs_P(Cookie, &sock_stream);
-  fputs_P(PSTR("\nX-CouchDB-WWW-Authenticate: Cookie\nContent-Type: application/json\n\n"), &sock_stream);
+  net_sendHeadToDB(17);
   // TODO convert packet data to json format
+  fputs_P(PSTR("{\"value\": \"testA\"}"), &sock_stream);
   //fprintf_P(&sock_stream, PSTR("{\"%s\"["), packet_name_or_addr);
   //for(index = 0; index < 8; index++){
   //  if(datavalid??){
@@ -103,6 +131,9 @@ void net_beginService() {
     socket(DB_CLIENT_SOCK, SnMR::TCP, cfg.port-1, 0);
   }
   connect(DB_CLIENT_SOCK, cfg.ip_db, cfg.port_db);
+  // FIXME test
+    _delay_ms(100);
+  net_sendTestToDB();
   // Create the first server socket
   socket(FIRST_SERVER_SOCK, SnMR::TCP, cfg.port, 0);
   while(!listen(FIRST_SERVER_SOCK)){
@@ -130,6 +161,11 @@ void serve(){
   uint8_t i;
   uint8_t snSR;
   uint8_t cmd_state;
+  if(W5100.readSnSR(DB_CLIENT_SOCK)!= SnSR::ESTABLISHED){
+    // If not connect to server, reconnect it
+    printf("not connected with DB\n\r");
+  }
+  ui_recvResponseDB();
   closedSock = MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK;
   listeningSock = MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK;
   for(i=FIRST_SERVER_SOCK; i<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; i++){

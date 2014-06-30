@@ -16,6 +16,12 @@ int8_t handleGw();
 int8_t handleReset();
 int8_t handleIpDB();
 int8_t handlePortDB();
+int8_t handleCookieDB();
+int8_t handleNameDB();
+int8_t handleDocDB();
+int8_t handleFuncDB();
+int8_t handleTestDB();
+int8_t handleViewResponseDB();
 int8_t handleTwiaddr();
 int8_t handleDoMeasurement();
 int8_t handleScan();
@@ -32,25 +38,32 @@ const char Uint_2[] PROGMEM = "%u %u";
 const char UintDot_4[] PROGMEM = "%u.%u.%u.%u";
 const char UintDot_4Slash[] PROGMEM = "%u.%u.%u.%u/%u";
 const char HexColon_6[] PROGMEM = "%x:%x:%x:%x:%x:%x";
+const char LenLimit[] PROGMEM = "The command lenth is limited with ...";
 
 // XXX cmdLen should be always the length of the registered cmd array below! 
 #define DEFINED_CMD_COUNT 14
 struct cmd cmds[]={
-  {"ip", handleIp, UintDot_4Slash},
-  {"port", handlePort, Uint},
-  {"mac", handleMac, HexColon_6},
-  {"gw", handleGw, UintDot_4},
-  {"reset", handleReset, NULL},
-  {"ip-db", handleIpDB, UintDot_4},
-  {"port-db", handlePortDB, Uint},
-  {"twiaddr", handleTwiaddr, Uint_2},
-  {"s", handleScan, NULL},
-  {"m", handleDoMeasurement, NULL},
-  {"v", handleViewMeasurement, NULL},
-  {"i", handleInterval, ULong},
-  {"led", handleLED, Uint_2_Char},
+  {"ip", handleIp, UintDot_4Slash, NULL},
+  {"port", handlePort, Uint, NULL},
+  {"mac", handleMac, HexColon_6, NULL},
+  {"gw", handleGw, UintDot_4, NULL},
+  {"reset", handleReset, NULL, NULL},
+  {"ip-db", handleIpDB, UintDot_4, NULL},
+  {"port-db", handlePortDB, Uint, NULL},
+  {"cookie-db", handleCookieDB, Uint, LenLimit},
+  {"name-db", handleNameDB, Uint, LenLimit},
+  {"doc-db", handleDocDB, Uint, LenLimit},
+  {"func-db", handleFuncDB, Uint, LenLimit},
+  {"test-db", handleTestDB, NULL, NULL},
+  {"v-db", handleViewResponseDB, NULL, NULL},
+  {"twiaddr", handleTwiaddr, Uint_2, NULL},
+  {"s", handleScan, NULL, NULL},
+  {"m", handleDoMeasurement, NULL, NULL},
+  {"v", handleViewMeasurement, NULL, NULL},
+  {"i", handleInterval, ULong, NULL},
+  {"led", handleLED, Uint_2_Char, NULL},
   // XXX the help handler should be always at the end
-  {"help", handleHelp, NULL}
+  {"help", handleHelp, NULL, NULL}
 };
 
 const char Usage[] PROGMEM = "usage: ";
@@ -67,8 +80,10 @@ uint8_t print4dotarr(FILE *stream, uint8_t * arr){
 }
 
 int8_t handleViewMeasurement(){
-	uint8_t socket = stream_get_sock();
-	data_request[socket] = (!data_request[socket]);
+	uint8_t serverSockIndex = stream_get_sock()-FIRST_SERVER_SOCK;
+  if(serverSockIndex<MAX_SERVER_SOCK_NUM){
+    data_request[serverSockIndex] = (!data_request[serverSockIndex]);
+  }
   return 1;
 }
 
@@ -293,8 +308,10 @@ int8_t handlePort(){
 
   if(paramsCount==1){
     fputs_P(New, &sock_stream);
-    fputs_P(Colon, &sock_stream);
-    fprintf_P(&sock_stream, Uint, cfg.port);
+  }
+  fputs_P(Colon, &sock_stream);
+  fprintf_P(&sock_stream, Uint, cfg.port);
+  if(paramsCount==1){
     fputs_P(UpdateOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
   }
@@ -355,12 +372,91 @@ int8_t handlePortDB(){
 
   if(paramsCount==1){
     fputs_P(New, &sock_stream);
-    fputs_P(Colon, &sock_stream);
-    fprintf_P(&sock_stream, Uint, cfg.port);
+  }
+  fputs_P(Colon, &sock_stream);
+  fprintf_P(&sock_stream, Uint, cfg.port_db);
+  if(paramsCount==1){
     fputs_P(UpdateOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
   }
   return FAILED_PARAMS_PARSE;
+}
+
+int8_t handleCookieDB(){
+  int16_t paramsCount=fscanf_P(&sock_stream, PSTR("60%s"), &(cfg.cookie_db));
+
+  if(paramsCount==1){
+    fputs_P(New, &sock_stream);
+  }
+  fputs_P(Colon, &sock_stream);
+  fputs_P(cfg.cookie_db, &sock_stream);
+  if(paramsCount==1){
+    fputs_P(UpdateOption, &sock_stream);
+    return SUCCESS_PARAMS_PARSE;
+  }
+  return FAILED_PARAMS_PARSE;
+}
+
+int8_t handleNameDB(){
+  int16_t paramsCount=fscanf_P(&sock_stream, PSTR("15%s"), &(cfg.name_db));
+
+  if(paramsCount==1){
+    fputs_P(New, &sock_stream);
+  }
+  fputs_P(Colon, &sock_stream);
+  fputs_P(cfg.name_db, &sock_stream);
+  if(paramsCount==1){
+    fputs_P(UpdateOption, &sock_stream);
+    return SUCCESS_PARAMS_PARSE;
+  }
+  return FAILED_PARAMS_PARSE;
+}
+
+int8_t handleDocDB(){
+  int16_t paramsCount=fscanf_P(&sock_stream, PSTR("20%s"), &(cfg.doc_db));
+
+  if(paramsCount==1){
+    fputs_P(New, &sock_stream);
+  }
+  fputs_P(Colon, &sock_stream);
+  fputs_P(cfg.doc_db, &sock_stream);
+  if(paramsCount==1){
+    fputs_P(UpdateOption, &sock_stream);
+    return SUCCESS_PARAMS_PARSE;
+  }
+  return FAILED_PARAMS_PARSE;
+}
+
+int8_t handleFuncDB(){
+  int16_t paramsCount=fscanf_P(&sock_stream, PSTR("25%s"), &(cfg.func_db));
+
+  if(paramsCount==1){
+    fputs_P(New, &sock_stream);
+  }
+  fputs_P(Colon, &sock_stream);
+  fputs_P(cfg.func_db, &sock_stream);
+  if(paramsCount==1){
+    fputs_P(UpdateOption, &sock_stream);
+    return SUCCESS_PARAMS_PARSE;
+  }
+  return FAILED_PARAMS_PARSE;
+}
+
+int8_t handleTestDB(){
+  net_sendTestToDB();
+  uint8_t serverSockIndex = stream_get_sock()-FIRST_SERVER_SOCK;
+  if(serverSockIndex<MAX_SERVER_SOCK_NUM){
+    db_response_request[serverSockIndex]= 1;
+  }
+  return NO_PARAMS_PARSE;
+}
+
+int8_t handleViewResponseDB(){
+   uint8_t serverSockIndex = stream_get_sock()-FIRST_SERVER_SOCK;
+  if(serverSockIndex<MAX_SERVER_SOCK_NUM){
+    db_response_request[serverSockIndex]= !db_response_request[serverSockIndex];
+  }
+  return NO_PARAMS_PARSE;
 }
 
 inline void sendError(uint8_t sock){
@@ -386,8 +482,15 @@ char* cmpCMD(char* cmdstr, const char * cmd){
 void printOption(struct cmd cmd){
   fputs_P(PSTR("\n\t"), &sock_stream);
   fputs(cmd.name, &sock_stream);
+  if(cmd.param_format!=NULL){
   fputs_P(PSTR(" "), &sock_stream);
   fputs_P(cmd.param_format, &sock_stream);
+  }
+  if(cmd.comment!=NULL){
+    fputs_P(PSTR(" ("), &sock_stream);
+    fputs_P(cmd.comment, &sock_stream);
+    fputs_P(PSTR(")"), &sock_stream);
+  }
 }
 
 int8_t handleHelp(){
@@ -472,3 +575,31 @@ uint8_t ui_handleCMD(uint8_t sock){
 	return cmd_result;
 }
 
+uint8_t ui_recvResponseDB(){
+  int16_t b;
+  uint8_t i;
+  // FIXME improve
+  stream_set_sock(DB_CLIENT_SOCK); 
+  if((b=fgetc(&sock_stream)) == EOF){
+    return 0;
+  }
+  for(i = 0;  i<MAX_SERVER_SOCK_NUM; i++){
+    if(db_response_request[i]){
+      stream_set_sock(i+FIRST_SERVER_SOCK); 
+      fputs_P(PSTR("Response from DB:\n\n"), &sock_stream);
+    }
+  }
+  while(true){
+    stream_set_sock(DB_CLIENT_SOCK); 
+    if((b=fgetc(&sock_stream)) == EOF){
+      return 1;
+    }
+    for(i = 0;  i<MAX_SERVER_SOCK_NUM; i++){
+      if(db_response_request[i]){
+        stream_set_sock(i+FIRST_SERVER_SOCK); 
+        fputc(b, &sock_stream);
+      }
+    }
+  }
+  return 1;
+}
