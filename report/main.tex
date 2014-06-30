@@ -118,7 +118,7 @@ On a falling edge:
 On a rising edge:
 \begin{itemize}
 	\item The current timer value is stored as $T_{low}$. If we already observed a falling edge, this represents the time, the signal was low.
-	\item If we already have seen a start bit, we now sample a data bit\footnote{Note, that a repeated start bit would also be sampled as a data bit with an unpredictable value}:\\
+	\item If we already have seen a start bit, we now sample a data bit\footnote{Note, that a repeated start bit would also be sampled as a data bit with an unpredictable value.}:\\
 	$\mathrm{bit} = \begin{cases} 1 & \text{if } T_{timer}<T_{crit} \\ 0 & \text{else}\end{cases}$
 \end{itemize}
 \paragraph{Timer overflow Interrupt:} The timer is configured in a way, that an overflow will occur after the timer is running without a reset for $T_{ovf}$, with $T_{bit} < T_{ovf} < 100\,\mathrm{ms}$. Hence the interrupt will occur, after a completed transmission and before the start of the next transmission.\\
@@ -169,7 +169,7 @@ We implemented a simple branch aware Worst Case Execution Time (WCET) analyzer f
 It is able to calculate the maximum execution time of individual sections in the compiled code\footnote{Note that,
 whereas branches are considered, only branches to addresses in the future are handled correctly. Loops i.e.
 branches to already executed code cause undefined, possibly non terminating behaviour of the analyzer. As our code
-does not contain loops, this did not cause problems and loop handling was not implemented}. Figure \ref{fig:wcet}
+does not contain loops, this did not cause problems and loop handling was not implemented.}. Figure \ref{fig:wcet}
 shows the WCET analyzer output for the Pin change interrupt handler. The worst case execution time for the total
 handler is $100$ cycles. The timer interrupt takes less than $50$ cycles to complete. For a complete analysis one
 additionally has to consider the time for jumping to the interrupt handler ($<20$ cycles) and the time we need to read out the
@@ -190,15 +190,16 @@ Communication with the collector board is done via I2C (Two Wire Interface). The
 I2C slave, extending the clock, if it is currently not able to process incomming data.
 This is especially used while a measurement is in progress: As soon as new data byte arrives,
 it is buffered and the clock will be extended, signalling to the master, that no further data should be sent or received.\\
-If a write request (SLA+W) is sent, the following data is interpreted as a command. A list of implemented commands is given in table \ref{tab:i2c}. If a read request (SLA+R) is sent, the packet array from the last completed measurement will be sent out, starting with sensor 0. For details about the packet format see chapter \ref{chap:packet}. Not all packets have to be received, as soon as a STOP bit is received, the transmission is aborted. A new read request will again trigger the transmission of data starting at sensor 0.
+If a write request (SLA+W) is sent, the following data is interpreted as a command. A list of implemented commands is given in table \ref{tab:i2c}. The collector board reacts to the general call address 0. This makes it possible to trigger a measurement on multiple boards, using only one I2C transmission. Also the own I2C address can be set to a new value without knowing the old one.\\
+If a read request (SLA+R) is sent, the packet array from the last completed measurement will be sent out, starting with sensor 0. For details about the packet format see chapter \ref{chap:packet}. Not all packets have to be received, as soon as a STOP bit is received, the transmission is aborted. A new read request will again trigger the transmission of data starting at sensor 0.
 \begin{table}[Hh!]
 	\centering
-	\begin{tabularx}{\textwidth}{ | r | c | c | X | }
+	\begin{tabularx}{\textwidth}{ | c | c | c | X | }
 		\hline
     Name & Value & Parameters & Action\\
 		\hline
 		\hline
-    START\_MEASUREMENT & 0x01 & --- & All 8 sensor values will be captured and converted into a ready to send packet array.\\
+    START\_MEASUREMENT & 0x01 & --- & All 8 sensor values will be captured as soon as the STOP bit is received. If during measurement the slave is addressed again, the I2C clock will immediately be extended until the measurement is complete, blocking the whole I2C bus.\\
 		\hline
     SET\_ADDRESS & 0x02 & address & The own I2C address will be updated with the 1 byte value following the command. The address should be in the range from 8 to 112. The default address is 42\\
 		\hline
@@ -211,7 +212,7 @@ If a write request (SLA+W) is sent, the following data is interpreted as a comma
 	\label{tab:i2c}
 \end{table}
 \subsection{Measurement packet format}\label{chap:packet}
-After data was received via the ZAC-Wire protocol, it is interpreted and converted to a convenient packet, suitable for redirection via I2C.
+After data was received via the ZAC-Wire protocol, it is interpreted and converted to a convenient packet format, suitable for redirection via I2C. The packet's integrity is protected, using a CRC-8 checksum.
 
 \section{Ethernet board}
 \subsection{Hardware}
