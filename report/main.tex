@@ -8,6 +8,10 @@
 \usepackage{eurosym}
 \usepackage{cite}
 \usepackage{tabularx}
+\usepackage{bytefield}
+\usepackage{color}
+\usepackage{longtable}
+\usepackage{tabularx}
 % the following commands control the margins:
 %\topmargin=-1in    % Make letterhead start about 1 inch from top of page 
 %\textheight=8.5in    % text height can be bigger for a longer letter
@@ -212,19 +216,65 @@ If a read request (SLA+R) is sent, the packet array from the last completed meas
 	\label{tab:i2c}
 \end{table}
 \subsection{Measurement packet format}\label{chap:packet}
-After data was received via the ZAC-Wire protocol, it is interpreted and converted to a convenient packet format, suitable for redirection via I2C. The packet's integrity is protected, using a CRC-8 checksum.
+After data was received via the ZAC-Wire protocol, it is interpreted and converted to a convenient packet format, suitable for redirection via I2C. Each packet's integrity is protected by a CRC checksum and consists of the following fields:\\
+\begin{description}
+	\item[\textbf{type}] This field pecifies the type of the sensor, which supplied the data. Currently implemented values are 0 for TSIC and 1 for HYT. In case the type field reads 0, the \emph{Humidity} field will have no relevant value hence represents a padding field.
+	\item[c] This bit is set to 1, if the measurement was completed without a timeout. This is usually the case, when a sensor is connected. Hence this bit can be used to determine, whether a sensor is connected or not.
+	\item[error] This field reads 1, when an error during sampling has occured. Possible causes are: HYT Checksum missmatch, TSIC Parity missmatch or TSIC Protocol format error.
+	\item[Temperature] $T_m \cdot 100$ with $T_m$ the measured temperature in Celsius.
+	\item[Humidity] $RH_m \cdot 100$ with $RH_m$ the measured relative humidity in \%.
+	\item[CRC-8] Checksum over the first 5 bytes of the packet\footnote{The Humidity field is always part of the checksum calculation, even if the packet type is 0.}.
+\end{description}
+Figure \ref{fig:packet} shows the structure of a packet. Packets can be received via I2C in the order, shown in figure \ref{fig:packetorder}.\\
+
+\begin{figure}
+	\centering
+	\definecolor{lightgray}{gray}{0.8}
+	\begin{bytefield}[endianness=big, bitwidth=2.1em]{8}
+		\bitheader{0-7}\\
+		\begin{rightwordgroup}{Header}
+			\bitbox{2}{type} & \bitbox{3}{\color{lightgray}\rule{\width}{\height}} & \bitbox{1}{c} & \bitbox{2}{error}
+		\end{rightwordgroup}\\
+		\begin{rightwordgroup}{Payload}
+			\wordbox{2}{Temperature}\\
+			\wordbox{2}{Humidity}
+		\end{rightwordgroup}\\
+		\wordbox{1}{CRC-8}
+	\end{bytefield}
+  \caption{Packet format of a measurement. The whole packet is 6 bytes long}
+	\label{fig:packet}
+\end{figure}
+\begin{figure}
+	\centering
+	\definecolor{lightgray}{gray}{0.8}
+	\begin{bytefield}[endianness=little, bitwidth=0.7em]{48}
+		\bitheader{0,6,12,18,24,30,36,42}\\
+		\bitbox{6}{Sensor 0} &
+		\bitbox{6}{Sensor 1} &
+		\bitbox{6}{Sensor 2} &
+		\bitbox{6}{Sensor 3} &
+		\bitbox{6}{Sensor 4} &
+		\bitbox{6}{Sensor 5} &
+		\bitbox{6}{Sensor 6} &
+		\bitbox{6}{Sensor 7}
+	\end{bytefield}
+  \caption{Transmission packet order}
+	\label{fig:packetorder}
+\end{figure}
 
 \section{Ethernet board}
 \subsection{Hardware}
 \subsection{Software}
 \subsection{User interface}
-\input{Usage}
-\input{Conclusion}
 \chapter{References}
 %\renewcommand\refname{\vskip -1cm}
 %\bibliographystyle{abbrv}
 \bibliographystyle{plain}
+\begingroup
+\def\chapter*#1{}
 \bibliography{bib}
+\endgroup
+%\bibliography{bib}
 \nocite{*}
 
 \end{document}
