@@ -236,13 +236,22 @@ void net_loop(){
 				// now we have to do our access as fast as possible, as others might wait for bus access:
 				// call command handler, who waits for access to the bus:
 				twi_access_fun();
+				
+				fputs_P(PSTR("% "), &sock_stream);
 				sock_stream_flush();
 				// we again accept commands
 				ui_state = UI_READY;
 				twi_free_bus();
+				int16_t b;
+				while((b=fgetc(&sock_stream)) != EOF){
+					if(b == '\n' || b == ';'){
+						break;
+					}
+				}
+					
 
 				// handle other already existing commands in the buffer
-				ui_handleCMD(stream_get_sock());
+				//ui_handleCMD(stream_get_sock());
 			}
 			break;
 	}

@@ -156,7 +156,7 @@ Our approach is to sample two sensors at the
 same time, using a second 8 bit timer. Our interrupt handler for the ZAC protocol decoding are not interruptable.
 Hence, incomming interrupts are delayed for the runtime $t_e$ of currently executed interrupts.
 If we have interrupts active for two sensors at the same time, the controller might see a delayed signal.
-\begin{figure}
+\begin{figure}[b]
 	\centering
 	\includegraphics[width=0.7\textwidth]{img/zac_timing.pdf}
 	\caption{ZAC protocol worst case timing. The grey shaded areas illustrate the potentially delayed vision

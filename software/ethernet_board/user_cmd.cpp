@@ -38,10 +38,10 @@ const char Uint_2[] PROGMEM = "%u %u";
 const char UintDot_4[] PROGMEM = "%u.%u.%u.%u";
 const char UintDot_4Slash[] PROGMEM = "%u.%u.%u.%u/%u";
 const char HexColon_6[] PROGMEM = "%x:%x:%x:%x:%x:%x";
-const char LenLimit[] PROGMEM = "The command lenth is limited with ...";
+const char LenLimit[] PROGMEM = "Parameter lenth limited to ...";
 
-// XXX cmdLen should be always the length of the registered cmd array below! 
-#define DEFINED_CMD_COUNT 14
+// XXX this should always be the length of the registered cmd array below! 
+#define DEFINED_CMD_COUNT 20
 struct cmd cmds[]={
   {"ip", handleIp, UintDot_4Slash, NULL},
   {"port", handlePort, Uint, NULL},
@@ -62,16 +62,16 @@ struct cmd cmds[]={
   {"v", handleViewMeasurement, NULL, NULL},
   {"i", handleInterval, ULong, NULL},
   {"led", handleLED, Uint_2_Char, NULL},
-  // XXX the help handler should be always at the end
+  // XXX the help handler should always be at the end
   {"help", handleHelp, NULL, NULL}
 };
 
-const char Usage[] PROGMEM = "usage: ";
+const char Usage[] PROGMEM = "Available commands: ";
 const char New[] PROGMEM = "(NEW)";
 const char Colon[] PROGMEM = ": ";
 
-const char UpdateOption[] PROGMEM = "\nupdate option:\n\treset";
-const char CmdNotFound[] PROGMEM = "cmd not found! type 'help' to view options";
+const char UpdateOption[] PROGMEM = "\nfor changes to become effective type\n\treset";
+const char CmdNotFound[] PROGMEM = "cmd not found! type 'help' to view options\n";
 
 char cmdBuff[MAX_CMD_LEN];
 
@@ -154,11 +154,9 @@ int8_t handleDoMeasurement(){
 }
 
 void accessScan(void){
-	// FIXME: socket number is hardcoded here
-	uint8_t sock = 0;
 	uint8_t i;
 	num_boards = twi_scan(scanresults, 20);
-  fputs_P(PSTR("found boards"), &sock_stream);
+  fputs_P(PSTR("found boards:"), &sock_stream);
 #ifdef DEBUG
 	printf("found boards: ");
 #endif
@@ -182,7 +180,7 @@ int8_t handleScan(){
 #endif
 	twi_access_fun = accessScan;
 	ui_state = UI_TWILOCK;
-  return 1;
+  return SUSPEND;
 }
 
 void accessLED(void){
@@ -207,7 +205,6 @@ int8_t handleLED(){
 #endif
 	twi_access_fun = accessLED;
 	ui_state = UI_TWILOCK;
-	// FIXME: replace 2 with macro
   return SUSPEND;
 }
 
@@ -483,7 +480,7 @@ void printOption(struct cmd cmd){
   fputs_P(PSTR("\n\t"), &sock_stream);
   fputs(cmd.name, &sock_stream);
   if(cmd.param_format!=NULL){
-  fputs_P(PSTR(" "), &sock_stream);
+  fputs_P(PSTR(" \t"), &sock_stream);
   fputs_P(cmd.param_format, &sock_stream);
   }
   if(cmd.comment!=NULL){
@@ -495,8 +492,8 @@ void printOption(struct cmd cmd){
 
 int8_t handleHelp(){
   int8_t index;
+  fputs_P(Usage, &sock_stream);
   for(index= 0; index<DEFINED_CMD_COUNT - 1; index++){
-    fputs_P(Usage, &sock_stream);
     printOption(cmds[index]);
   }
   return 1;
@@ -520,37 +517,44 @@ uint8_t execCMD(uint8_t sock, char * buff, int8_t hasParams){
         printOption(cmd);
       }
       fputs_P(PSTR("\n"), &sock_stream);
+			//if(handle_state != SUSPEND){
+			//	fputs_P(PSTR("\n% "), &sock_stream);
+			//}
       sock_stream_flush();
       return handle_state;
     }
   }
+	//fputs_P(PSTR("\n% "), &sock_stream);
   fputs_P(CmdNotFound, &sock_stream);
   sock_stream_flush();
+	// FIXME: what is return value here????
 }
 
 uint8_t ui_handleCMD(uint8_t sock){
-  uint8_t pointer=0;
-  int16_t b;
-  int8_t new_cmd_flag=1;
-  uint8_t cmd_result = NO_PARAMS_PARSE;
-  stream_set_sock(sock); 
-  while((b=fgetc(&sock_stream)) != EOF){
-    if(b == ' ' || b == '\n' || b == ';'){
-      if(pointer>0){
-        cmdBuff[pointer++] = '\0';
-        if(b == '\n' || b == ';'){
-          // if the read char is new line or ';', that means, from now on, a new cmd will be expected 
-          new_cmd_flag=1;
-        } else {
-          new_cmd_flag = 0;
-        }
-        cmd_result = execCMD(sock, cmdBuff, !new_cmd_flag);
-      }
-      if(b == '\n' || b == ';'){
-        // if the read char is new line or ';', that means, from now on, a new cmd will be expected 
-        new_cmd_flag=1;
-      }
-      pointer = 0;
+	uint8_t pointer=0;
+	int16_t b;
+	int8_t flag_return=0;
+	int8_t new_cmd_flag=1;
+	uint8_t cmd_result = NO_PARAMS_PARSE;
+	stream_set_sock(sock); 
+	while((b=fgetc(&sock_stream)) != EOF){
+		if(b == ' ' || b == '\n' || b == ';'){
+			flag_return = 1;
+			if(pointer>0){
+				cmdBuff[pointer++] = '\0';
+				if(b == '\n' || b == ';'){
+					// if the read char is new line or ';', that means, from now on, a new cmd will be expected 
+					new_cmd_flag=1;
+				} else {
+					new_cmd_flag = 0;
+				}
+				cmd_result = execCMD(sock, cmdBuff, !new_cmd_flag);
+			}
+			if(b == '\n' || b == ';'){
+				// if the read char is new line or ';', that means, from now on, a new cmd will be expected 
+				new_cmd_flag=1;
+			}
+			pointer = 0;
 			if (cmd_result == SUSPEND){
 				// we have to wait, and not eat the socket contents
 				// as we are waiting for the twi bus to become free, to
@@ -562,16 +566,20 @@ uint8_t ui_handleCMD(uint8_t sock){
 			}else{
 				continue;
 			}
-    }
-    if(pointer >= MAX_CMD_LEN){
-      pointer = 0;
-    }
-    // if new cmd is expected, the read char will be stored into buff
-    // if not, the read char will be ignored
-    if(new_cmd_flag){
-      cmdBuff[pointer++] = b;
-    }
-  }
+		}
+		if(pointer >= MAX_CMD_LEN){
+			pointer = 0;
+		}
+		// if new cmd is expected, the read char will be stored into buff
+		// if not, the read char will be ignored
+		if(new_cmd_flag){
+			cmdBuff[pointer++] = b;
+		}
+	}
+	if (flag_return && (cmd_result != SUSPEND)){
+		fputs_P(PSTR("% "), &sock_stream);
+		sock_stream_flush();
+	}
 	return cmd_result;
 }
 
