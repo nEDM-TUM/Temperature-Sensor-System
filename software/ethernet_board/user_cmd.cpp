@@ -38,7 +38,7 @@ const char Uint_2[] PROGMEM = "%u %u";
 const char UintDot_4[] PROGMEM = "%u.%u.%u.%u";
 const char UintDot_4Slash[] PROGMEM = "%u.%u.%u.%u/%u";
 const char HexColon_6[] PROGMEM = "%x:%x:%x:%x:%x:%x";
-const char LenLimit[] PROGMEM = "The command lenth is limited with ...";
+const char LenLimit[] PROGMEM = "Parameter lenth limited to ...";
 
 // XXX cmdLen should be always the length of the registered cmd array below! 
 #define DEFINED_CMD_COUNT 20
@@ -66,12 +66,12 @@ struct cmd cmds[]={
   {"help", handleHelp, NULL, NULL}
 };
 
-const char Usage[] PROGMEM = "usage: ";
+const char Usage[] PROGMEM = "Available commands: ";
 const char New[] PROGMEM = "(NEW)";
 const char Colon[] PROGMEM = ": ";
 
-const char UpdateOption[] PROGMEM = "\nupdate option:\n\treset";
-const char CmdNotFound[] PROGMEM = "cmd not found! type 'help' to view options";
+const char UpdateOption[] PROGMEM = "\nfor changes to become effective type\n\treset";
+const char CmdNotFound[] PROGMEM = "cmd not found! type 'help' to view options\n";
 
 char cmdBuff[MAX_CMD_LEN];
 
@@ -154,11 +154,9 @@ int8_t handleDoMeasurement(){
 }
 
 void accessScan(void){
-	// FIXME: socket number is hardcoded here
-	uint8_t sock = 0;
 	uint8_t i;
 	num_boards = twi_scan(scanresults, 20);
-  fputs_P(PSTR("found boards"), &sock_stream);
+  fputs_P(PSTR("found boards:"), &sock_stream);
 #ifdef DEBUG
 	printf("found boards: ");
 #endif
@@ -483,7 +481,7 @@ void printOption(struct cmd cmd){
   fputs_P(PSTR("\n\t"), &sock_stream);
   fputs(cmd.name, &sock_stream);
   if(cmd.param_format!=NULL){
-  fputs_P(PSTR(" "), &sock_stream);
+  fputs_P(PSTR(" \t"), &sock_stream);
   fputs_P(cmd.param_format, &sock_stream);
   }
   if(cmd.comment!=NULL){
@@ -495,8 +493,8 @@ void printOption(struct cmd cmd){
 
 int8_t handleHelp(){
   int8_t index;
+  fputs_P(Usage, &sock_stream);
   for(index= 0; index<DEFINED_CMD_COUNT - 1; index++){
-    fputs_P(Usage, &sock_stream);
     printOption(cmds[index]);
   }
   return 1;
