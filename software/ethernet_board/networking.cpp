@@ -133,6 +133,13 @@ void net_beginService() {
   connect(DB_CLIENT_SOCK, cfg.ip_db, cfg.port_db);
   // FIXME test
     _delay_ms(100);
+  while(W5100.readSnSR(DB_CLIENT_SOCK) != SnSR::ESTABLISHED) {
+    _delay_ms(100);
+    if (status() == SnSR::CLOSED) {
+    printf("Status closed\n\r");
+      break;
+    }
+  }
   net_sendTestToDB();
   // Create the first server socket
   socket(FIRST_SERVER_SOCK, SnMR::TCP, cfg.port, 0);
