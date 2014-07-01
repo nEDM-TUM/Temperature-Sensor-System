@@ -40,7 +40,7 @@ const char UintDot_4Slash[] PROGMEM = "%u.%u.%u.%u/%u";
 const char HexColon_6[] PROGMEM = "%x:%x:%x:%x:%x:%x";
 const char LenLimit[] PROGMEM = "Parameter lenth limited to ...";
 
-// XXX cmdLen should be always the length of the registered cmd array below! 
+// XXX this should always be the length of the registered cmd array below! 
 #define DEFINED_CMD_COUNT 20
 struct cmd cmds[]={
   {"ip", handleIp, UintDot_4Slash, NULL},
@@ -62,7 +62,7 @@ struct cmd cmds[]={
   {"v", handleViewMeasurement, NULL, NULL},
   {"i", handleInterval, ULong, NULL},
   {"led", handleLED, Uint_2_Char, NULL},
-  // XXX the help handler should be always at the end
+  // XXX the help handler should always be at the end
   {"help", handleHelp, NULL, NULL}
 };
 
@@ -205,7 +205,6 @@ int8_t handleLED(){
 #endif
 	twi_access_fun = accessLED;
 	ui_state = UI_TWILOCK;
-	// FIXME: replace 2 with macro
   return SUSPEND;
 }
 
@@ -578,7 +577,6 @@ uint8_t ui_handleCMD(uint8_t sock){
 		}
 	}
 	if (flag_return && (cmd_result != SUSPEND)){
-		// FIXME: why is this not printed, when just return is pressed (without entering a cmd)
 		fputs_P(PSTR("% "), &sock_stream);
 		sock_stream_flush();
 	}
