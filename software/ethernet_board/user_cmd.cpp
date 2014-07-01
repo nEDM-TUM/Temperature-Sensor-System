@@ -542,11 +542,11 @@ uint8_t ui_handleCMD(uint8_t sock){
 	stream_set_sock(sock); 
 	while((b=fgetc(&sock_stream)) != EOF){
 		if(b == ' ' || b == '\n' || b == ';'){
+			flag_return = 1;
 			if(pointer>0){
 				cmdBuff[pointer++] = '\0';
 				if(b == '\n' || b == ';'){
 					// if the read char is new line or ';', that means, from now on, a new cmd will be expected 
-					flag_return = 1;
 					new_cmd_flag=1;
 				} else {
 					new_cmd_flag = 0;
@@ -581,7 +581,7 @@ uint8_t ui_handleCMD(uint8_t sock){
 	}
 	if (flag_return && (cmd_result != SUSPEND)){
 		// FIXME: why is this not printed, when just return is pressed (without entering a cmd)
-		fputs_P(PSTR("\n% "), &sock_stream);
+		fputs_P(PSTR("% "), &sock_stream);
 		sock_stream_flush();
 	}
 	return cmd_result;
