@@ -41,7 +41,7 @@ const char HexColon_6[] PROGMEM = "%x:%x:%x:%x:%x:%x";
 const char LenLimit[] PROGMEM = "The command lenth is limited with ...";
 
 // XXX cmdLen should be always the length of the registered cmd array below! 
-#define DEFINED_CMD_COUNT 14
+#define DEFINED_CMD_COUNT 20
 struct cmd cmds[]={
   {"ip", handleIp, UintDot_4Slash, NULL},
   {"port", handlePort, Uint, NULL},
@@ -182,7 +182,7 @@ int8_t handleScan(){
 #endif
 	twi_access_fun = accessScan;
 	ui_state = UI_TWILOCK;
-  return 1;
+  return SUSPEND;
 }
 
 void accessLED(void){
@@ -520,37 +520,44 @@ uint8_t execCMD(uint8_t sock, char * buff, int8_t hasParams){
         printOption(cmd);
       }
       fputs_P(PSTR("\n"), &sock_stream);
+			//if(handle_state != SUSPEND){
+			//	fputs_P(PSTR("\n% "), &sock_stream);
+			//}
       sock_stream_flush();
       return handle_state;
     }
   }
+	//fputs_P(PSTR("\n% "), &sock_stream);
   fputs_P(CmdNotFound, &sock_stream);
   sock_stream_flush();
+	// FIXME: what is return value here????
 }
 
 uint8_t ui_handleCMD(uint8_t sock){
-  uint8_t pointer=0;
-  int16_t b;
-  int8_t new_cmd_flag=1;
-  uint8_t cmd_result = NO_PARAMS_PARSE;
-  stream_set_sock(sock); 
-  while((b=fgetc(&sock_stream)) != EOF){
-    if(b == ' ' || b == '\n' || b == ';'){
-      if(pointer>0){
-        cmdBuff[pointer++] = '\0';
-        if(b == '\n' || b == ';'){
-          // if the read char is new line or ';', that means, from now on, a new cmd will be expected 
-          new_cmd_flag=1;
-        } else {
-          new_cmd_flag = 0;
-        }
-        cmd_result = execCMD(sock, cmdBuff, !new_cmd_flag);
-      }
-      if(b == '\n' || b == ';'){
-        // if the read char is new line or ';', that means, from now on, a new cmd will be expected 
-        new_cmd_flag=1;
-      }
-      pointer = 0;
+	uint8_t pointer=0;
+	int16_t b;
+	int8_t flag_return=0;
+	int8_t new_cmd_flag=1;
+	uint8_t cmd_result = NO_PARAMS_PARSE;
+	stream_set_sock(sock); 
+	while((b=fgetc(&sock_stream)) != EOF){
+		if(b == ' ' || b == '\n' || b == ';'){
+			if(pointer>0){
+				cmdBuff[pointer++] = '\0';
+				if(b == '\n' || b == ';'){
+					// if the read char is new line or ';', that means, from now on, a new cmd will be expected 
+					flag_return = 1;
+					new_cmd_flag=1;
+				} else {
+					new_cmd_flag = 0;
+				}
+				cmd_result = execCMD(sock, cmdBuff, !new_cmd_flag);
+			}
+			if(b == '\n' || b == ';'){
+				// if the read char is new line or ';', that means, from now on, a new cmd will be expected 
+				new_cmd_flag=1;
+			}
+			pointer = 0;
 			if (cmd_result == SUSPEND){
 				// we have to wait, and not eat the socket contents
 				// as we are waiting for the twi bus to become free, to
@@ -562,16 +569,21 @@ uint8_t ui_handleCMD(uint8_t sock){
 			}else{
 				continue;
 			}
-    }
-    if(pointer >= MAX_CMD_LEN){
-      pointer = 0;
-    }
-    // if new cmd is expected, the read char will be stored into buff
-    // if not, the read char will be ignored
-    if(new_cmd_flag){
-      cmdBuff[pointer++] = b;
-    }
-  }
+		}
+		if(pointer >= MAX_CMD_LEN){
+			pointer = 0;
+		}
+		// if new cmd is expected, the read char will be stored into buff
+		// if not, the read char will be ignored
+		if(new_cmd_flag){
+			cmdBuff[pointer++] = b;
+		}
+	}
+	if (flag_return && (cmd_result != SUSPEND)){
+		// FIXME: why is this not printed, when just return is pressed (without entering a cmd)
+		fputs_P(PSTR("\n% "), &sock_stream);
+		sock_stream_flush();
+	}
 	return cmd_result;
 }
 
