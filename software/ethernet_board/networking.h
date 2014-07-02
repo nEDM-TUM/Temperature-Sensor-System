@@ -25,7 +25,6 @@ void net_setupServer(void);
 void net_loop();
 
 void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr);
-void net_sendResultToDB(struct dummy_packet *packets);
-void net_sendTestToDB();
+void net_sendResultToDB(struct dummy_packet *packets, uint8_t src_addr);
 #endif
 

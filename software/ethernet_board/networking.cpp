@@ -55,82 +55,27 @@ void toSubnetMask(uint8_t subnet, uint8_t* addr){
   return;
 }
 
-void net_sendHeadToDB(uint16_t len){
-  // 1st line: POST /{name_db}/_design/{doc_db}/_update/{func_db} HTTP/1.1
-  fputs_P(PSTR("POST /"), &sock_stream);
-  // TODO to compute content length??? fix??
-  fputs(cfg.name_db, &sock_stream);
-  fputs_P(PSTR("/_design/"), &sock_stream);
-  fputs(cfg.doc_db, &sock_stream);
-  fputs_P(PSTR("/_update/"), &sock_stream);
-  fputs(cfg.func_db, &sock_stream);
-  fputs_P(PSTR(" HTTP/1.1\n"), &sock_stream);
-  // 2nd line: Host: {ip}:{port}
-  fputs_P(PSTR("Host: "), &sock_stream);
-  fprintf_P(&sock_stream, UintDot_4Colon, cfg.ip_db[0], cfg.ip_db[1], cfg.ip_db[2], cfg.ip_db[3], cfg.port_db);
-  fputs_P(PSTR("\n"), &sock_stream);
-  // 3rd line: Cookie: AuthSession="{cookie_db}"
-  // fputs_P(PSTR("Cookie: AuthenSeesion=\""), &sock_stream);
-  // fputs(cfg.cookie_db, &sock_stream);
-  //fputs_P(PSTR("\"\n"), &sock_stream);
-  // 4th line: X-CouchDB-WWW-Authenticate: Cookie
-  //fputs_P(PSTR("X-CouchDB-WWW-Authenticate: Cookie\n"), &sock_stream);
-  // 5rd line: Content-type: application/json
-  fputs_P(PSTR("Content-type: application/json\n"), &sock_stream);
-  // 6th line: Content-Length: {len}
-  fprintf_P(&sock_stream, PSTR("Content-Length: %u\n"), len);
-  // 7th line: \newline
-  fputs_P(PSTR("\n"), &sock_stream);
-  // 8th line: {data}
-}
-
-void net_sendTestToDB(){
-  stream_set_sock(DB_CLIENT_SOCK);
-  net_sendHeadToDB(17);
-  fputs_P(PSTR("{\"value\": \"test\"}"), &sock_stream);
-  sock_stream_flush();
-}
-
-void net_sendResultToDB(struct dummy_packet * packets){
-  uint8_t index;
-  stream_set_sock(DB_CLIENT_SOCK);
-  net_sendHeadToDB(17);
-  // TODO convert packet data to json format
-  fputs_P(PSTR("{\"value\": \"testA\"}"), &sock_stream);
-  //fprintf_P(&sock_stream, PSTR("{\"%s\"["), packet_name_or_addr);
-  //for(index = 0; index < 8; index++){
-  //  if(datavalid??){
-  //    if(!first??){
-  //      fputs_P(PSTR(","), &sock_stream);
-
-  //    } 
-  //    fprintf_P(&sock_stream, PSTR("{\"%s\":%u.%u,\"%s\":\"%s\"}"), valueAttribute, value, otherAttribute, otherValue);
-  //  }
-  //}
-  //fputs_P(PSTR("]}"), &sock_stream);
-  // TODO if ok to send small packet for http
-  sock_stream_flush();
-  
-}
 
 uint16_t getAvailableSrcPort(uint16_t srcPort){
+  if(srcPort == cfg.port){
+    srcPort ++;
+  }
   if(srcPort < 1024){
     return 1024;
-  }
-  if(srcPort == cfg.port){
-    return srcPort + 1;
   }
   return srcPort;
 }
 
 void try_connect_db(uint16_t srcPort){
+  close(DB_CLIENT_SOCK);
+  _delay_ms(100);
   srcPort = getAvailableSrcPort(srcPort);
   socket(DB_CLIENT_SOCK, SnMR::TCP, srcPort, 0);
   connect(DB_CLIENT_SOCK, cfg.ip_db, cfg.port_db);
 }
 
 int8_t connect_db(uint16_t srcPort){
-  uint8_t syn_flag = 0;
+  int8_t syn_flag = 0;
   try_connect_db(srcPort);
   // FIXME test
   while(W5100.readSnSR(DB_CLIENT_SOCK) != SnSR::ESTABLISHED) {
@@ -138,8 +83,6 @@ int8_t connect_db(uint16_t srcPort){
     printf("Status %x\n\r", W5100.readSnSR(DB_CLIENT_SOCK));
     if (W5100.readSnSR(DB_CLIENT_SOCK) == SnSR::SYNSENT) {
       if(syn_flag){
-        close(DB_CLIENT_SOCK);
-        _delay_ms(100);
         syn_flag = 0;
         srcPort++;
         try_connect_db(srcPort);
@@ -151,7 +94,6 @@ int8_t connect_db(uint16_t srcPort){
       return 0;  
     }
   }
-  net_sendTestToDB();
   return 1;
 }
 
@@ -181,10 +123,123 @@ void net_beginService() {
   connect_db(cfg.port+1);
 }
 
+void net_sendHeadToDB(uint16_t len){
+  // 1st line: POST /{name_db}/_design/{doc_db}/_update/{func_db} HTTP/1.1
+  fputs_P(PSTR("POST /"), &sock_stream);
+  // TODO to compute content length??? fix??
+  fputs(cfg.name_db, &sock_stream);
+  fputs_P(PSTR("/_design/"), &sock_stream);
+  fputs(cfg.doc_db, &sock_stream);
+  fputs_P(PSTR("/_update/"), &sock_stream);
+  fputs(cfg.func_db, &sock_stream);
+  fputs_P(PSTR(" HTTP/1.1\n"), &sock_stream);
+  // 2nd line: Host: {ip}:{port}
+  fputs_P(PSTR("Host: "), &sock_stream);
+  fprintf_P(&sock_stream, UintDot_4Colon, cfg.ip_db[0], cfg.ip_db[1], cfg.ip_db[2], cfg.ip_db[3], cfg.port_db);
+  fputs_P(PSTR("\n"), &sock_stream);
+  // 3rd line: Cookie: AuthSession="{cookie_db}"
+  // fputs_P(PSTR("Cookie: AuthenSeesion=\""), &sock_stream);
+  // fputs(cfg.cookie_db, &sock_stream);
+  //fputs_P(PSTR("\"\n"), &sock_stream);
+  // 4th line: X-CouchDB-WWW-Authenticate: Cookie
+  //fputs_P(PSTR("X-CouchDB-WWW-Authenticate: Cookie\n"), &sock_stream);
+  // 5rd line: Content-type: application/json
+  fputs_P(PSTR("Content-type: application/json\n"), &sock_stream);
+  // 6th line: Content-Length: {len}
+  fprintf_P(&sock_stream, PSTR("Content-Length: %u\n"), len);
+  if(len>0){
+    // 7th line: \newline
+    fputs_P(PSTR("\n"), &sock_stream);
+    // 8th line: {data}
+  }
+}
 
+// TODO
+void net_sendTestToDB(){
+  stream_set_sock(DB_CLIENT_SOCK);
+  net_sendHeadToDB(17);
+  fputs_P(PSTR("{\"value\": \"test\"}"), &sock_stream);
+  sock_stream_flush();
+}
+
+void net_sendResultToDB(struct dummy_packet *packets, uint8_t src_addr){
+  int8_t index;
+  int8_t comma_flag = 0;
+  int16_t value;
+  int16_t len=1;
+  if( W5100.readSnSR(DB_CLIENT_SOCK) != SnSR::ESTABLISHED ){
+    if(!connect_db(cfg.port+1)){
+      return;
+    }
+  }
+  for (index=0;index<8;index++){
+    if(packets[index].header.error && packets[index].header.connected){
+      // XXX IF ERROR HANDLING
+      //len += 12; 
+      continue;
+    }
+    if(packets[index].header.connected){
+      switch(packets[index].header.type){
+        case PACKET_TYPE_TSIC:
+          // FIXME macro
+          len += 73;
+          break;
+        case PACKET_TYPE_HYT:
+          len += 60;
+          break;
+        default:
+          break;
+      }
+    }
+  }
+  if(len<=1){
+    return;
+  }
+  stream_set_sock(DB_CLIENT_SOCK);
+  net_sendHeadToDB(len);
+  // convert packet data to json format
+  fputc('{', &sock_stream);
+  comma_flag = 0;
+  for (index=0;index<8;index++){
+    if(packets[index].header.error && packets[index].header.connected){
+      continue;
+    }
+    if(packets[index].header.connected){
+      switch(packets[index].header.type){
+        case PACKET_TYPE_TSIC:
+          if(comma_flag){
+            fputc(',', &sock_stream);
+          }else{
+            comma_flag = 1; 
+          }
+          value =  ((struct tsic_packet *)(packets))[index].temperature;
+          fprintf_P(&sock_stream, PSTR("{\"board\":\"%03d\",\"sensor\":\"%01d\",\"type\":\"TSIC\",\"temp\":\"%03d.%02d\"}"), index, value/100, value%100);
+          break;
+        case PACKET_TYPE_HYT:
+          if(comma_flag){
+            fputc(',', &sock_stream);
+          }else{
+            comma_flag = 1; 
+          }
+          value = ((struct hyt_packet *)(packets))[index].temperature;
+          fprintf_P(&sock_stream, PSTR("{\"board\":\"%03d\",\"sensor\":\"%01d\",\"type\":\"HYT\",\"temp\":\"%03d.%02d\","), index, value/100, value%100);
+          value = ((struct hyt_packet *)(packets) )[index].humidity;
+          fprintf_P(&sock_stream, PSTR("\"hum\":\"%03d.%02d\"}"), index, value/100, value%100);
+          break;
+        default:
+          break;
+      }
+    }
+  }
+  fputc('}', &sock_stream);
+  sock_stream_flush();
+}
 
 void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
 	uint8_t i;
+  if(cfg.send_db){
+    net_sendResultToDB(received, src_addr);
+  }
 	for(i=FIRST_SERVER_SOCK; i< MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; i++){
 		// TODO: check if socket is still connected.
 		if (data_request[i-FIRST_SERVER_SOCK]){
@@ -200,11 +255,6 @@ void serve(){
   uint8_t i;
   uint8_t snSR;
   uint8_t cmd_state;
-  if(W5100.readSnSR(DB_CLIENT_SOCK)!= SnSR::ESTABLISHED){
-    // If not connect to server, reconnect it
-    printf("not connected with DB %x\n\r", W5100.readSnSR(DB_CLIENT_SOCK));
-  }
-  ui_recvResponseDB();
   closedSock = MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK;
   listeningSock = MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK;
   for(i=FIRST_SERVER_SOCK; i<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; i++){

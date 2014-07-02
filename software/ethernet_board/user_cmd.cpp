@@ -14,6 +14,7 @@ int8_t handlePort();
 int8_t handleMac();
 int8_t handleGw();
 int8_t handleReset();
+int8_t handleSendDB();
 int8_t handleIpDB();
 int8_t handlePortDB();
 int8_t handleCookieDB();
@@ -31,6 +32,7 @@ int8_t handleLED();
 int8_t handleHelp();
 
 // parameter format string in progmem
+const char Int[] PROGMEM = "%d";
 const char Uint[] PROGMEM = "%u";
 const char ULong[] PROGMEM = "%lu";
 const char Uint_2_Char[] PROGMEM = "%u %u %c";
@@ -41,21 +43,22 @@ const char HexColon_6[] PROGMEM = "%x:%x:%x:%x:%x:%x";
 const char LenLimit[] PROGMEM = "Parameter lenth limited to ...";
 
 // XXX this should always be the length of the registered cmd array below! 
-#define DEFINED_CMD_COUNT 20
+#define DEFINED_CMD_COUNT 19
 struct cmd cmds[]={
   {"ip", handleIp, UintDot_4Slash, NULL},
   {"port", handlePort, Uint, NULL},
   {"mac", handleMac, HexColon_6, NULL},
   {"gw", handleGw, UintDot_4, NULL},
   {"reset", handleReset, NULL, NULL},
+  {"s-db", handleSendDB, Int, NULL},
   {"ip-db", handleIpDB, UintDot_4, NULL},
   {"port-db", handlePortDB, Uint, NULL},
   {"cookie-db", handleCookieDB, Uint, LenLimit},
   {"name-db", handleNameDB, Uint, LenLimit},
   {"doc-db", handleDocDB, Uint, LenLimit},
   {"func-db", handleFuncDB, Uint, LenLimit},
-  {"test-db", handleTestDB, NULL, NULL},
-  {"v-db", handleViewResponseDB, NULL, NULL},
+  //{"test-db", handleTestDB, NULL, NULL},
+  //{"v-db", handleViewResponseDB, NULL, NULL},
   {"twiaddr", handleTwiaddr, Uint_2, NULL},
   {"s", handleScan, NULL, NULL},
   {"m", handleDoMeasurement, NULL, NULL},
@@ -68,9 +71,12 @@ struct cmd cmds[]={
 
 const char Usage[] PROGMEM = "Available commands: ";
 const char New[] PROGMEM = "(NEW)";
+const char Enabled[] PROGMEM = "enabled";
+const char Disabled[] PROGMEM = "disabled";
 const char Colon[] PROGMEM = ": ";
 
 const char UpdateOption[] PROGMEM = "\nfor changes to become effective type\n\treset";
+const char StoreOption[] PROGMEM = "\nfor changes to store type\n\treset";
 const char CmdNotFound[] PROGMEM = "cmd not found! type 'help' to view options\n";
 
 char cmdBuff[MAX_CMD_LEN];
@@ -343,6 +349,37 @@ int8_t handleReset(){
   return NO_PARAMS_PARSE;
 }
 
+int8_t handleSendDB(){
+  int16_t paramsCount=0;
+  int16_t param=0;
+  int8_t result = FAILED_PARAMS_PARSE;
+  paramsCount = fscanf_P(&sock_stream, Int, &param);
+  if(paramsCount==1){
+    switch(param){
+      case 0:
+        fputs_P(New, &sock_stream);
+        fputs_P(Disabled, &sock_stream);
+        cfg.send_db = 0;
+        result = SUCCESS_PARAMS_PARSE;
+        break;
+      case 1:
+        fputs_P(New, &sock_stream);
+        fputs_P(Enabled, &sock_stream);
+        cfg.send_db = 0;
+        result = SUCCESS_PARAMS_PARSE;
+        break;
+      default:
+        ;
+    }
+  }
+  fputs_P(Colon, &sock_stream);
+  fprintf_P(&sock_stream, Int, cfg.send_db);
+  if(result == SUCCESS_PARAMS_PARSE){
+    fputs_P(StoreOption, &sock_stream);
+  }
+  return result;
+}
+
 int8_t handleIpDB(){
   int8_t index;
   uint16_t ipTMP[4];
@@ -440,7 +477,7 @@ int8_t handleFuncDB(){
 }
 
 int8_t handleTestDB(){
-  net_sendTestToDB();
+  // TODO
   uint8_t serverSockIndex = stream_get_sock()-FIRST_SERVER_SOCK;
   if(serverSockIndex<MAX_SERVER_SOCK_NUM){
     db_response_request[serverSockIndex]= 1;
