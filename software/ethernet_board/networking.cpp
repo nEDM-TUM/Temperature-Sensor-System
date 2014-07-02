@@ -33,32 +33,31 @@ uint8_t ui_state = UI_READY;
 
 const char UintDot_4Colon[] PROGMEM = "%u.%u.%u.%u:%u";
 
-int8_t toSubnetMask(uint8_t subnet, uint8_t* addr){
+void toSubnetMask(uint8_t subnet, uint8_t* addr){
   int8_t indexByte = 0;
   int8_t indexBit = 0;
-  while((subnet >> 3) >0 ){
-  printf("Subnet: %d %d\n\r", subnet, subnet-8<subnet);
+  while(subnet >= 8 && indexByte<4){
     addr[indexByte] = 255;
     indexByte++;
     subnet -= 8;
   }
   if(indexByte>=4){
-    return 0;
+    return;
   }
   while(subnet != 0 ){
-    addr[indexByte] |= 1 << indexBit;
-    indexBit ++;
+    addr[indexByte] = (addr[indexByte]<<1)+1;
+    indexBit++;
     subnet--;
     if(indexBit>=8){
-      return 0;
+      return;
     }
   }
-  return 1;
+  return;
 }
 
 void net_sendHeadToDB(uint16_t len){
   // 1st line: POST /{name_db}/_design/{doc_db}/_update/{func_db} HTTP/1.1
-  fputs_P(PSTR("POST "), &sock_stream);
+  fputs_P(PSTR("POST /"), &sock_stream);
   // TODO to compute content length??? fix??
   fputs(cfg.name_db, &sock_stream);
   fputs_P(PSTR("/_design/"), &sock_stream);
@@ -71,11 +70,11 @@ void net_sendHeadToDB(uint16_t len){
   fprintf_P(&sock_stream, UintDot_4Colon, cfg.ip_db[0], cfg.ip_db[1], cfg.ip_db[2], cfg.ip_db[3], cfg.port_db);
   fputs_P(PSTR("\n"), &sock_stream);
   // 3rd line: Cookie: AuthSession="{cookie_db}"
-  fputs_P(PSTR("Cookie: AuthenSeesion=\""), &sock_stream);
-  fputs(cfg.cookie_db, &sock_stream);
-  fputs_P(PSTR("\"\n"), &sock_stream);
+  // fputs_P(PSTR("Cookie: AuthenSeesion=\""), &sock_stream);
+  // fputs(cfg.cookie_db, &sock_stream);
+  //fputs_P(PSTR("\"\n"), &sock_stream);
   // 4th line: X-CouchDB-WWW-Authenticate: Cookie
-  fputs_P(PSTR("X-CouchDB-WWW-Authenticate: Cookie\n"), &sock_stream);
+  //fputs_P(PSTR("X-CouchDB-WWW-Authenticate: Cookie\n"), &sock_stream);
   // 5rd line: Content-type: application/json
   fputs_P(PSTR("Content-type: application/json\n"), &sock_stream);
   // 6th line: Content-Length: {len}
@@ -114,39 +113,72 @@ void net_sendResultToDB(struct dummy_packet * packets){
   
 }
 
+uint16_t getAvailableSrcPort(uint16_t srcPort){
+  if(srcPort < 1024){
+    return 1024;
+  }
+  if(srcPort == cfg.port){
+    return srcPort + 1;
+  }
+  return srcPort;
+}
+
+void try_connect_db(uint16_t srcPort){
+  srcPort = getAvailableSrcPort(srcPort);
+  socket(DB_CLIENT_SOCK, SnMR::TCP, srcPort, 0);
+  connect(DB_CLIENT_SOCK, cfg.ip_db, cfg.port_db);
+}
+
+int8_t connect_db(uint16_t srcPort){
+  uint8_t syn_flag = 0;
+  try_connect_db(srcPort);
+  // FIXME test
+  while(W5100.readSnSR(DB_CLIENT_SOCK) != SnSR::ESTABLISHED) {
+    _delay_ms(100);
+    printf("Status %x\n\r", W5100.readSnSR(DB_CLIENT_SOCK));
+    if (W5100.readSnSR(DB_CLIENT_SOCK) == SnSR::SYNSENT) {
+      if(syn_flag){
+        close(DB_CLIENT_SOCK);
+        _delay_ms(100);
+        syn_flag = 0;
+        srcPort++;
+        try_connect_db(srcPort);
+      }else{
+        syn_flag = 1;
+      }
+    }else if (W5100.readSnSR(DB_CLIENT_SOCK) == SnSR::CLOSED) {
+      printf_P(PSTR("DB closed!!!!\n\r"));
+      return 0;  
+    }
+  }
+  net_sendTestToDB();
+  return 1;
+}
+
 void net_beginService() {
   config_read(&cfg);
-  uint8_t sn[4];
+  uint8_t sn[4]={0};
   //Init and config ethernet device w5100
-	printf("ip: %u.%u.%u.%u\n\r", cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3]);
   W5100.init();
   W5100.setMACAddress(cfg.mac);
   W5100.setIPAddress(cfg.ip);
   W5100.setGatewayIp(cfg.gw);
   toSubnetMask(cfg.subnet, sn);
   W5100.setSubnetMask(sn);
-  // Create client to db
-  // Port of the client can be arbitary, but it should be different then the port of ui server
-  if(!socket(DB_CLIENT_SOCK, SnMR::TCP, cfg.port+1, 0)){
-    socket(DB_CLIENT_SOCK, SnMR::TCP, cfg.port-1, 0);
-  }
-  connect(DB_CLIENT_SOCK, cfg.ip_db, cfg.port_db);
-  // FIXME test
-    _delay_ms(100);
-  while(W5100.readSnSR(DB_CLIENT_SOCK) != SnSR::ESTABLISHED) {
-    _delay_ms(100);
-    if (status() == SnSR::CLOSED) {
-    printf("Status closed\n\r");
-      break;
-    }
-  }
-  net_sendTestToDB();
+	printf_P(PSTR("ip: %u.%u.%u.%u/%u:%u\n\r"), cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet, cfg.port);
+  printf_P(PSTR("subnet %u.%u.%u.%u\n\r"), sn[0], sn[1], sn[2], sn[3]);
+	printf_P(PSTR("mac: %u.%u.%u.%u/%u\n\r"), cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet);
+	printf_P(PSTR("gw: %u.%u.%u.%u/%u\n\r"), cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet);
+	printf_P(PSTR("db: %u.%u.%u.%u:%u/%s/%s/%s\n\r"), cfg.ip_db[0], cfg.ip_db[1], cfg.ip_db[2], cfg.ip_db[3], cfg.port_db, cfg.name_db, cfg.doc_db, cfg.func_db);
   // Create the first server socket
   socket(FIRST_SERVER_SOCK, SnMR::TCP, cfg.port, 0);
   while(!listen(FIRST_SERVER_SOCK)){
     // wait a second and try again
     _delay_ms(1000);
   }
+  // Create client to db
+  // Port of the client can be arbitary, but it should be different then the port of ui server
+  connect_db(cfg.port+1);
 }
 
 
@@ -170,7 +202,7 @@ void serve(){
   uint8_t cmd_state;
   if(W5100.readSnSR(DB_CLIENT_SOCK)!= SnSR::ESTABLISHED){
     // If not connect to server, reconnect it
-    printf("not connected with DB\n\r");
+    printf("not connected with DB %x\n\r", W5100.readSnSR(DB_CLIENT_SOCK));
   }
   ui_recvResponseDB();
   closedSock = MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK;

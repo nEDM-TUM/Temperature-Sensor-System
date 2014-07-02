@@ -327,13 +327,13 @@ int8_t handleReset(){
   fputs_P(PSTR("\n"), &sock_stream);
   sock_stream_flush();
   config_write(&cfg);
-  for(index= FIRST_SERVER_SOCK; index<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; index++){
+  for(index= DB_CLIENT_SOCK; index<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; index++){
     disconnect(index);
   }
   // Wait a second to close all sockets
   _delay_ms(1000);
   // TODO LEDs action
-  for(index= FIRST_SERVER_SOCK; index<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; index++){
+  for(index= DB_CLIENT_SOCK; index<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; index++){
     if(W5100.readSnSR(index) != SnSR::CLOSED){
       // If a socket is still not closed, force it
       close(index);

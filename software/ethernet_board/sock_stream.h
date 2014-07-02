@@ -7,7 +7,7 @@ extern "C" {
 #include <stdio.h>
 
 extern FILE sock_stream;
-#define MAX_RESPONSE_LEN 5
+#define MAX_RESPONSE_LEN 40
 
 void sock_stream_init(void);
 int sock_stream_flush();
