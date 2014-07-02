@@ -71,8 +71,8 @@ struct cmd cmds[]={
 
 const char Usage[] PROGMEM = "Available commands: ";
 const char New[] PROGMEM = "(NEW)";
-const char Enabled[] PROGMEM = "enabled";
-const char Disabled[] PROGMEM = "disabled";
+const char Enabled[] PROGMEM = " enabled";
+const char Disabled[] PROGMEM = " disabled";
 const char Colon[] PROGMEM = ": ";
 
 const char UpdateOption[] PROGMEM = "\nfor changes to become effective type\n\treset";
@@ -354,18 +354,17 @@ int8_t handleSendDB(){
   int16_t param=0;
   int8_t result = FAILED_PARAMS_PARSE;
   paramsCount = fscanf_P(&sock_stream, Int, &param);
-  if(paramsCount==1){
-    switch(param){
+  if(paramsCount==1 && (param == 1 || param == 0)){
+    cfg.send_db = param;
+
+    switch(cfg.send_db){
       case 0:
-        fputs_P(New, &sock_stream);
         fputs_P(Disabled, &sock_stream);
-        cfg.send_db = 0;
         result = SUCCESS_PARAMS_PARSE;
         break;
       case 1:
-        fputs_P(New, &sock_stream);
         fputs_P(Enabled, &sock_stream);
-        cfg.send_db = 0;
+        cfg.send_db = 1;
         result = SUCCESS_PARAMS_PARSE;
         break;
       default:
@@ -417,13 +416,13 @@ int8_t handlePortDB(){
 }
 
 int8_t handleCookieDB(){
-  int16_t paramsCount=fscanf_P(&sock_stream, PSTR("60%s"), &(cfg.cookie_db));
-
+  int16_t paramsCount=fscanf_P(&sock_stream, PSTR("%60s"), &(cfg.cookie_db));
+// FIXME do with ;
   if(paramsCount==1){
     fputs_P(New, &sock_stream);
   }
   fputs_P(Colon, &sock_stream);
-  fputs_P(cfg.cookie_db, &sock_stream);
+  fputs(cfg.cookie_db, &sock_stream);
   if(paramsCount==1){
     fputs_P(UpdateOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
@@ -432,13 +431,13 @@ int8_t handleCookieDB(){
 }
 
 int8_t handleNameDB(){
-  int16_t paramsCount=fscanf_P(&sock_stream, PSTR("15%s"), &(cfg.name_db));
+  int16_t paramsCount=fscanf_P(&sock_stream, PSTR("%15s"), &(cfg.name_db));
 
   if(paramsCount==1){
     fputs_P(New, &sock_stream);
   }
   fputs_P(Colon, &sock_stream);
-  fputs_P(cfg.name_db, &sock_stream);
+  fputs(cfg.name_db, &sock_stream);
   if(paramsCount==1){
     fputs_P(UpdateOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
@@ -447,13 +446,13 @@ int8_t handleNameDB(){
 }
 
 int8_t handleDocDB(){
-  int16_t paramsCount=fscanf_P(&sock_stream, PSTR("20%s"), &(cfg.doc_db));
+  int16_t paramsCount=fscanf_P(&sock_stream, PSTR("%20s"), &(cfg.doc_db));
 
   if(paramsCount==1){
     fputs_P(New, &sock_stream);
   }
   fputs_P(Colon, &sock_stream);
-  fputs_P(cfg.doc_db, &sock_stream);
+  fputs(cfg.doc_db, &sock_stream);
   if(paramsCount==1){
     fputs_P(UpdateOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
@@ -462,13 +461,13 @@ int8_t handleDocDB(){
 }
 
 int8_t handleFuncDB(){
-  int16_t paramsCount=fscanf_P(&sock_stream, PSTR("25%s"), &(cfg.func_db));
+  int16_t paramsCount=fscanf_P(&sock_stream, PSTR("%25s"), &(cfg.func_db));
 
   if(paramsCount==1){
     fputs_P(New, &sock_stream);
   }
   fputs_P(Colon, &sock_stream);
-  fputs_P(cfg.func_db, &sock_stream);
+  fputs(cfg.func_db, &sock_stream);
   if(paramsCount==1){
     fputs_P(UpdateOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;

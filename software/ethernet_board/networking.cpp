@@ -162,58 +162,96 @@ void net_sendTestToDB(){
   sock_stream_flush();
 }
 
-void net_sendResultToDB(struct dummy_packet *packets, uint8_t src_addr){
-  int8_t index;
+void send_response(uint8_t toSock){
+	int16_t b;
+  stream_set_sock(toSock); 
+	while(true){
+    stream_set_sock(DB_CLIENT_SOCK); 
+    if((b=fgetc(&sock_stream)) == EOF){
+      stream_set_sock(toSock); 
+      sock_stream_flush();
+      // TODO
+      putc('\n', stdout);
+      putc('\r', stdout);
+      return;
+    }
+    if(toSock == DB_CLIENT_SOCK){
+      // TODO make away
+      putc(b, stdout);
+      continue;
+    }
+    stream_set_sock(toSock); 
+    fputc(b, &sock_stream);
+  }
+  stream_set_sock(toSock); 
+  sock_stream_flush();
+}
+
+void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
+  int8_t sensor_index;
   int8_t comma_flag = 0;
   int16_t value;
-  int16_t len=1;
+  uint16_t len=0;
+  uint8_t currSock = stream_get_sock();
   if( W5100.readSnSR(DB_CLIENT_SOCK) != SnSR::ESTABLISHED ){
     if(!connect_db(cfg.port+1)){
       return;
     }
   }
-  for (index=0;index<8;index++){
-    if(packets[index].header.error && packets[index].header.connected){
+  for (sensor_index=0;sensor_index<8;sensor_index++){
+    if(packets[sensor_index].header.error && packets[sensor_index].header.connected){
       // XXX IF ERROR HANDLING
       //len += 12; 
       continue;
     }
-    if(packets[index].header.connected){
-      switch(packets[index].header.type){
+    if(packets[sensor_index].header.connected){
+      switch(packets[sensor_index].header.type){
         case PACKET_TYPE_TSIC:
-          // FIXME macro
-          len += 73;
+          len += JSON_TEMP_LEN;
+          // length of "," or "}" at the end
+          len++;
           break;
         case PACKET_TYPE_HYT:
-          len += 60;
+          len += JSON_TEMP_LEN;
+          len++;
+          len += JSON_HUM_LEN;
+          len++;
           break;
         default:
           break;
       }
     }
   }
-  if(len<=1){
+  if(len==0){
     return;
   }
+  len+=JSON_PREFIX_LEN;
+  // length of "}" at the end
+  len++;
   stream_set_sock(DB_CLIENT_SOCK);
   net_sendHeadToDB(len);
-  // convert packet data to json format
-  fputc('{', &sock_stream);
+  printf_P(PSTR("Send Head \n\r"));
+
+  /* convert packet data to json format
+   * {"type":"value","data",{"bdddsdTEMP":"ddd.dd","bdddsdHUM":"ddd.dd"}}
+   */
+  fputs_P(PSTR(JSON_PREFIX), &sock_stream);
   comma_flag = 0;
-  for (index=0;index<8;index++){
-    if(packets[index].header.error && packets[index].header.connected){
+  for (sensor_index=0;sensor_index<8;sensor_index++){
+    if(packets[sensor_index].header.error && packets[sensor_index].header.connected){
       continue;
     }
-    if(packets[index].header.connected){
-      switch(packets[index].header.type){
+    if(packets[sensor_index].header.connected){
+      switch(packets[sensor_index].header.type){
         case PACKET_TYPE_TSIC:
           if(comma_flag){
             fputc(',', &sock_stream);
           }else{
             comma_flag = 1; 
           }
-          value =  ((struct tsic_packet *)(packets))[index].temperature;
-          fprintf_P(&sock_stream, PSTR("{\"board\":\"%03d\",\"sensor\":\"%01d\",\"type\":\"TSIC\",\"temp\":\"%03d.%02d\"}"), index, value/100, value%100);
+          value =  ((struct tsic_packet *)(packets))[sensor_index].temperature;
+          fprintf_P(&sock_stream, PSTR(JSON_TEMP), JSON_OUTPUT);
+          printf_P(PSTR("Send temperature \n\r"));
           break;
         case PACKET_TYPE_HYT:
           if(comma_flag){
@@ -221,10 +259,11 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t src_addr){
           }else{
             comma_flag = 1; 
           }
-          value = ((struct hyt_packet *)(packets))[index].temperature;
-          fprintf_P(&sock_stream, PSTR("{\"board\":\"%03d\",\"sensor\":\"%01d\",\"type\":\"HYT\",\"temp\":\"%03d.%02d\","), index, value/100, value%100);
-          value = ((struct hyt_packet *)(packets) )[index].humidity;
-          fprintf_P(&sock_stream, PSTR("\"hum\":\"%03d.%02d\"}"), index, value/100, value%100);
+          value = ((struct hyt_packet *)(packets))[sensor_index].temperature;
+          fprintf_P(&sock_stream, PSTR(JSON_TEMP), JSON_OUTPUT);
+          value = ((struct hyt_packet *)(packets) )[sensor_index].humidity;
+          fputc(',', &sock_stream);
+          fprintf_P(&sock_stream, PSTR(JSON_HUM), JSON_OUTPUT); 
           break;
         default:
           break;
@@ -232,7 +271,12 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t src_addr){
     }
   }
   fputc('}', &sock_stream);
+  fputc('}', &sock_stream);
+  printf_P(PSTR("Send finished \n\r"));
   sock_stream_flush();
+  // TODO send response
+  send_response(DB_CLIENT_SOCK);
+  stream_set_sock(currSock);
 }
 
 void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){

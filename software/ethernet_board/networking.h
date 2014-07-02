@@ -12,6 +12,15 @@
 #define UI_READY 0
 #define UI_TWILOCK 1
 
+//json formating
+#define JSON_PREFIX "{\"type\":\"data\",\"value\":{"
+#define JSON_PREFIX_LEN 24
+#define JSON_TEMP "\"b%03ds%01dTEMP\":%03d.%02d"
+#define JSON_TEMP_LEN 19
+#define JSON_TEMP "\"b%03ds%01dTEMP\":%03d.%02d"
+#define JSON_HUM "\"b%03ds%01dHUM\":%03d.%02d"
+#define JSON_HUM_LEN 18
+#define JSON_OUTPUT board_addr, sensor_index, value/100, value%100
 extern uint8_t ui_state;
 
 extern uint8_t data_request[MAX_SERVER_SOCK_NUM];

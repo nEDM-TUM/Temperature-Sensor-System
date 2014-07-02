@@ -11,13 +11,15 @@ char sockBuff[MAX_RESPONSE_LEN];
 int sock_stream_flush(){
   uint8_t index;
   if(sockBuffPointer > 0){
-    if (currSock < MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK && W5100.readSnSR(currSock) == SnSR::ESTABLISHED){
-      send(currSock, (uint8_t *)sockBuff, sockBuffPointer);
-    } else {
-      // broadcast for server socks
-      for(index=FIRST_SERVER_SOCK; index<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; index++){
-        if(W5100.readSnSR(index) == SnSR::ESTABLISHED){
-          send(index, (uint8_t *)sockBuff, sockBuffPointer);
+    if (W5100.readSnSR(currSock) == SnSR::ESTABLISHED){
+      if(currSock < MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK){
+        send(currSock, (uint8_t *)sockBuff, sockBuffPointer);
+      } else {
+        // broadcast for server socks
+        for(index=FIRST_SERVER_SOCK; index<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; index++){
+          if(W5100.readSnSR(index) == SnSR::ESTABLISHED){
+            send(index, (uint8_t *)sockBuff, sockBuffPointer);
+          }
         }
       }
     }
@@ -36,7 +38,6 @@ static int sock_putchar(char c, FILE *stream){
 static int sock_readchar(FILE *stream){
   uint8_t b;  
   if(recv(currSock, &b, 1) >0){
-    printf("%c %u\n\r",b, b);
     return (int)b;
   }
   return EOF;
