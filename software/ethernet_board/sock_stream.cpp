@@ -13,12 +13,12 @@ inline uint8_t sendBuff(uint8_t sock){
     printf_P(PSTR("Before sending, frei %u\n\r"), W5100.getTXFreeSize(sock));
 #endif
   if(W5100.readSnSR(sock) == SnSR::ESTABLISHED){
-  //if(W5100.readSnSR(sock) == SnSR::ESTABLISHED && W5100.getTXFreeSize(sock)>MAX_RESPONSE_LEN){
     // XXX By established connection, it takes very long time to find out the connection is actually down, if the other device does not send response any more. 
     // Then the send buffer will be filled until no space any more. 
     // The arduino library socket will block the whole process until the connection is closed or buffer becomes free. 
     // In order to avoid blocking the process, the freesize will be checked before send messages. 
     // Wenn no place any more, the coming message will be droped!
+  //if(W5100.readSnSR(sock) == SnSR::ESTABLISHED && W5100.getTXFreeSize(sock)>MAX_RESPONSE_LEN){
     send(sock, (uint8_t *)sockBuff, sockBuffPointer);
     return 1;
   }
