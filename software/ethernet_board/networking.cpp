@@ -154,13 +154,6 @@ void net_sendHeadToDB(uint16_t len){
   }
 }
 
-// TODO
-void net_sendTestToDB(){
-  stream_set_sock(DB_CLIENT_SOCK);
-  net_sendHeadToDB(17);
-  fputs_P(PSTR("{\"value\": \"test\"}"), &sock_stream);
-  sock_stream_flush();
-}
 
 void send_response(uint8_t toSock){
 	int16_t b;
@@ -170,14 +163,16 @@ void send_response(uint8_t toSock){
     if((b=fgetc(&sock_stream)) == EOF){
       stream_set_sock(toSock); 
       sock_stream_flush();
-      // TODO
+#ifdef DEBUG
       putc('\n', stdout);
       putc('\r', stdout);
+#endif
       return;
     }
     if(toSock == DB_CLIENT_SOCK){
-      // TODO make away
+#ifdef DEBUG
       putc(b, stdout);
+#endif
       continue;
     }
     stream_set_sock(toSock); 
@@ -284,15 +279,19 @@ void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
   if(cfg.send_db){
     net_sendResultToDB(received, src_addr);
   }
-	for(i=FIRST_SERVER_SOCK; i< MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; i++){
+	for(i=0; i< MAX_SERVER_SOCK_NUM; i++){
 		// TODO: check if socket is still connected.
-		if (data_request[i-FIRST_SERVER_SOCK]){
-			stream_set_sock(i);
-			fprintf(&sock_stream, "%u :: ", src_addr);
+		if (data_request[i]){
+      if(W5100.readSnSR(i+FIRST_SERVER_SOCK) == SnSR::ESTABLISHED){
+			stream_set_sock(i+FIRST_SERVER_SOCK);
+			fprintf_P(&sock_stream, PSTR("%u :: "), src_addr);
 			send_result(received);
+      sock_stream_flush();
+      }else{
+        data_request[i] = 0;
+      }
 		}
 	}
-	sock_stream_flush();
 }
 
 void serve(){

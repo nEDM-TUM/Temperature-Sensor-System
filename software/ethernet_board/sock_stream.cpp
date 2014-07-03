@@ -11,15 +11,15 @@ char sockBuff[MAX_RESPONSE_LEN];
 int sock_stream_flush(){
   uint8_t index;
   if(sockBuffPointer > 0){
-    if (W5100.readSnSR(currSock) == SnSR::ESTABLISHED){
-      if(currSock < MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK){
+    if(currSock < MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK){
+      if (W5100.readSnSR(currSock) == SnSR::ESTABLISHED){
         send(currSock, (uint8_t *)sockBuff, sockBuffPointer);
-      } else {
-        // broadcast for server socks
-        for(index=FIRST_SERVER_SOCK; index<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; index++){
-          if(W5100.readSnSR(index) == SnSR::ESTABLISHED){
-            send(index, (uint8_t *)sockBuff, sockBuffPointer);
-          }
+      }
+    } else {
+      // broadcast for server socks
+      for(index=FIRST_SERVER_SOCK; index<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; index++){
+        if(W5100.readSnSR(index) == SnSR::ESTABLISHED){
+          send(index, (uint8_t *)sockBuff, sockBuffPointer);
         }
       }
     }
