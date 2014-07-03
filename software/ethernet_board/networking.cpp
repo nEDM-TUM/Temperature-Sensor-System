@@ -100,26 +100,12 @@ int8_t connect_db(uint16_t srcPort){
 }
 
 void handle_db_response(){
-  int16_t b;
+  uint8_t b;
   uint8_t index;
 #ifdef DEBUG
     printf_P(PSTR("Received Size %u\n\r"), );
 #endif
-  while((recv(DB_CLIENT_SOCK, &b, 1) > 0){
-    if((b=fgetc(&sock_stream)) == EOF){
-      for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
-        if(db_response_request[index]){
-          stream_set_sock(index+FIRST_SERVER_SOCK); 
-          fputc('\n', &sock_stream);
-          sock_stream_flush();
-        }
-      }
-#ifdef DEBUG
-      putc('\n', stdout);
-      putc('\r', stdout);
-#endif
-      return;
-    }
+  while(recv(DB_CLIENT_SOCK, &b, 1) > 0){
 #ifdef DEBUG
     putc(b, stdout);
 #endif
@@ -129,6 +115,17 @@ void handle_db_response(){
         fputc(b, &sock_stream);
         sock_stream_flush();
       }
+    }
+  }
+#ifdef DEBUG
+  putc('\n', stdout);
+  putc('\r', stdout);
+#endif
+  for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
+    if(db_response_request[index]){
+      stream_set_sock(index+FIRST_SERVER_SOCK); 
+      fputc('\n', &sock_stream);
+      sock_stream_flush();
     }
   }
 }
