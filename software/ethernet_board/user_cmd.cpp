@@ -42,46 +42,56 @@ const char UintDot_4Slash[] PROGMEM = "%u.%u.%u.%u/%u";
 const char HexColon_6[] PROGMEM = "%x:%x:%x:%x:%x:%x";
 const char String60[] PROGMEM = "%60s";
 const char String25[] PROGMEM = "%25s";
-const char LenLimit60[] PROGMEM = "Parameter lenth limited to 60";
-const char LenLimit25[] PROGMEM = "Parameter lenth limited to 25";
+//const char LenLimit60[] PROGMEM = "Parameter length limited to 60 chars";
+//const char LenLimit25[] PROGMEM = "Parameter length limited to 25 chars";
 
-const char SendDBComment[] PROGMEM = "<1|0> 1: enable send data to database; 2: disable send data to db";
-const char ViewResponseDBComment[] PROGMEM = "triggle displaying db reponse";
-const char ReconnectComment[] PROGMEM = "store changes and restart connections"; 
-const char StoreComment[] PROGMEM = "store changes"; 
+const char SendDBComment[] PROGMEM = "<1|0> 1: Enable sending data to database; 2: Disable sending data to db";
+const char ViewResponseDBComment[] PROGMEM = "Toggle display of db reponse";
+const char ReconnectComment[] PROGMEM = "Store changes and restart network"; 
+const char StoreComment[] PROGMEM = "Permanently store changes"; 
 const char TwiaddrComment[] PROGMEM = "<old> <new> change board I2C address";
-const char ScanComment[] PROGMEM = "scan exists collection board addresses";
+const char ScanComment[] PROGMEM = "Scan for connected collection boards";
 //TODO
-const char DoMeasurementComment[] PROGMEM = "";
-const char ViewMeasurementComment[] PROGMEM = "triggle displaying current measurement results";
-const char IntervalComment[] PROGMEM = "change the measurement interval in sekunden";
-const char LEDComment[] PROGMEM = "<board addr> <led num> <1|0> control the leds of colletions, 1: led on; 0: led off";
+const char DoMeasurementComment[] PROGMEM = "Initiate a measurement and display the result";
+const char ViewMeasurementComment[] PROGMEM = "Toggle displaying of current measurement results";
+const char IntervalComment[] PROGMEM = "<seconds> Change the measurement interval";
+const char LEDComment[] PROGMEM = "<board addr> <led num> <1|0> Control the leds of collector boards, 1: led on; 0: led off";
+const char IpComment[] PROGMEM = "<ip/subnet> Change the IP address and subnet";
+const char PortComment[] PROGMEM = "<port> Change the TCP port of this user interface";
+const char MacComment[] PROGMEM = "<mac> Change the ethernet mac";
+const char GwComment[] PROGMEM = "<gw> Change the gateway";
+const char IpDBComment[] PROGMEM = "<ip> Change the IP address of couchdb";
+const char PortDBComment[] PROGMEM = "<port> Change port of couchdb";
+const char CookieDBComment[] PROGMEM = "<cookie> Change cookie for couchdb (max 60 chars)";
+const char NameDBComment[] PROGMEM = "<name> Set database name (max 25 chars)";
+const char DocDBComment[] PROGMEM = "<name> Set json document name (max 25 chars)";
+const char FuncDBComment[] PROGMEM = "<name> Set couchdb insert function (max 25 chars)";
 
 // XXX this should always be the length of the registered cmd array below! 
 #define DEFINED_CMD_COUNT 21
 
 struct cmd cmds[]={
   // Network cmd
-  {"ip", handleIp, UintDot_4Slash, NULL},
-  {"p", handlePort, Uint, NULL},
-  {"mac", handleMac, HexColon_6, NULL},
-  {"gw", handleGw, UintDot_4, NULL},
+  {"ip", handleIp, UintDot_4Slash, IpComment},
+  {"p", handlePort, Uint, PortComment},
+  {"mac", handleMac, HexColon_6, MacComment},
+  {"gw", handleGw, UintDot_4, GwComment},
   // DB cmd
   {"d.s", handleSendDB, Int, SendDBComment},
-  {"d.ip", handleIpDB, UintDot_4, NULL},
-  {"d.p", handlePortDB, Uint, NULL},
-  {"d.ck", handleCookieDB, String60, LenLimit60},
-  {"d.n", handleNameDB, String25, LenLimit25},
-  {"d.d", handleDocDB, String25, LenLimit25},
-  {"d.f", handleFuncDB, String25, LenLimit25},
-  {"d.rp", handleViewResponseDB, NULL, ViewResponseDBComment},
+  {"d.ip", handleIpDB, UintDot_4, IpDBComment},
+  {"d.p", handlePortDB, Uint, PortDBComment},
+  {"d.ck", handleCookieDB, String60, CookieDBComment},
+  {"d.n", handleNameDB, String25, NameDBComment},
+  {"d.d", handleDocDB, String25, DocDBComment},
+  {"d.f", handleFuncDB, String25, FuncDBComment},
+  {"d.v", handleViewResponseDB, NULL, ViewResponseDBComment},
   // eeprom cmd
-  {"rec", handleReconnect, NULL, ReconnectComment},
-  {"st", handleStore, NULL, StoreComment},
+  {"res", handleReconnect, NULL, ReconnectComment},
+  {"sto", handleStore, NULL, StoreComment},
   //boards cmd
   {"ba", handleTwiaddr, Uint_2, TwiaddrComment},
-  {"sc", handleScan, NULL, ScanComment},
-  {"ms", handleDoMeasurement, NULL, DoMeasurementComment},
+  {"s", handleScan, NULL, ScanComment},
+  {"m", handleDoMeasurement, NULL, DoMeasurementComment},
   {"v", handleViewMeasurement, NULL, ViewMeasurementComment},
   {"i", handleInterval, ULong, IntervalComment},
   {"led", handleLED, Uint_2_Char, LEDComment},
@@ -237,6 +247,10 @@ int8_t handleLED(){
 }
 
 void accessTwiaddr(void){
+	// FIXME:
+	// problem will arise, if user interface is suspended and measurement will complete,
+	// then socket might be switched and if we again come here, we send the result to the wrong socket
+	// Possible solution: store blocking socket in global variable and restore it again in access function
 
 	uint16_t old_addr=1;
 	uint16_t new_addr=1;
