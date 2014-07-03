@@ -20,10 +20,10 @@ struct {
   /*.port = */8888,
   /*.send_db = */0,
   /*.ip_db = */{10, 0, 1, 2},
-  /*.port_db = */8888,
+  /*.port_db = */5984,
   /*.cookie_db[60] = */"c29sYXI6NTIwNEU4OTA66nT2KHyr9n5RrouelBtLnBru00c",
-  /*.name_db[15] = */"idp",
-  /*.doc_db[20] = */"nedm_default",
+  /*.name_db[25] = */"idp",
+  /*.doc_db[25] = */"nedm_default",
   /*.func_db[25] = */"insert_with_timestamp"
   }
 };

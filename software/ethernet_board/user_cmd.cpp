@@ -13,7 +13,6 @@ int8_t handleIp();
 int8_t handlePort();
 int8_t handleMac();
 int8_t handleGw();
-int8_t handleReset();
 int8_t handleSendDB();
 int8_t handleIpDB();
 int8_t handlePortDB();
@@ -21,11 +20,12 @@ int8_t handleCookieDB();
 int8_t handleNameDB();
 int8_t handleDocDB();
 int8_t handleFuncDB();
-int8_t handleTestDB();
+int8_t handleReconnect();
+int8_t handleStore();
 int8_t handleViewResponseDB();
 int8_t handleTwiaddr();
-int8_t handleDoMeasurement();
 int8_t handleScan();
+int8_t handleDoMeasurement();
 int8_t handleViewMeasurement();
 int8_t handleInterval();
 int8_t handleLED();
@@ -40,31 +40,51 @@ const char Uint_2[] PROGMEM = "%u %u";
 const char UintDot_4[] PROGMEM = "%u.%u.%u.%u";
 const char UintDot_4Slash[] PROGMEM = "%u.%u.%u.%u/%u";
 const char HexColon_6[] PROGMEM = "%x:%x:%x:%x:%x:%x";
-const char LenLimit[] PROGMEM = "Parameter lenth limited to ...";
+const char String60[] PROGMEM = "%60s";
+const char String25[] PROGMEM = "%25s";
+const char LenLimit60[] PROGMEM = "Parameter lenth limited to 60";
+const char LenLimit25[] PROGMEM = "Parameter lenth limited to 25";
+
+const char SendDBComment[] PROGMEM = "<1|0> 1: enable send data to database; 2: disable send data to db";
+const char ViewResponseDBComment[] PROGMEM = "triggle displaying db reponse";
+const char ReconnectComment[] PROGMEM = "store changes and restart connections"; 
+const char StoreComment[] PROGMEM = "store changes"; 
+const char TwiaddrComment[] PROGMEM = "<old> <new> change board I2C address";
+const char ScanComment[] PROGMEM = "scan exists collection board addresses";
+//TODO
+const char DoMeasurementComment[] PROGMEM = "";
+const char ViewMeasurementComment[] PROGMEM = "triggle displaying current measurement results";
+const char IntervalComment[] PROGMEM = "change the measurement interval in sekunden";
+const char LEDComment[] PROGMEM = "<board addr> <led num> <1|0> control the leds of colletions, 1: led on; 0: led off";
 
 // XXX this should always be the length of the registered cmd array below! 
-#define DEFINED_CMD_COUNT 19
+#define DEFINED_CMD_COUNT 21
+
 struct cmd cmds[]={
+  // Network cmd
   {"ip", handleIp, UintDot_4Slash, NULL},
-  {"port", handlePort, Uint, NULL},
+  {"p", handlePort, Uint, NULL},
   {"mac", handleMac, HexColon_6, NULL},
   {"gw", handleGw, UintDot_4, NULL},
-  {"reset", handleReset, NULL, NULL},
-  {"s-db", handleSendDB, Int, NULL},
-  {"ip-db", handleIpDB, UintDot_4, NULL},
-  {"port-db", handlePortDB, Uint, NULL},
-  {"cookie-db", handleCookieDB, Uint, LenLimit},
-  {"name-db", handleNameDB, Uint, LenLimit},
-  {"doc-db", handleDocDB, Uint, LenLimit},
-  {"func-db", handleFuncDB, Uint, LenLimit},
-  //{"test-db", handleTestDB, NULL, NULL},
-  //{"v-db", handleViewResponseDB, NULL, NULL},
-  {"twiaddr", handleTwiaddr, Uint_2, NULL},
-  {"s", handleScan, NULL, NULL},
-  {"m", handleDoMeasurement, NULL, NULL},
-  {"v", handleViewMeasurement, NULL, NULL},
-  {"i", handleInterval, ULong, NULL},
-  {"led", handleLED, Uint_2_Char, NULL},
+  // DB cmd
+  {"d.s", handleSendDB, Int, SendDBComment},
+  {"d.ip", handleIpDB, UintDot_4, NULL},
+  {"d.p", handlePortDB, Uint, NULL},
+  {"d.ck", handleCookieDB, String60, LenLimit60},
+  {"d.n", handleNameDB, String25, LenLimit25},
+  {"d.d", handleDocDB, String25, LenLimit25},
+  {"d.f", handleFuncDB, String25, LenLimit25},
+  {"d.rp", handleViewResponseDB, NULL, ViewResponseDBComment},
+  // eeprom cmd
+  {"rec", handleReconnect, NULL, ReconnectComment},
+  {"st", handleStore, NULL, StoreComment},
+  //boards cmd
+  {"ba", handleTwiaddr, Uint_2, TwiaddrComment},
+  {"sc", handleScan, NULL, ScanComment},
+  {"ms", handleDoMeasurement, NULL, DoMeasurementComment},
+  {"v", handleViewMeasurement, NULL, ViewMeasurementComment},
+  {"i", handleInterval, ULong, IntervalComment},
+  {"led", handleLED, Uint_2_Char, LEDComment},
   // XXX the help handler should always be at the end
   {"help", handleHelp, NULL, NULL}
 };
@@ -75,8 +95,8 @@ const char Enabled[] PROGMEM = " enabled";
 const char Disabled[] PROGMEM = " disabled";
 const char Colon[] PROGMEM = ": ";
 
-const char UpdateOption[] PROGMEM = "\nfor changes to become effective type\n\treset";
-const char StoreOption[] PROGMEM = "\nfor changes to store type\n\treset";
+const char ReconnectOption[] PROGMEM = "\nstore changes and restart connections for changes to become effective type\n\trec";
+const char StoreOption[] PROGMEM = "\nstore changes type\n\tstore";
 const char CmdNotFound[] PROGMEM = "cmd not found! type 'help' to view options\n";
 
 char cmdBuff[MAX_CMD_LEN];
@@ -90,7 +110,7 @@ int8_t handleViewMeasurement(){
   if(serverSockIndex<MAX_SERVER_SOCK_NUM){
     data_request[serverSockIndex] = (!data_request[serverSockIndex]);
   }
-  return 1;
+  return NO_PARAMS_PARSE;
 }
 
 int8_t handleInterval(){
@@ -111,32 +131,32 @@ int8_t handleInterval(){
 void send_result(struct dummy_packet * packets){
   char buffer[10];
 	uint8_t s;
-	int16_t temp;
+	int16_t value;
   for (s=0;s<8;s++){
-    fprintf(&sock_stream, " | P%u: ", s+1);
+    fprintf_P(&sock_stream, PSTR(" | S%u: "), s+1);
     if(packets[s].header.error && packets[s].header.connected){
-      fprintf(&sock_stream, " ERROR %u ", packets[s].header.error);
+      fprintf_P(&sock_stream, PSTR("ERROR %4u"), packets[s].header.error);
     }
     if(packets[s].header.connected){
       switch(packets[s].header.type){
         case PACKET_TYPE_TSIC:
-          temp =  ((struct tsic_packet *)(packets) )[s].temperature;
-          fprintf(&sock_stream, "T = %d.%02d", temp/100, temp%100);
-          //printf(" T = %d", ( (struct tsic_packet *)(packets) )[s].temperature);
+          value =  ((struct tsic_packet *)(packets) )[s].temperature;
+          fprintf_P(&sock_stream, PSTR("T = %3d.%02d"), value/100, value%100);
           break;
         case PACKET_TYPE_HYT:
-          fprintf(&sock_stream, "T = %d", ( (struct hyt_packet *)(packets) )[s].temperature);
-          fprintf(&sock_stream, " H = %d", ( (struct hyt_packet *)(packets) )[s].humidity);
+          value =  ((struct hyt_packet *)(packets) )[s].temperature;
+          fprintf_P(&sock_stream, PSTR("T = %3d.%02d | "), value/100, value%100);
+          value =  ((struct hyt_packet *)(packets) )[s].humidity;
+          fprintf_P(&sock_stream, PSTR("H = %3d.%02d"), value/100, value%100);
           break;
         default:
-          fputs_P(PSTR("---?---"), &sock_stream);
+          fputs_P(PSTR("----xx----"), &sock_stream);
           break;
       }
     }else{
-      fputs_P(PSTR("---nc---"), &sock_stream);
+      fputs_P(PSTR("----nc----"), &sock_stream);
     }
   }
-  fputs_P(PSTR("\n"), &sock_stream);
 }
 
 int8_t handleDoMeasurement(){
@@ -150,7 +170,9 @@ int8_t handleDoMeasurement(){
   struct dummy_packet received[8];
 	for (iaddr=0;iaddr<num_boards;iaddr++){
 		addr = scanresults[iaddr];
-		//printf("# %u # ", addr);
+#ifdef DEBUG
+		printf_P(PSTR("\n# %u # "), addr);
+#endif
 		state = twi_receive_data(addr, ((uint8_t*)received),8*sizeof(struct dummy_packet));
     if (state){
       send_result(received);
@@ -173,7 +195,7 @@ void accessScan(void){
 		printf(" %u", scanresults[i]);
 #endif
 	}
-  fputs_P(PSTR("\n"), &sock_stream);
+  fputc('\n', &sock_stream);
 #ifdef DEBUG
 	printf("\n\r");
 #endif
@@ -201,13 +223,13 @@ void accessLED(void){
       fputs_P(PSTR("failed\n"), &sock_stream);
 		}
 	}else{
-    fputs_P(PSTR("led <addr> <num> <1|0>\n"), &sock_stream);
+    fputs_P(PSTR("led <board addr> <led num> <1|0>\n"), &sock_stream);
 	}
 }
 
 int8_t handleLED(){
 #ifdef DEBUG
-	printf("handle scan\n\r");
+	printf_P(PSTR("handle scan\n\r"));
 #endif
 	twi_access_fun = accessLED;
 	ui_state = UI_TWILOCK;
@@ -259,7 +281,7 @@ int8_t handleIp(){
   fputs_P(Colon, &sock_stream);
   fprintf_P(&sock_stream, UintDot_4Slash, cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet);
   if(result == SUCCESS_PARAMS_PARSE){
-    fputs_P(UpdateOption, &sock_stream);
+    fputs_P(ReconnectOption, &sock_stream);
   }
   return result;
 }
@@ -280,7 +302,7 @@ int8_t handleGw(){
   fputs_P(Colon, &sock_stream);
   print4dotarr(&sock_stream, cfg.gw);
   if(result == SUCCESS_PARAMS_PARSE){
-    fputs_P(UpdateOption, &sock_stream);
+    fputs_P(ReconnectOption, &sock_stream);
   }
   return result;
 }
@@ -301,7 +323,7 @@ int8_t handleMac(){
   fputs_P(Colon, &sock_stream);
   fprintf_P(&sock_stream, HexColon_6, cfg.mac[0], cfg.mac[1], cfg.mac[2], cfg.mac[3], cfg.mac[4], cfg.mac[5]);
   if(result == SUCCESS_PARAMS_PARSE){
-    fputs_P(UpdateOption, &sock_stream);
+    fputs_P(ReconnectOption, &sock_stream);
   }
   return result;
 }
@@ -315,29 +337,34 @@ int8_t handlePort(){
   fputs_P(Colon, &sock_stream);
   fprintf_P(&sock_stream, Uint, cfg.port);
   if(paramsCount==1){
-    fputs_P(UpdateOption, &sock_stream);
+    fputs_P(ReconnectOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
   }
   return FAILED_PARAMS_PARSE;
 }
 
-int8_t handleReset(){
+int8_t handleStore(){
+  config_write(&cfg);
+  return NO_PARAMS_PARSE;
+}
+
+int8_t handleReconnect(){
   uint8_t index;
   // broadcast
-  fputs_P(PSTR("\n"), &sock_stream);
   stream_set_sock(MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK); 
-  fputs_P(PSTR("The ethernet service will be reset, the future login is "), &sock_stream);
+  fputc('\n', &sock_stream);
+  fputs_P(PSTR("The ethernet service will be restart, the future login is "), &sock_stream);
   print4dotarr(&sock_stream, cfg.ip);
-  fputs_P(PSTR(" "), &sock_stream);
+  fputc(' ', &sock_stream);
   fprintf_P(&sock_stream, Uint, cfg.port);
-  fputs_P(PSTR("\n"), &sock_stream);
+  fputc('\n', &sock_stream);
   sock_stream_flush();
   config_write(&cfg);
   for(index= DB_CLIENT_SOCK; index<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; index++){
     disconnect(index);
   }
   // Wait a second to close all sockets
-  _delay_ms(1000);
+  _delay_ms(500);
   // TODO LEDs action
   for(index= DB_CLIENT_SOCK; index<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; index++){
     if(W5100.readSnSR(index) != SnSR::CLOSED){
@@ -395,7 +422,7 @@ int8_t handleIpDB(){
   fputs_P(Colon, &sock_stream);
   print4dotarr(&sock_stream, cfg.ip_db);
   if(result == SUCCESS_PARAMS_PARSE){
-    fputs_P(UpdateOption, &sock_stream);
+    fputs_P(ReconnectOption, &sock_stream);
   }
   return result;
 }
@@ -409,14 +436,14 @@ int8_t handlePortDB(){
   fputs_P(Colon, &sock_stream);
   fprintf_P(&sock_stream, Uint, cfg.port_db);
   if(paramsCount==1){
-    fputs_P(UpdateOption, &sock_stream);
+    fputs_P(ReconnectOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
   }
   return FAILED_PARAMS_PARSE;
 }
 
 int8_t handleCookieDB(){
-  int16_t paramsCount=fscanf_P(&sock_stream, PSTR("%60s"), &(cfg.cookie_db));
+  int16_t paramsCount=fscanf_P(&sock_stream, String60, &(cfg.cookie_db));
 // FIXME do with ;
   if(paramsCount==1){
     fputs_P(New, &sock_stream);
@@ -424,14 +451,14 @@ int8_t handleCookieDB(){
   fputs_P(Colon, &sock_stream);
   fputs(cfg.cookie_db, &sock_stream);
   if(paramsCount==1){
-    fputs_P(UpdateOption, &sock_stream);
+    fputs_P(ReconnectOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
   }
   return FAILED_PARAMS_PARSE;
 }
 
 int8_t handleNameDB(){
-  int16_t paramsCount=fscanf_P(&sock_stream, PSTR("%15s"), &(cfg.name_db));
+  int16_t paramsCount=fscanf_P(&sock_stream, String25, &(cfg.name_db));
 
   if(paramsCount==1){
     fputs_P(New, &sock_stream);
@@ -439,14 +466,14 @@ int8_t handleNameDB(){
   fputs_P(Colon, &sock_stream);
   fputs(cfg.name_db, &sock_stream);
   if(paramsCount==1){
-    fputs_P(UpdateOption, &sock_stream);
+    fputs_P(ReconnectOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
   }
   return FAILED_PARAMS_PARSE;
 }
 
 int8_t handleDocDB(){
-  int16_t paramsCount=fscanf_P(&sock_stream, PSTR("%20s"), &(cfg.doc_db));
+  int16_t paramsCount=fscanf_P(&sock_stream, String25, &(cfg.doc_db));
 
   if(paramsCount==1){
     fputs_P(New, &sock_stream);
@@ -454,14 +481,14 @@ int8_t handleDocDB(){
   fputs_P(Colon, &sock_stream);
   fputs(cfg.doc_db, &sock_stream);
   if(paramsCount==1){
-    fputs_P(UpdateOption, &sock_stream);
+    fputs_P(ReconnectOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
   }
   return FAILED_PARAMS_PARSE;
 }
 
 int8_t handleFuncDB(){
-  int16_t paramsCount=fscanf_P(&sock_stream, PSTR("%25s"), &(cfg.func_db));
+  int16_t paramsCount=fscanf_P(&sock_stream, String25, &(cfg.func_db));
 
   if(paramsCount==1){
     fputs_P(New, &sock_stream);
@@ -469,20 +496,12 @@ int8_t handleFuncDB(){
   fputs_P(Colon, &sock_stream);
   fputs(cfg.func_db, &sock_stream);
   if(paramsCount==1){
-    fputs_P(UpdateOption, &sock_stream);
+    fputs_P(ReconnectOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
   }
   return FAILED_PARAMS_PARSE;
 }
 
-int8_t handleTestDB(){
-  // TODO
-  uint8_t serverSockIndex = stream_get_sock()-FIRST_SERVER_SOCK;
-  if(serverSockIndex<MAX_SERVER_SOCK_NUM){
-    db_response_request[serverSockIndex]= 1;
-  }
-  return NO_PARAMS_PARSE;
-}
 
 int8_t handleViewResponseDB(){
    uint8_t serverSockIndex = stream_get_sock()-FIRST_SERVER_SOCK;
@@ -492,8 +511,27 @@ int8_t handleViewResponseDB(){
   return NO_PARAMS_PARSE;
 }
 
-inline void sendError(uint8_t sock){
-  fputs_P(PSTR("Error!\n"), &sock_stream);
+void printOption(struct cmd cmd){
+  fputs_P(PSTR("\n\t"), &sock_stream);
+  fputs(cmd.name, &sock_stream);
+  if(cmd.param_format!=NULL){
+  fputs_P(PSTR(" \t"), &sock_stream);
+  fputs_P(cmd.param_format, &sock_stream);
+  }
+  if(cmd.comment!=NULL){
+    fputs_P(PSTR(" ("), &sock_stream);
+    fputs_P(cmd.comment, &sock_stream);
+    fputc(')', &sock_stream);
+  }
+}
+
+int8_t handleHelp(){
+  int8_t index;
+  fputs_P(Usage, &sock_stream);
+  for(index= 0; index<DEFINED_CMD_COUNT - 1; index++){
+    printOption(cmds[index]);
+  }
+  return 1;
 }
 
 char* cmpCMD(char* cmdstr, const char * cmd){
@@ -510,29 +548,6 @@ char* cmpCMD(char* cmdstr, const char * cmd){
     }
   }
   return NULL; // not equal
-}
-
-void printOption(struct cmd cmd){
-  fputs_P(PSTR("\n\t"), &sock_stream);
-  fputs(cmd.name, &sock_stream);
-  if(cmd.param_format!=NULL){
-  fputs_P(PSTR(" \t"), &sock_stream);
-  fputs_P(cmd.param_format, &sock_stream);
-  }
-  if(cmd.comment!=NULL){
-    fputs_P(PSTR(" ("), &sock_stream);
-    fputs_P(cmd.comment, &sock_stream);
-    fputs_P(PSTR(")"), &sock_stream);
-  }
-}
-
-int8_t handleHelp(){
-  int8_t index;
-  fputs_P(Usage, &sock_stream);
-  for(index= 0; index<DEFINED_CMD_COUNT - 1; index++){
-    printOption(cmds[index]);
-  }
-  return 1;
 }
 
 uint8_t execCMD(uint8_t sock, char * buff, int8_t hasParams){
@@ -563,7 +578,7 @@ uint8_t execCMD(uint8_t sock, char * buff, int8_t hasParams){
 	//fputs_P(PSTR("\n% "), &sock_stream);
   fputs_P(CmdNotFound, &sock_stream);
   sock_stream_flush();
-	// FIXME: what is return value here????
+	return NO_PARAMS_PARSE;
 }
 
 uint8_t ui_handleCMD(uint8_t sock){

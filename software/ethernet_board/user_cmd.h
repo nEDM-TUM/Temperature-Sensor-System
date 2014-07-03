@@ -5,7 +5,7 @@
 #include <avr/pgmspace.h>
 #include <stdio.h>
 
-#define MAX_CMD_LEN 10
+#define MAX_CMD_LEN 5
 
 // CMD handler state
 #define FAILED_PARAMS_PARSE 0

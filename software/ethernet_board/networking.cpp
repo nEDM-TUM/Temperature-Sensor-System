@@ -77,10 +77,10 @@ void try_connect_db(uint16_t srcPort){
 int8_t connect_db(uint16_t srcPort){
   int8_t syn_flag = 0;
   try_connect_db(srcPort);
-  // FIXME test
   while(W5100.readSnSR(DB_CLIENT_SOCK) != SnSR::ESTABLISHED) {
-    _delay_ms(100);
-    printf("Status %x\n\r", W5100.readSnSR(DB_CLIENT_SOCK));
+#ifdef DEBUG
+    printf_P(PSTR("Connection to DB Status %x\n\r"), W5100.readSnSR(DB_CLIENT_SOCK));
+#endif
     if (W5100.readSnSR(DB_CLIENT_SOCK) == SnSR::SYNSENT) {
       if(syn_flag){
         syn_flag = 0;
@@ -90,43 +90,52 @@ int8_t connect_db(uint16_t srcPort){
         syn_flag = 1;
       }
     }else if (W5100.readSnSR(DB_CLIENT_SOCK) == SnSR::CLOSED) {
+#ifdef DEBUG
       printf_P(PSTR("DB closed!!!!\n\r"));
+#endif
       return 0;  
     }
   }
   return 1;
 }
 
-void net_beginService() {
-  config_read(&cfg);
-  uint8_t sn[4]={0};
-  //Init and config ethernet device w5100
-  W5100.init();
-  W5100.setMACAddress(cfg.mac);
-  W5100.setIPAddress(cfg.ip);
-  W5100.setGatewayIp(cfg.gw);
-  toSubnetMask(cfg.subnet, sn);
-  W5100.setSubnetMask(sn);
-	printf_P(PSTR("ip: %u.%u.%u.%u/%u:%u\n\r"), cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet, cfg.port);
-  printf_P(PSTR("subnet %u.%u.%u.%u\n\r"), sn[0], sn[1], sn[2], sn[3]);
-	printf_P(PSTR("mac: %u.%u.%u.%u/%u\n\r"), cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet);
-	printf_P(PSTR("gw: %u.%u.%u.%u/%u\n\r"), cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet);
-	printf_P(PSTR("db: %u.%u.%u.%u:%u/%s/%s/%s\n\r"), cfg.ip_db[0], cfg.ip_db[1], cfg.ip_db[2], cfg.ip_db[3], cfg.port_db, cfg.name_db, cfg.doc_db, cfg.func_db);
-  // Create the first server socket
-  socket(FIRST_SERVER_SOCK, SnMR::TCP, cfg.port, 0);
-  while(!listen(FIRST_SERVER_SOCK)){
-    // wait a second and try again
-    _delay_ms(1000);
+void handle_db_response(){
+  int16_t b;
+  uint8_t index;
+#ifdef DEBUG
+    printf_P(PSTR("Received Size %u\n\r"), );
+#endif
+  while((recv(DB_CLIENT_SOCK, &b, 1) > 0){
+    if((b=fgetc(&sock_stream)) == EOF){
+      for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
+        if(db_response_request[index]){
+          stream_set_sock(index+FIRST_SERVER_SOCK); 
+          fputc('\n', &sock_stream);
+          sock_stream_flush();
+        }
+      }
+#ifdef DEBUG
+      putc('\n', stdout);
+      putc('\r', stdout);
+#endif
+      return;
+    }
+#ifdef DEBUG
+    putc(b, stdout);
+#endif
+    for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
+      if(db_response_request[index]){
+        stream_set_sock(index+FIRST_SERVER_SOCK); 
+        fputc(b, &sock_stream);
+        sock_stream_flush();
+      }
+    }
   }
-  // Create client to db
-  // Port of the client can be arbitary, but it should be different then the port of ui server
-  connect_db(cfg.port+1);
 }
 
 void net_sendHeadToDB(uint16_t len){
   // 1st line: POST /{name_db}/_design/{doc_db}/_update/{func_db} HTTP/1.1
   fputs_P(PSTR("POST /"), &sock_stream);
-  // TODO to compute content length??? fix??
   fputs(cfg.name_db, &sock_stream);
   fputs_P(PSTR("/_design/"), &sock_stream);
   fputs(cfg.doc_db, &sock_stream);
@@ -152,34 +161,6 @@ void net_sendHeadToDB(uint16_t len){
     fputs_P(PSTR("\n"), &sock_stream);
     // 8th line: {data}
   }
-}
-
-
-void send_response(uint8_t toSock){
-	int16_t b;
-  stream_set_sock(toSock); 
-	while(true){
-    stream_set_sock(DB_CLIENT_SOCK); 
-    if((b=fgetc(&sock_stream)) == EOF){
-      stream_set_sock(toSock); 
-      sock_stream_flush();
-#ifdef DEBUG
-      putc('\n', stdout);
-      putc('\r', stdout);
-#endif
-      return;
-    }
-    if(toSock == DB_CLIENT_SOCK){
-#ifdef DEBUG
-      putc(b, stdout);
-#endif
-      continue;
-    }
-    stream_set_sock(toSock); 
-    fputc(b, &sock_stream);
-  }
-  stream_set_sock(toSock); 
-  sock_stream_flush();
 }
 
 void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
@@ -225,12 +206,17 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
   len++;
   stream_set_sock(DB_CLIENT_SOCK);
   net_sendHeadToDB(len);
+#ifdef DEBUG
   printf_P(PSTR("Send Head \n\r"));
+#endif
 
   /* convert packet data to json format
    * {"type":"value","data",{"bdddsdTEMP":"ddd.dd","bdddsdHUM":"ddd.dd"}}
    */
   fputs_P(PSTR(JSON_PREFIX), &sock_stream);
+#ifdef DEBUG
+  printf_P(PSTR("Send PREFIX \n\r"));
+#endif
   comma_flag = 0;
   for (sensor_index=0;sensor_index<8;sensor_index++){
     if(packets[sensor_index].header.error && packets[sensor_index].header.connected){
@@ -246,7 +232,9 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
           }
           value =  ((struct tsic_packet *)(packets))[sensor_index].temperature;
           fprintf_P(&sock_stream, PSTR(JSON_TEMP), JSON_OUTPUT);
+#ifdef DEBUG
           printf_P(PSTR("Send temperature \n\r"));
+#endif
           break;
         case PACKET_TYPE_HYT:
           if(comma_flag){
@@ -267,10 +255,10 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
   }
   fputc('}', &sock_stream);
   fputc('}', &sock_stream);
+#ifdef DEBUG
   printf_P(PSTR("Send finished \n\r"));
+#endif
   sock_stream_flush();
-  // TODO send response
-  send_response(DB_CLIENT_SOCK);
   stream_set_sock(currSock);
 }
 
@@ -280,11 +268,10 @@ void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
     net_sendResultToDB(received, src_addr);
   }
 	for(i=0; i< MAX_SERVER_SOCK_NUM; i++){
-		// TODO: check if socket is still connected.
 		if (data_request[i]){
       if(W5100.readSnSR(i+FIRST_SERVER_SOCK) == SnSR::ESTABLISHED){
 			stream_set_sock(i+FIRST_SERVER_SOCK);
-			fprintf_P(&sock_stream, PSTR("%u :: "), src_addr);
+			fprintf_P(&sock_stream, PSTR("\n%u :: "), src_addr);
 			send_result(received);
       sock_stream_flush();
       }else{
@@ -292,6 +279,32 @@ void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
       }
 		}
 	}
+}
+
+void net_beginService() {
+  config_read(&cfg);
+  uint8_t sn[4]={0};
+  //Init and config ethernet device w5100
+  W5100.init();
+  W5100.setMACAddress(cfg.mac);
+  W5100.setIPAddress(cfg.ip);
+  W5100.setGatewayIp(cfg.gw);
+  toSubnetMask(cfg.subnet, sn);
+  W5100.setSubnetMask(sn);
+	printf_P(PSTR("ip: %u.%u.%u.%u/%u:%u\n\r"), cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet, cfg.port);
+  printf_P(PSTR("subnet %u.%u.%u.%u\n\r"), sn[0], sn[1], sn[2], sn[3]);
+	printf_P(PSTR("mac: %u.%u.%u.%u/%u\n\r"), cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet);
+	printf_P(PSTR("gw: %u.%u.%u.%u/%u\n\r"), cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet);
+	printf_P(PSTR("db: %u.%u.%u.%u:%u/%s/%s/%s\n\r"), cfg.ip_db[0], cfg.ip_db[1], cfg.ip_db[2], cfg.ip_db[3], cfg.port_db, cfg.name_db, cfg.doc_db, cfg.func_db);
+  // Create the first server socket
+  socket(FIRST_SERVER_SOCK, SnMR::TCP, cfg.port, 0);
+  while(!listen(FIRST_SERVER_SOCK)){
+    // wait a second and try again
+    _delay_ms(1000);
+  }
+  // Create client to db
+  // Port of the client can be arbitary, but it should be different then the port of ui server
+  connect_db(cfg.port+1);
 }
 
 void serve(){
@@ -325,16 +338,11 @@ void serve(){
 					return;
 				}
         break;
-      case SnSR::CLOSING:
-        // TODO if readCMD??
-        printf("Closing Sock: %u\n\r", i);
-        break;
-      case SnSR::TIME_WAIT:
-        printf("Time wait Sock: %u\n\r", i);
-        break;
       case SnSR::CLOSE_WAIT:
-        // TODO implement see Arduino Ethernet library
-        printf("Close wait Sock: %u\n\r", i);
+#ifdef DEBUG
+        printf("Close wait Sock: %u. Force it to close!\n\r", i);
+#endif
+        close(i);
         break;
       default:
         break;
@@ -347,6 +355,7 @@ void serve(){
     socket(closedSock, SnMR::TCP, cfg.port, 0);    
     listen(closedSock);
   }
+  handle_db_response();
 }
 
 void net_loop(){
@@ -373,8 +382,6 @@ void net_loop(){
 						break;
 					}
 				}
-					
-
 				// handle other already existing commands in the buffer
 				//ui_handleCMD(stream_get_sock());
 			}
