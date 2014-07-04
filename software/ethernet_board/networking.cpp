@@ -171,10 +171,10 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
       return;
     }
   }
+  // Calculate length for the JSON header:
   for (sensor_index=0;sensor_index<8;sensor_index++){
     if(packets[sensor_index].header.error && packets[sensor_index].header.connected){
-      // XXX IF ERROR HANDLING
-      //len += 12; 
+      // We do not send data, which might have an error
       continue;
     }
     if(packets[sensor_index].header.connected){
@@ -185,6 +185,8 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
           len++;
           break;
         case PACKET_TYPE_HYT:
+          // There is no difference in temperature length
+          // for HYT and TSIC.
           len += JSON_TEMP_LEN;
           len++;
           len += JSON_HUM_LEN;
@@ -201,6 +203,8 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
   len+=JSON_PREFIX_LEN;
   // length of "}" at the end
   len++;
+
+  // Now we start sending data to couchdb
   stream_set_sock(DB_CLIENT_SOCK);
   net_sendHeadToDB(len);
 #ifdef DEBUG
@@ -256,6 +260,11 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
   printf_P(PSTR("Send finished \n\r"));
 #endif
   sock_stream_flush();
+  // restore socket stream, as we might be in the middle of a user interface transaction
+  // FIXME: the same thing should be done, when sending couchdb repiles, to allow commands
+  // like twiaddr to function correctly.
+  // otherwise it might happen, that we chnage the socket stream while waiting for
+  // twi lock, then the result might be sent to the wrong shell
   stream_set_sock(currSock);
 }
 
@@ -300,7 +309,7 @@ void net_beginService() {
     _delay_ms(1000);
   }
   // Create client to db
-  // Port of the client can be arbitary, but it should be different then the port of ui server
+  // Port of the client can be arbitary, but it should be different than the port of ui server
   connect_db(cfg.port+1);
 }
 

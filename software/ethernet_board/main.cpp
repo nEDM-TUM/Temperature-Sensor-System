@@ -73,6 +73,7 @@ void loop2(){
 					printf("measurement finished\n\r");
 					crc_state = twi_verify_checksums(received, 8);
 
+          // TODO: implement CRC check here
 					net_dataAvailable(received, addr_current_board);
 					// switch to next board:
 					loop_current_board ++;
