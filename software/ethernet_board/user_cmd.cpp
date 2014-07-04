@@ -526,17 +526,16 @@ int8_t handleViewResponseDB(){
 }
 
 void printOption(struct cmd cmd){
-  fputs_P(PSTR("\n\t"), &sock_stream);
-  fputs(cmd.name, &sock_stream);
-  if(cmd.param_format!=NULL){
-  fputs_P(PSTR(" \t"), &sock_stream);
-  fputs_P(cmd.param_format, &sock_stream);
-  }
-  if(cmd.comment!=NULL){
-    fputs_P(PSTR(" ("), &sock_stream);
-    fputs_P(cmd.comment, &sock_stream);
-    fputc(')', &sock_stream);
-  }
+	fputs_P(PSTR("\n\t"), &sock_stream);
+	fputs(cmd.name, &sock_stream);
+	fputs_P(PSTR(" \t"), &sock_stream);
+	if(cmd.param_format!=NULL){
+		fputs_P(cmd.param_format, &sock_stream);
+		fputs_P(PSTR("   "), &sock_stream);
+	}
+	if(cmd.comment!=NULL){
+		fputs_P(cmd.comment, &sock_stream);
+	}
 }
 
 int8_t handleHelp(){
