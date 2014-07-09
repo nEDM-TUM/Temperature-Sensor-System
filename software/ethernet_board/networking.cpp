@@ -102,10 +102,12 @@ int8_t connect_db(uint16_t srcPort){
 void handle_db_response(){
   uint8_t b;
   uint8_t index;
+  uint8_t content_flag = 0;
 #ifdef DEBUG
     printf_P(PSTR("Received Size %u\n\r"), );
 #endif
   while(recv(DB_CLIENT_SOCK, &b, 1) > 0){
+    content_flag = 1;
 #ifdef DEBUG
     putc(b, stdout);
 #endif
@@ -121,6 +123,9 @@ void handle_db_response(){
   putc('\n', stdout);
   putc('\r', stdout);
 #endif
+  if(!content_flag){
+  return;
+  }
   for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
     if(db_response_request[index]){
       stream_set_sock(index+FIRST_SERVER_SOCK); 
