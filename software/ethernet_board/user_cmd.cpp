@@ -20,7 +20,7 @@ int8_t handleCookieDB();
 int8_t handleNameDB();
 int8_t handleDocDB();
 int8_t handleFuncDB();
-int8_t handleReconnect();
+int8_t handleRestart();
 int8_t handleStore();
 int8_t handleViewResponseDB();
 int8_t handleTwiaddr();
@@ -29,6 +29,7 @@ int8_t handleDoMeasurement();
 int8_t handleViewMeasurement();
 int8_t handleInterval();
 int8_t handleLED();
+int8_t handleClose();
 int8_t handleHelp();
 
 // parameter format string in progmem
@@ -47,7 +48,7 @@ const char String25[] PROGMEM = "%25s";
 
 const char SendDBComment[] PROGMEM = "<1|0> 1: Enable sending data to database; 2: Disable sending data to db";
 const char ViewResponseDBComment[] PROGMEM = "Toggle display of db reponse";
-const char ReconnectComment[] PROGMEM = "Store changes and restart network"; 
+const char RestartComment[] PROGMEM = "Store changes and restart network"; 
 const char StoreComment[] PROGMEM = "Permanently store changes"; 
 const char TwiaddrComment[] PROGMEM = "<old> <new> change board I2C address";
 const char ScanComment[] PROGMEM = "Scan for connected collection boards";
@@ -66,9 +67,10 @@ const char CookieDBComment[] PROGMEM = "<cookie> Change cookie for couchdb (max 
 const char NameDBComment[] PROGMEM = "<name> Set database name (max 25 chars)";
 const char DocDBComment[] PROGMEM = "<name> Set json document name (max 25 chars)";
 const char FuncDBComment[] PROGMEM = "<name> Set couchdb insert function (max 25 chars)";
+const char CloseComment[] PROGMEM = "close user interface savely";
 
 // XXX this should always be the length of the registered cmd array below! 
-#define DEFINED_CMD_COUNT 21
+#define DEFINED_CMD_COUNT 22
 
 struct cmd cmds[]={
   // Network cmd
@@ -86,7 +88,7 @@ struct cmd cmds[]={
   {"d.f", handleFuncDB, String25, FuncDBComment},
   {"d.v", handleViewResponseDB, NULL, ViewResponseDBComment},
   // eeprom cmd
-  {"res", handleReconnect, NULL, ReconnectComment},
+  {"res", handleRestart, NULL, RestartComment},
   {"sto", handleStore, NULL, StoreComment},
   //boards cmd
   {"ba", handleTwiaddr, Uint_2, TwiaddrComment},
@@ -95,6 +97,7 @@ struct cmd cmds[]={
   {"v", handleViewMeasurement, NULL, ViewMeasurementComment},
   {"i", handleInterval, ULong, IntervalComment},
   {"led", handleLED, Uint_2_Char, LEDComment},
+  {"c", handleClose, NULL, CloseComment},
   // XXX the help handler should always be at the end
   {"help", handleHelp, NULL, NULL}
 };
@@ -105,7 +108,7 @@ const char Enabled[] PROGMEM = " enabled";
 const char Disabled[] PROGMEM = " disabled";
 const char Colon[] PROGMEM = ": ";
 
-const char ReconnectOption[] PROGMEM = "\nstore changes and restart connections for changes to become effective type\n\trec";
+const char RestartOption[] PROGMEM = "\nstore changes and restart connections for changes to become effective type\n\trec";
 const char StoreOption[] PROGMEM = "\nstore changes type\n\tstore";
 const char CmdNotFound[] PROGMEM = "cmd not found! type 'help' to view options\n";
 
@@ -295,7 +298,7 @@ int8_t handleIp(){
   fputs_P(Colon, &sock_stream);
   fprintf_P(&sock_stream, UintDot_4Slash, cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet);
   if(result == SUCCESS_PARAMS_PARSE){
-    fputs_P(ReconnectOption, &sock_stream);
+    fputs_P(RestartOption, &sock_stream);
   }
   return result;
 }
@@ -316,7 +319,7 @@ int8_t handleGw(){
   fputs_P(Colon, &sock_stream);
   print4dotarr(&sock_stream, cfg.gw);
   if(result == SUCCESS_PARAMS_PARSE){
-    fputs_P(ReconnectOption, &sock_stream);
+    fputs_P(RestartOption, &sock_stream);
   }
   return result;
 }
@@ -337,7 +340,7 @@ int8_t handleMac(){
   fputs_P(Colon, &sock_stream);
   fprintf_P(&sock_stream, HexColon_6, cfg.mac[0], cfg.mac[1], cfg.mac[2], cfg.mac[3], cfg.mac[4], cfg.mac[5]);
   if(result == SUCCESS_PARAMS_PARSE){
-    fputs_P(ReconnectOption, &sock_stream);
+    fputs_P(RestartOption, &sock_stream);
   }
   return result;
 }
@@ -351,7 +354,7 @@ int8_t handlePort(){
   fputs_P(Colon, &sock_stream);
   fprintf_P(&sock_stream, Uint, cfg.port);
   if(paramsCount==1){
-    fputs_P(ReconnectOption, &sock_stream);
+    fputs_P(RestartOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
   }
   return FAILED_PARAMS_PARSE;
@@ -362,7 +365,7 @@ int8_t handleStore(){
   return NO_PARAMS_PARSE;
 }
 
-int8_t handleReconnect(){
+int8_t handleRestart(){
   uint8_t index;
   // broadcast
   stream_set_sock(MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK); 
@@ -387,6 +390,18 @@ int8_t handleReconnect(){
     }
   }
   net_beginService();
+  return NO_PARAMS_PARSE;
+}
+
+int8_t handleClose(){
+  uint8_t index;
+  fputs_P(PSTR("The ethernet service will be closed, the future login is "), &sock_stream);
+  print4dotarr(&sock_stream, cfg.ip);
+  fputc(' ', &sock_stream);
+  fprintf_P(&sock_stream, Uint, cfg.port);
+  fputc('\n', &sock_stream);
+  sock_stream_flush();
+  close(stream_get_sock());
   return NO_PARAMS_PARSE;
 }
 
@@ -436,7 +451,7 @@ int8_t handleIpDB(){
   fputs_P(Colon, &sock_stream);
   print4dotarr(&sock_stream, cfg.ip_db);
   if(result == SUCCESS_PARAMS_PARSE){
-    fputs_P(ReconnectOption, &sock_stream);
+    fputs_P(RestartOption, &sock_stream);
   }
   return result;
 }
@@ -450,7 +465,7 @@ int8_t handlePortDB(){
   fputs_P(Colon, &sock_stream);
   fprintf_P(&sock_stream, Uint, cfg.port_db);
   if(paramsCount==1){
-    fputs_P(ReconnectOption, &sock_stream);
+    fputs_P(RestartOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
   }
   return FAILED_PARAMS_PARSE;
@@ -465,7 +480,7 @@ int8_t handleCookieDB(){
   fputs_P(Colon, &sock_stream);
   fputs(cfg.cookie_db, &sock_stream);
   if(paramsCount==1){
-    fputs_P(ReconnectOption, &sock_stream);
+    fputs_P(RestartOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
   }
   return FAILED_PARAMS_PARSE;
@@ -480,7 +495,7 @@ int8_t handleNameDB(){
   fputs_P(Colon, &sock_stream);
   fputs(cfg.name_db, &sock_stream);
   if(paramsCount==1){
-    fputs_P(ReconnectOption, &sock_stream);
+    fputs_P(RestartOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
   }
   return FAILED_PARAMS_PARSE;
@@ -495,7 +510,7 @@ int8_t handleDocDB(){
   fputs_P(Colon, &sock_stream);
   fputs(cfg.doc_db, &sock_stream);
   if(paramsCount==1){
-    fputs_P(ReconnectOption, &sock_stream);
+    fputs_P(RestartOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
   }
   return FAILED_PARAMS_PARSE;
@@ -510,7 +525,7 @@ int8_t handleFuncDB(){
   fputs_P(Colon, &sock_stream);
   fputs(cfg.func_db, &sock_stream);
   if(paramsCount==1){
-    fputs_P(ReconnectOption, &sock_stream);
+    fputs_P(RestartOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
   }
   return FAILED_PARAMS_PARSE;
@@ -531,9 +546,9 @@ void printOption(struct cmd cmd){
 	fputs_P(PSTR(" \t"), &sock_stream);
 	if(cmd.param_format!=NULL){
 		fputs_P(cmd.param_format, &sock_stream);
-		fputs_P(PSTR("   "), &sock_stream);
 	}
 	if(cmd.comment!=NULL){
+    fputs_P(PSTR("\n\t\t\t"), &sock_stream);
 		fputs_P(cmd.comment, &sock_stream);
 	}
 }
@@ -581,14 +596,10 @@ uint8_t execCMD(uint8_t sock, char * buff, int8_t hasParams){
         printOption(cmd);
       }
       fputs_P(PSTR("\n"), &sock_stream);
-			//if(handle_state != SUSPEND){
-			//	fputs_P(PSTR("\n% "), &sock_stream);
-			//}
       sock_stream_flush();
       return handle_state;
     }
   }
-	//fputs_P(PSTR("\n% "), &sock_stream);
   fputs_P(CmdNotFound, &sock_stream);
   sock_stream_flush();
 	return NO_PARAMS_PARSE;
