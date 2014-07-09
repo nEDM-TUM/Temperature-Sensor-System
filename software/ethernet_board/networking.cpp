@@ -170,7 +170,6 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
   int8_t comma_flag = 0;
   int16_t value;
   uint16_t len=0;
-  uint8_t currSock = stream_get_sock();
   if( W5100.readSnSR(DB_CLIENT_SOCK) != SnSR::ESTABLISHED ){
     if(!connect_db(cfg.port+1)){
       return;
@@ -261,11 +260,11 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
   printf_P(PSTR("Send finished \n\r"));
 #endif
   sock_stream_flush();
-  stream_set_sock(currSock);
 }
 
 void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
 	uint8_t i;
+  uint8_t currSock = stream_get_sock();
   if(cfg.send_db){
     net_sendResultToDB(received, src_addr);
   }
@@ -281,6 +280,7 @@ void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
       }
 		}
 	}
+  stream_set_sock(currSock);
 }
 
 void net_beginService() {
