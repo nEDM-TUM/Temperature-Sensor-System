@@ -605,7 +605,7 @@ uint8_t ui_handleCMD(uint8_t sock){
 	uint8_t cmd_result = NO_PARAMS_PARSE;
 	stream_set_sock(sock); 
 	while((b=fgetc(&sock_stream)) != EOF){
-		if(b == ' ' || b == '\n' || b == ';'){
+		if(b == ' ' || b == '\n' || b == '\r' || b == ';'){
 			flag_return = 1;
 			if(pointer>0){
 				cmdBuff[pointer++] = '\0';
