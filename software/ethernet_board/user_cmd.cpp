@@ -43,16 +43,13 @@ const char UintDot_4Slash[] PROGMEM = "%u.%u.%u.%u/%u";
 const char HexColon_6[] PROGMEM = "%x:%x:%x:%x:%x:%x";
 const char String60[] PROGMEM = "%60s";
 const char String25[] PROGMEM = "%25s";
-//const char LenLimit60[] PROGMEM = "Parameter length limited to 60 chars";
-//const char LenLimit25[] PROGMEM = "Parameter length limited to 25 chars";
 
 const char SendDBComment[] PROGMEM = "<1|0> 1: Enable sending data to database; 2: Disable sending data to db";
 const char ViewResponseDBComment[] PROGMEM = "Toggle display of db reponse";
 const char RestartComment[] PROGMEM = "Store changes and restart network"; 
 const char StoreComment[] PROGMEM = "Permanently store changes"; 
-const char TwiaddrComment[] PROGMEM = "<old> <new> change board I2C address";
+const char TwiaddrComment[] PROGMEM = "<old> <new> Change board I2C address";
 const char ScanComment[] PROGMEM = "Scan for connected collection boards";
-//TODO
 const char DoMeasurementComment[] PROGMEM = "Initiate a measurement and display the result";
 const char ViewMeasurementComment[] PROGMEM = "Toggle displaying of current measurement results";
 const char IntervalComment[] PROGMEM = "<seconds> Change the measurement interval";
@@ -67,7 +64,7 @@ const char CookieDBComment[] PROGMEM = "<cookie> Change cookie for couchdb (max 
 const char NameDBComment[] PROGMEM = "<name> Set database name (max 25 chars)";
 const char DocDBComment[] PROGMEM = "<name> Set json document name (max 25 chars)";
 const char FuncDBComment[] PROGMEM = "<name> Set couchdb insert function (max 25 chars)";
-const char CloseComment[] PROGMEM = "close user interface savely";
+const char CloseComment[] PROGMEM = "Close user interface savely";
 
 // XXX this should always be the length of the registered cmd array below! 
 #define DEFINED_CMD_COUNT 22
@@ -250,11 +247,6 @@ int8_t handleLED(){
 }
 
 void accessTwiaddr(void){
-	// FIXME:
-	// problem will arise, if user interface is suspended and measurement will complete,
-	// then socket might be switched and if we again come here, we send the result to the wrong socket
-	// Possible solution: store blocking socket in global variable and restore it again in access function
-
 	uint16_t old_addr=1;
 	uint16_t new_addr=1;
   int16_t paramsCount=0;
@@ -382,7 +374,6 @@ int8_t handleRestart(){
   }
   // Wait a second to close all sockets
   _delay_ms(500);
-  // TODO LEDs action
   for(index= DB_CLIENT_SOCK; index<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; index++){
     if(W5100.readSnSR(index) != SnSR::CLOSED){
       // If a socket is still not closed, force it
@@ -543,12 +534,13 @@ int8_t handleViewResponseDB(){
 void printOption(struct cmd cmd){
 	fputs_P(PSTR("\n\t"), &sock_stream);
 	fputs(cmd.name, &sock_stream);
-	fputs_P(PSTR(" \t"), &sock_stream);
 	if(cmd.param_format!=NULL){
+		fputs_P(PSTR(" \t"), &sock_stream);
 		fputs_P(cmd.param_format, &sock_stream);
+    fputs_P(PSTR("\n\t"), &sock_stream);
 	}
 	if(cmd.comment!=NULL){
-    fputs_P(PSTR("\n\t\t\t"), &sock_stream);
+		fputs_P(PSTR(" \t"), &sock_stream);
 		fputs_P(cmd.comment, &sock_stream);
 	}
 }
@@ -656,33 +648,4 @@ uint8_t ui_handleCMD(uint8_t sock){
 		sock_stream_flush();
 	}
 	return cmd_result;
-}
-
-uint8_t ui_recvResponseDB(){
-  int16_t b;
-  uint8_t i;
-  // FIXME improve
-  stream_set_sock(DB_CLIENT_SOCK); 
-  if((b=fgetc(&sock_stream)) == EOF){
-    return 0;
-  }
-  for(i = 0;  i<MAX_SERVER_SOCK_NUM; i++){
-    if(db_response_request[i]){
-      stream_set_sock(i+FIRST_SERVER_SOCK); 
-      fputs_P(PSTR("Response from DB:\n\n"), &sock_stream);
-    }
-  }
-  while(true){
-    stream_set_sock(DB_CLIENT_SOCK); 
-    if((b=fgetc(&sock_stream)) == EOF){
-      return 1;
-    }
-    for(i = 0;  i<MAX_SERVER_SOCK_NUM; i++){
-      if(db_response_request[i]){
-        stream_set_sock(i+FIRST_SERVER_SOCK); 
-        fputc(b, &sock_stream);
-      }
-    }
-  }
-  return 1;
 }
