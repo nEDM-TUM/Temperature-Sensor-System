@@ -105,8 +105,8 @@ const char Enabled[] PROGMEM = " enabled";
 const char Disabled[] PROGMEM = " disabled";
 const char Colon[] PROGMEM = ": ";
 
-const char ReconnectOption[] PROGMEM = "\nstore changes and restart connections for changes to become effective type\n\trec";
-const char StoreOption[] PROGMEM = "\nstore changes type\n\tstore";
+const char ReconnectOption[] PROGMEM = "\nto store changes and restart connections for changes to become effective, type\n\tres";
+const char StoreOption[] PROGMEM = "\nto store changes type\n\tsto";
 const char CmdNotFound[] PROGMEM = "cmd not found! type 'help' to view options\n";
 
 char cmdBuff[MAX_CMD_LEN];
@@ -367,7 +367,7 @@ int8_t handleReconnect(){
   // broadcast
   stream_set_sock(MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK); 
   fputc('\n', &sock_stream);
-  fputs_P(PSTR("The ethernet service will be restart, the future login is "), &sock_stream);
+  fputs_P(PSTR("The ethernet service is restarting, the future address will be "), &sock_stream);
   print4dotarr(&sock_stream, cfg.ip);
   fputc(' ', &sock_stream);
   fprintf_P(&sock_stream, Uint, cfg.port);

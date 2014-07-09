@@ -37,9 +37,8 @@ uint32_t get_time_delta(uint32_t a, uint32_t b){
   }
 }
 
-void loop2(){
+void loop_sampling(){
 	uint32_t current_time = millis();
-	uint8_t crc_state;
 	switch (loop_state){
 		case LOOP_IDLE:
 			if(get_time_delta(time_last_measurement, current_time) >= measure_interval){
@@ -71,7 +70,7 @@ void loop2(){
 			switch (rcv_state){
 				case TWI_RCV_FIN:
 					printf("measurement finished\n\r");
-					crc_state = twi_verify_checksums(received, 8);
+					twi_verify_checksums(received, 8);
 
 					net_dataAvailable(received, addr_current_board);
 					// switch to next board:
@@ -106,7 +105,6 @@ void loop2(){
 						// we have to abort everything as we might already have violated time
 						twi_free_bus();
 						loop_state = LOOP_IDLE;
-						// FIXME: what will be the TWI state here?
 					}
 					break;
 			}
@@ -140,7 +138,7 @@ int main (void)
 
 	// main event loop
 	while (1) {
-		loop2();
+		loop_sampling();
 		net_loop();
 	}
 }
