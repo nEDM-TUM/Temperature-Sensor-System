@@ -25,7 +25,6 @@ int8_t handleStore();
 int8_t handleViewResponseDB();
 int8_t handleTwiaddr();
 int8_t handleScan();
-int8_t handleDoMeasurement();
 int8_t handleViewMeasurement();
 int8_t handleInterval();
 int8_t handleLED();
@@ -50,7 +49,6 @@ const char RestartComment[] PROGMEM = "Store changes and restart network";
 const char StoreComment[] PROGMEM = "Permanently store changes"; 
 const char TwiaddrComment[] PROGMEM = "<old> <new> Change board I2C address";
 const char ScanComment[] PROGMEM = "Scan for connected collection boards";
-const char DoMeasurementComment[] PROGMEM = "Initiate a measurement and display the result";
 const char ViewMeasurementComment[] PROGMEM = "Toggle displaying of current measurement results";
 const char IntervalComment[] PROGMEM = "<seconds> Change the measurement interval";
 const char LEDComment[] PROGMEM = "<board addr> <led num> <1|0> Control the leds of collector boards, 1: led on; 0: led off";
@@ -90,7 +88,6 @@ struct cmd cmds[]={
   //boards cmd
   {"ba", handleTwiaddr, Uint_2, TwiaddrComment},
   {"s", handleScan, NULL, ScanComment},
-  {"m", handleDoMeasurement, NULL, DoMeasurementComment},
   {"v", handleViewMeasurement, NULL, ViewMeasurementComment},
   {"i", handleInterval, ULong, IntervalComment},
   {"led", handleLED, Uint_2_Char, LEDComment},
@@ -167,28 +164,6 @@ void send_result(struct dummy_packet * packets){
       fputs_P(PSTR("----nc----"), &sock_stream);
     }
   }
-}
-
-int8_t handleDoMeasurement(){
-#ifdef DEBUG
-	printf("handle do measure\n\r");
-#endif
-  twi_start_measurement(0);
-	uint8_t iaddr;
-	uint8_t addr;
-  uint8_t state;
-  struct dummy_packet received[8];
-	for (iaddr=0;iaddr<num_boards;iaddr++){
-		addr = scanresults[iaddr];
-#ifdef DEBUG
-		printf_P(PSTR("\n# %u # "), addr);
-#endif
-		state = twi_receive_data(addr, ((uint8_t*)received),8*sizeof(struct dummy_packet));
-    if (state){
-      send_result(received);
-    }
-  }
-  return NO_PARAMS_PARSE;
 }
 
 void accessScan(void){
