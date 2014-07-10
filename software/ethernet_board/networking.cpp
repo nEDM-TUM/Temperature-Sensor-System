@@ -354,9 +354,11 @@ void net_beginService() {
   W5100.setSubnetMask(sn);
 	printf_P(PSTR("ip: %u.%u.%u.%u/%u:%u\n\r"), cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet, cfg.port);
   printf_P(PSTR("subnet %u.%u.%u.%u\n\r"), sn[0], sn[1], sn[2], sn[3]);
-	printf_P(PSTR("mac: %u.%u.%u.%u/%u\n\r"), cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet);
-	printf_P(PSTR("gw: %u.%u.%u.%u/%u\n\r"), cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet);
-	printf_P(PSTR("db: %u.%u.%u.%u:%u/%s/%s/%s\n\r"), cfg.ip_db[0], cfg.ip_db[1], cfg.ip_db[2], cfg.ip_db[3], cfg.port_db, cfg.name_db, cfg.doc_db, cfg.func_db);
+	printf_P(PSTR("mac: %x:%x:%x:%x:%x:%x\n\r"), cfg.mac[0], cfg.mac[1], cfg.mac[2], cfg.mac[3], cfg.mac[4], cfg.mac[5]);
+	printf_P(PSTR("gw: %u.%u.%u.%u\n\r"), cfg.gw[0], cfg.gw[1], cfg.gw[2], cfg.gw[3]);
+	printf_P(PSTR("db: %u.%u.%u.%u:%u/%s\n\r"), cfg.ip_db[0], cfg.ip_db[1], cfg.ip_db[2], cfg.ip_db[3], cfg.port_db, cfg.name_db);
+	printf_P(PSTR("cookie: %s\n\r"), cfg.cookie_db);
+	printf_P(PSTR("update function: %s/%s\n\r"), cfg.doc_db, cfg.func_db);
   // Create the first server socket
   socket(FIRST_SERVER_SOCK, SnMR::TCP, cfg.port, 0);
   while(!listen(FIRST_SERVER_SOCK)){

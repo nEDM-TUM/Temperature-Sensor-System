@@ -121,6 +121,7 @@ int8_t handleViewMeasurement(){
 }
 
 int8_t handleInterval(){
+  // TODO no update information
   int16_t paramsCount=0;
 	uint32_t interval_tmp;
   int8_t result = FAILED_PARAMS_PARSE;
@@ -560,6 +561,7 @@ uint8_t execCMD(uint8_t sock, char * buff, int8_t hasParams){
       if(hasParams && handle_state==FAILED_PARAMS_PARSE && cmd.param_format!=NULL){
         fputc('\n', &sock_stream);
         fputs_P(Usage, &sock_stream);
+        // TODO print always
         printOption(cmd);
       }
       fputc('\n', &sock_stream);
