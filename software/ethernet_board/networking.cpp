@@ -304,9 +304,9 @@ void net_beginService() {
     // wait a second and try again
     _delay_ms(1000);
   }
-  // Create client to db
-  // Port of the client can be arbitary, but it should be different then the port of ui server
-  connect_db(cfg.port+1);
+  // // Create client to db
+  // // Port of the client can be arbitary, but it should be different then the port of ui server
+  // connect_db(cfg.port+1);
 }
 
 void serve(){
@@ -317,8 +317,8 @@ void serve(){
   listeningSock = MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK;
   for(i=FIRST_SERVER_SOCK; i<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; i++){
     snSR = W5100.readSnSR(i);
+    printf_P(PSTR("%u. Status: %x\n\r"),i, snSR);
 #ifdef DEBUG
-    printf("%u. Status: %x\n\r",i, snSR);
 #endif
     switch (snSR){
       case SnSR::CLOSED:

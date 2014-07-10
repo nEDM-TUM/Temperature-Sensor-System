@@ -14,6 +14,7 @@ Analysis:
 
 ERROR is displayed, when connecting humidity board.
 -> this seems to be an error in collector board chescksum validation
+-> marked fixed
 
 ---
 
@@ -21,7 +22,7 @@ Feature request:
 	command for led control via netcat user interface
   -> would allow easy tracking of boards:
 	"what is board with address xxx"
-
+-> FIXED
 ---
 
 Sending to couch db
@@ -29,5 +30,14 @@ Open Questions:
 	- What do we send to DB?
 	  -> only valid packets?
 		-> one document for each sensor?
+-> FIXED
 
+---
+
+Weird delay after resetting, when someone is immediately connecting
+to the user interface via netcat/telnet
+socket is in listening state, but only goes to established state
+after some time, even if netcat is trying to connect from the beginning.
+
+Possible problem componenet: W5100
 

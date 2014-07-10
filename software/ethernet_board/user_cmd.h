@@ -22,5 +22,4 @@ struct cmd{
 
 
 uint8_t ui_handleCMD(uint8_t sock);
-uint8_t ui_recvResponseDB();
 #endif
