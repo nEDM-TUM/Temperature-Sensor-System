@@ -1,3 +1,4 @@
+#define __STDC_LIMIT_MACROS
 #include "networking.h"
 
 //#include <avr/io.h>
@@ -12,6 +13,7 @@
 #include "sock_stream.h"
 #include <Ethernet.h>
 #include "w5100.h"
+#include <Arduino.h>
 // set debug mode
 // #define DEBUG
 
@@ -32,6 +34,14 @@ void serve();
 uint8_t ui_state = UI_READY;
 
 const char UintDot_4Colon[] PROGMEM = "%u.%u.%u.%u:%u";
+
+uint32_t net_get_time_delta(uint32_t a, uint32_t b){
+  if(a>b){
+    return  UINT32_MAX - a + b;
+  }else{
+    return b-a;
+  }
+}
 
 void toSubnetMask(uint8_t subnet, uint8_t* addr){
   int8_t indexByte = 0;
@@ -99,40 +109,113 @@ int8_t connect_db(uint16_t srcPort){
   return 1;
 }
 
+// void handle_db_response(){
+//   uint8_t b;
+//   uint8_t index;
+//   uint8_t content_flag = 0;
+// 	uint32_t t1;
+// 	t1 = millis();
+// #ifdef DEBUG
+//     printf_P(PSTR("Received Size %u\n\r"), );
+// #endif
+//   while(recv(DB_CLIENT_SOCK, &b, 1) > 0){
+//     content_flag = 1;
+// #ifdef DEBUG
+//     putc(b, stdout);
+// #endif
+//     for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
+//       if(db_response_request[index]){
+//         stream_set_sock(index+FIRST_SERVER_SOCK); 
+//         fputc(b, &sock_stream);
+//         sock_stream_flush();
+//       }
+//     }
+//   }
+// #ifdef DEBUG
+//   putc('\n', stdout);
+//   putc('\r', stdout);
+// #endif
+//   if(!content_flag){
+//   return;
+//   }
+//   for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
+//     if(db_response_request[index]){
+//       stream_set_sock(index+FIRST_SERVER_SOCK); 
+//       fputc('\n', &sock_stream);
+//       sock_stream_flush();
+//     }
+//   }
+// 	t1 = net_get_time_delta(t1, millis());
+// 	printf("re %lu\n\r",t1);
+// }
+
+void net_clear_rcv_buf(SOCKET s){
+  int16_t ret = W5100.getRXReceivedSize(s);
+  if ( ret != 0 )
+  {
+		uint16_t ptr;
+		ptr = W5100.readSnRX_RD(s);
+		ptr += ret;
+		W5100.writeSnRX_RD(s, ptr);
+
+    W5100.execCmdSn(s, Sock_RECV);
+
+	}
+
+}
+
 void handle_db_response(){
   uint8_t b;
   uint8_t index;
   uint8_t content_flag = 0;
 #ifdef DEBUG
-    printf_P(PSTR("Received Size %u\n\r"), );
+	uint32_t t1;
+	t1 = millis();
 #endif
-  while(recv(DB_CLIENT_SOCK, &b, 1) > 0){
-    content_flag = 1;
+	uint8_t redirect_flag = 0;
+	for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
+		if(db_response_request[index]){
+			redirect_flag = 1;
+		}
+	}
+
+	if(redirect_flag == 0){
+		net_clear_rcv_buf(DB_CLIENT_SOCK);
+	}else{
+		while(recv(DB_CLIENT_SOCK, &b, 1) > 0){
+			content_flag = 1;
 #ifdef DEBUG
-    putc(b, stdout);
+			putc(b, stdout);
 #endif
-    for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
-      if(db_response_request[index]){
-        stream_set_sock(index+FIRST_SERVER_SOCK); 
-        fputc(b, &sock_stream);
-        sock_stream_flush();
-      }
-    }
-  }
+			for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
+				if(db_response_request[index]){
+					stream_set_sock(index+FIRST_SERVER_SOCK); 
+					fputc(b, &sock_stream);
+					sock_stream_flush();
+				}
+			}
+		}
 #ifdef DEBUG
-  putc('\n', stdout);
-  putc('\r', stdout);
+		putc('\n', stdout);
+		putc('\r', stdout);
 #endif
-  if(!content_flag){
-  return;
-  }
-  for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
-    if(db_response_request[index]){
-      stream_set_sock(index+FIRST_SERVER_SOCK); 
-      fputc('\n', &sock_stream);
-      sock_stream_flush();
-    }
-  }
+		if(!content_flag){
+			return;
+		}
+		for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
+			if(db_response_request[index]){
+				stream_set_sock(index+FIRST_SERVER_SOCK); 
+				fputc('\n', &sock_stream);
+				sock_stream_flush();
+			}
+		}
+	}
+#ifdef DEBUG
+	t1 = net_get_time_delta(t1, millis());
+	if(t1 >= 2){
+		printf("re %lu\n\r",t1);
+	}
+#endif
 }
 
 void net_sendHeadToDB(uint16_t len){
@@ -265,9 +348,21 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
 void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
 	uint8_t i;
   uint8_t currSock = stream_get_sock();
+#ifdef DEBUG
+	uint32_t t1,t2;
+#endif
   if(cfg.send_db){
+#ifdef DEBUG
+		t1 = millis();
+#endif
     net_sendResultToDB(received, src_addr);
+#ifdef DEBUG
+		t1 = net_get_time_delta(t1, millis());
+#endif
   }
+#ifdef DEBUG
+	t2 = millis();
+#endif
 	for(i=0; i< MAX_SERVER_SOCK_NUM; i++){
 		if (data_request[i]){
       if(W5100.readSnSR(i+FIRST_SERVER_SOCK) == SnSR::ESTABLISHED){
@@ -280,6 +375,10 @@ void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
       }
 		}
 	}
+#ifdef DEBUG
+	t2 = net_get_time_delta(t2, millis());
+	printf("ts %lu, %lu\n\r",t1,t2);
+#endif
   stream_set_sock(currSock);
 }
 
@@ -317,8 +416,8 @@ void serve(){
   listeningSock = MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK;
   for(i=FIRST_SERVER_SOCK; i<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; i++){
     snSR = W5100.readSnSR(i);
-    printf_P(PSTR("%u. Status: %x\n\r"),i, snSR);
 #ifdef DEBUG
+    printf_P(PSTR("%u. Status: %x\n\r"),i, snSR);
 #endif
     switch (snSR){
       case SnSR::CLOSED:

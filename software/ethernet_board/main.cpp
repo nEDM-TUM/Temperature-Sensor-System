@@ -8,7 +8,7 @@
 #include "networking.h"
 #include "collector_twi.h"
 #include "packet.h"
-
+#include "SPI.h"
 
 #define LOOP_MEASURE 1
 #define LOOP_IDLE 2
@@ -119,6 +119,8 @@ int main (void)
 
   init();
 	uart_init();
+	// fast SPI mode:
+	SPI.setClockDivider(4);
 	sei();
 
 	DDRD = (1<<PD5);
