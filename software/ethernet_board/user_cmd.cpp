@@ -583,11 +583,11 @@ uint8_t execCMD(uint8_t sock, char * buff, int8_t hasParams){
       fputs(cmd.name, &sock_stream);
 			handle_state= cmd.handle();
       if(hasParams && handle_state==FAILED_PARAMS_PARSE && cmd.param_format!=NULL){
-        fputs_P(PSTR(" "), &sock_stream);
+        fputc('\n', &sock_stream);
         fputs_P(Usage, &sock_stream);
         printOption(cmd);
       }
-      fputs_P(PSTR("\n"), &sock_stream);
+      fputc('\n', &sock_stream);
       sock_stream_flush();
       return handle_state;
     }
