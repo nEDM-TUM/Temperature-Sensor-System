@@ -109,46 +109,6 @@ int8_t connect_db(uint16_t srcPort){
   return 1;
 }
 
-// void handle_db_response(){
-//   uint8_t b;
-//   uint8_t index;
-//   uint8_t content_flag = 0;
-// 	uint32_t t1;
-// 	t1 = millis();
-// #ifdef DEBUG
-//     printf_P(PSTR("Received Size %u\n\r"), );
-// #endif
-//   while(recv(DB_CLIENT_SOCK, &b, 1) > 0){
-//     content_flag = 1;
-// #ifdef DEBUG
-//     putc(b, stdout);
-// #endif
-//     for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
-//       if(db_response_request[index]){
-//         stream_set_sock(index+FIRST_SERVER_SOCK); 
-//         fputc(b, &sock_stream);
-//         sock_stream_flush();
-//       }
-//     }
-//   }
-// #ifdef DEBUG
-//   putc('\n', stdout);
-//   putc('\r', stdout);
-// #endif
-//   if(!content_flag){
-//   return;
-//   }
-//   for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
-//     if(db_response_request[index]){
-//       stream_set_sock(index+FIRST_SERVER_SOCK); 
-//       fputc('\n', &sock_stream);
-//       sock_stream_flush();
-//     }
-//   }
-// 	t1 = net_get_time_delta(t1, millis());
-// 	printf("re %lu\n\r",t1);
-// }
-
 void net_clear_rcv_buf(SOCKET s){
   int16_t ret = W5100.getRXReceivedSize(s);
   if ( ret != 0 )
@@ -213,7 +173,7 @@ void handle_db_response(){
 #ifdef DEBUG
 	t1 = net_get_time_delta(t1, millis());
 	if(t1 >= 2){
-		printf("re %lu\n\r",t1);
+		printf_P(PSTR("re %lu\n\r"),t1);
 	}
 #endif
 }
@@ -232,11 +192,11 @@ void net_sendHeadToDB(uint16_t len){
   fprintf_P(&sock_stream, UintDot_4Colon, cfg.ip_db[0], cfg.ip_db[1], cfg.ip_db[2], cfg.ip_db[3], cfg.port_db);
   fputs_P(PSTR("\n"), &sock_stream);
   // 3rd line: Cookie: AuthSession="{cookie_db}"
-  // fputs_P(PSTR("Cookie: AuthenSeesion=\""), &sock_stream);
-  // fputs(cfg.cookie_db, &sock_stream);
-  //fputs_P(PSTR("\"\n"), &sock_stream);
+  fputs_P(PSTR("Cookie: AuthenSeesion=\""), &sock_stream);
+  fputs(cfg.cookie_db, &sock_stream);
+  fputs_P(PSTR("\"\n"), &sock_stream);
   // 4th line: X-CouchDB-WWW-Authenticate: Cookie
-  //fputs_P(PSTR("X-CouchDB-WWW-Authenticate: Cookie\n"), &sock_stream);
+  fputs_P(PSTR("X-CouchDB-WWW-Authenticate: Cookie\n"), &sock_stream);
   // 5rd line: Content-type: application/json
   fputs_P(PSTR("Content-type: application/json\n"), &sock_stream);
   // 6th line: Content-Length: {len}
@@ -377,7 +337,7 @@ void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
 	}
 #ifdef DEBUG
 	t2 = net_get_time_delta(t2, millis());
-	printf("ts %lu, %lu\n\r",t1,t2);
+	printf_P(PSTR("ts %lu, %lu\n\r"),t1,t2);
 #endif
   stream_set_sock(currSock);
 }
@@ -403,8 +363,9 @@ void net_beginService() {
     // wait a second and try again
     _delay_ms(1000);
   }
-  // // Create client to db
-  // // Port of the client can be arbitary, but it should be different then the port of ui server
+  // connect to db, if do send to db 
+  // Create client to db
+  // Port of the client can be arbitary, but it should be different then the port of ui server
   // connect_db(cfg.port+1);
 }
 
@@ -425,7 +386,7 @@ void serve(){
         break;
       case SnSR::INIT:
 #ifdef DEBUG
-        printf("Init Sock: %u\n\r", i);
+        printf_P(PSTR("Init Sock: %u\n\r"), i);
 #endif
         break;
       case SnSR::LISTEN:
@@ -441,7 +402,7 @@ void serve(){
         break;
       case SnSR::CLOSE_WAIT:
 #ifdef DEBUG
-        printf("Close wait Sock: %u. Force it to close!\n\r", i);
+        printf_P(PSTR("Close wait Sock: %u. Force it to close!\n\r"), i);
 #endif
         close(i);
         break;
@@ -450,7 +411,7 @@ void serve(){
     }
   }
 #ifdef DEBUG
-  printf("Listening socket %d, closed socket %d\n\r",listeningSock, closedSock);
+  printf_P(PSTR("Listening socket %d, closed socket %d\n\r"),listeningSock, closedSock);
 #endif
   if(listeningSock == MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK && closedSock < MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK){
     socket(closedSock, SnMR::TCP, cfg.port, 0);    
@@ -493,7 +454,7 @@ void net_loop(){
 void net_setupServer() {
   sock_stream_init();
 #ifdef DEBUG
-  printf("Set up server\n\r");
+  puts_P(PSTR("Set up server\n\r"));
 #endif
   net_beginService();
 }
