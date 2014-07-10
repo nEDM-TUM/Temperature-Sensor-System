@@ -190,7 +190,7 @@ void net_sendHeadToDB(uint16_t len){
   // 2nd line: Host: {ip}:{port}
   fputs_P(PSTR("Host: "), &sock_stream);
   fprintf_P(&sock_stream, UintDot_4Colon, cfg.ip_db[0], cfg.ip_db[1], cfg.ip_db[2], cfg.ip_db[3], cfg.port_db);
-  fputs_P(PSTR("\n"), &sock_stream);
+  fputc('\n', &sock_stream);
   // 3rd line: Cookie: AuthSession="{cookie_db}"
   fputs_P(PSTR("Cookie: AuthenSeesion=\""), &sock_stream);
   fputs(cfg.cookie_db, &sock_stream);
@@ -203,7 +203,7 @@ void net_sendHeadToDB(uint16_t len){
   fprintf_P(&sock_stream, PSTR("Content-Length: %u\n"), len);
   if(len>0){
     // 7th line: \newline
-    fputs_P(PSTR("\n"), &sock_stream);
+    fputc('\n', &sock_stream);
     // 8th line: {data}
   }
 }
