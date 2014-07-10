@@ -65,7 +65,7 @@ const char FuncDBComment[] PROGMEM = "<name> Set couchdb insert function (max 25
 const char CloseComment[] PROGMEM = "Close user interface savely";
 
 // XXX this should always be the length of the registered cmd array below! 
-#define DEFINED_CMD_COUNT 22
+#define DEFINED_CMD_COUNT 21
 
 struct cmd cmds[]={
   // Network cmd
