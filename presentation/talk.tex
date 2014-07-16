@@ -24,6 +24,8 @@
 \usepackage{wrapfig}
 \usepackage{tcolorbox}
 
+\usepackage{bytefield}
+
 \usepackage{array}
 \newcolumntype{M}{>{\centering\arraybackslash}m{\dimexpr.25\linewidth-2\tabcolsep}}
 
@@ -163,6 +165,64 @@
 			\item{\textbf{Humidity board:}} 29 EUR
 			\item{\textbf{Ethernet board:}} 55 EUR
 		\end{description}
-
+\end{frame}
+\begin{frame}[c]
+    \frametitle{Software components}
+		Communication between boards:
+		\begin{itemize}
+			\item ZAC encoder / decoder
+			\item I2C Top-Level protocol\\
+			\item Checksum algorithms (CRC8, Parity)
+			\item Bus scanner
+		\end{itemize}
+		Communication with the outside world:
+		\begin{itemize}
+			\item Socket abstraction
+			\item Telnet user interface
+			\item Database interface
+			\item Configuration management
+		\end{itemize}
+\end{frame}
+\begin{frame}[c]
+    \frametitle{ZAC Protocol}
+  \begin{center}
+  	\includegraphics[width=0.4\linewidth]{img/zac_bits.pdf}\\
+  \vspace{0.5cm}
+  \end{center}
+\end{frame}
+\begin{frame}[c]
+    \frametitle{ZAC Timing}
+  \begin{center}
+  	\includegraphics[width=0.8\linewidth]{img/zac_timing.pdf}\\
+  \vspace{0.5cm}
+  \end{center}
+\end{frame}
+\begin{frame}[c,fragile]
+    \frametitle{I2C Protocol - Command}
+  \begin{center}
+	\begin{bytefield}[endianness=big, bitwidth=2em]{8}
+		\bitheader{0-7}\\
+		\bitbox{7}{Address} &
+		\bitbox{1}{R/W}\\
+		\wordbox{1}{Command}\\
+		\wordbox{1}{Argument}
+	\end{bytefield}
+  \end{center}
+\end{frame}
+\begin{frame}[c,fragile]
+    \frametitle{I2C Protocol - Receive}
+  \begin{center}
+		\begin{bytefield}[endianness=big, bitwidth=2.1em]{8}
+		\bitheader{0-7}\\
+		\begin{rightwordgroup}{Header}
+			\bitbox{2}{type} & \bitbox{3}{\color{lightgray}\rule{\width}{\height}} & \bitbox{1}{c} & \bitbox{2}{error}
+		\end{rightwordgroup}\\
+		\begin{rightwordgroup}{Payload}
+			\wordbox{2}{Temperature}\\
+			\wordbox{2}{Humidity}
+		\end{rightwordgroup}\\
+		\wordbox{1}{CRC-8}
+	\end{bytefield}
+  \end{center}
 \end{frame}
 \end{document}
