@@ -1,0 +1,91 @@
+\documentclass[t]{beamer}
+\usepackage{helvet}
+\usepackage{calc}
+\usepackage[utf8]{inputenc} % set your input encoding differently, if you want
+\usepackage[english]{babel}
+
+% Setting style of presentation
+% =============================
+\usetheme{Boadilla}
+%\setbeamercovered{transparent=10}
+%\setbeamertemplate{navigation symbols}{}
+
+
+% Some common packages
+% ====================
+\usepackage{units}
+\usepackage{amsbsy}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphics}
+\usepackage{epsf}
+\usepackage{epsfig}
+\usepackage{fixmath}
+\usepackage{wrapfig}
+\usepackage{tcolorbox}
+
+\usepackage{array}
+\newcolumntype{M}{>{\centering\arraybackslash}m{\dimexpr.25\linewidth-2\tabcolsep}}
+
+% Adapt title information
+% =======================
+\title{Development of a temperature sensor network\\for the nEDM experiment}
+\author{Wenwen Chen, Rainer Schönberger}
+%\institute{Department for Computer Science\\Technische Universität München}
+\date{\today}
+
+
+
+
+
+% ==============
+% DOCUMENT BEGIN
+% ==============
+\begin{document}
+
+% Typeset title page
+% ------------------------------------------------------------------------
+%\setbeamertemplate{background}{\NETBlackTransparent{width=2.3\paperwidth}}
+\begin{frame}
+    \titlepage
+\end{frame}
+%\setbeamertemplate{background}{}
+% ------------------------------------------------------------------------
+
+% Outline
+% ------------------------------------------------------------------------
+%\begin{frame}
+%    \frametitle{Outline}
+%    \tableofcontents
+%\end{frame}
+% ------------------------------------------------------------------------
+
+
+
+% MOTIVATION
+% ------------------------------------------------------------------------
+\section{Introduction}
+\begin{frame}[c]
+    \frametitle{Sensor comparison}
+\begin{tabular}{ M M M M}
+	Sensor & Accuracy & Resolution & Cost\tabularnewline
+	\hline
+	\hline
+	TSIC 506F& $\pm 0.1\mathrm{K}$ & $\pm 0.034\mathrm{K}$ & $8 \mathrm{EUR}$\tabularnewline
+	\hline
+	HYT271 (humidity)& $\pm 1.8\mathrm{\%RH}$ & $\pm 0.03\mathrm{\%RH}$ & $20 \mathrm{EUR}$\tabularnewline
+	HYT271 (temperature)& $\pm 0.2\mathrm{K}$ & $\pm 0.015\mathrm{K}$ & $20 \mathrm{EUR}$\tabularnewline
+	\hline
+\end{tabular}
+\end{frame}
+\begin{frame}[c]
+\end{frame}
+\begin{frame}[c]
+    \frametitle{Logical structure}
+  \begin{center}
+  	\includegraphics[width=0.9\linewidth]{img/plan2_color.pdf}\\
+  \vspace{0.5cm}
+  \end{center}
+    
+\end{frame}
+\end{document}
