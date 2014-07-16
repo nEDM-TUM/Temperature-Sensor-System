@@ -68,18 +68,24 @@
 % ------------------------------------------------------------------------
 \begin{frame}[c]
     \frametitle{Requirements}
-		\begin{alertblock}{High priority}
+		\begin{alertblock}{Must}
 			\begin{itemize}
-				\item High numer of sensors: 48 or more
-				\item As accurate as possible:  $\pm0.1\mathrm{K}$
-				\item Support for temperature and humidity sensors
+				\item Temperature and humidity measurement
+				\item High accuracy: $\pm0.1\mathrm{K}$
+				\item High number of sensors: $\approx$ 40
+        \item Low cost
 				\item Send results to couchDB
-				\item Reliable
+        \item Ready to use 
+				\item Reliable and stable
 			\end{itemize}
 		\end{alertblock}
-		\begin{exampleblock}{Low priority}
+\end{frame}
+\begin{frame}[c]
+    \frametitle{Requirements}
+		\begin{exampleblock}{May}
 			\begin{itemize}
-				\item Extendable
+				\item Extendible
+        \item Easy maintenance
 				\item Plug and Play
 				\item Sample interval $\le 1\mathrm{s}$
 				\item Easy configuration at runtime
@@ -87,7 +93,14 @@
 		\end{exampleblock}
 \end{frame}
 \begin{frame}[c]
-    \frametitle{Sensor comparison}
+    \frametitle{Components structure}
+  \begin{center}
+  	\includegraphics[width=0.9\linewidth]{img/plan2_color.pdf}\\
+  \vspace{0.5cm}
+  \end{center}
+\end{frame}
+\begin{frame}[c]
+    \frametitle{Hardware}
 \begin{tabular}{ M M M M}
 	Sensor & Accuracy & Resolution & Cost\tabularnewline
 	\hline
@@ -98,14 +111,6 @@
 	& $\pm 0.2\mathrm{K}$ & $\pm 0.015\mathrm{K}$ & \tabularnewline
 	\hline
 \end{tabular}
-\end{frame}
-\begin{frame}[c]
-    \frametitle{Logical structure}
-  \begin{center}
-  	\includegraphics[width=0.9\linewidth]{img/plan2_color.pdf}\\
-  \vspace{0.5cm}
-  \end{center}
-    
 \end{frame}
 \begin{frame}[c]
     \frametitle{Proof of concept}
@@ -136,52 +141,38 @@
   \end{center}
 \end{frame}
 \begin{frame}[c]
-    \frametitle{3D - Printing}
-  \begin{center}
-  	\includegraphics[width=0.8\linewidth]{img/pic/IMG_20140530_184940.jpg}\\
-  \vspace{0.5cm}
-  \end{center}
-\end{frame}
-\begin{frame}[c]
-    \frametitle{Finished cases}
-  \begin{center}
-  	\includegraphics[width=0.9\linewidth]{img/pic/cases.jpg}\\
-  \vspace{0.5cm}
-  \end{center}
-\end{frame}
-\begin{frame}[c]
-    \frametitle{Distribution in the field cage}
-  \begin{center}
-  	\includegraphics[width=0.9\linewidth]{img/installPlan.pdf}\\
-  \vspace{0.5cm}
-  \end{center}
-\end{frame}
-\begin{frame}[c]
     \frametitle{Material cost per board}
-		Without cases:
 		\begin{description}
-			\item{\textbf{Collector board:}} 18 EUR
+			\item{\textbf{Collector board:}} 20 EUR
 			\item{\textbf{Temperature board:}} 12 EUR
-			\item{\textbf{Humidity board:}} 29 EUR
-			\item{\textbf{Ethernet board:}} 55 EUR
+			\item{\textbf{Humidity board:}} 30 EUR
 		\end{description}
 \end{frame}
 \begin{frame}[c]
+    \frametitle{Components structure}
+  \begin{center}
+  	\includegraphics[width=0.9\linewidth]{img/plan2_color_db.pdf}\\
+  \vspace{0.5cm}
+  \end{center}
+\end{frame}
+\begin{frame}[c]
     \frametitle{Software components}
-		Communication between boards:
+    \begin{block}{Communication between boards}
 		\begin{itemize}
 			\item ZAC encoder / decoder
 			\item I2C Top-Level protocol\\
 			\item Checksum algorithms (CRC8, Parity)
 			\item Bus scanner
 		\end{itemize}
-		Communication with the outside world:
+  \end{block}
+  \begin{block}{Communication with the outside world}
 		\begin{itemize}
 			\item Socket abstraction
 			\item Telnet user interface
 			\item Database interface
 			\item Configuration management
 		\end{itemize}
+  \end{block}
 \end{frame}
 \begin{frame}[c]
     \frametitle{ZAC Protocol}
@@ -224,5 +215,83 @@
 		\wordbox{1}{CRC-8}
 	\end{bytefield}
   \end{center}
+\end{frame}
+\begin{frame}[c]
+    \frametitle{couchDB}
+  \begin{center}
+  	\includegraphics[width=0.9\linewidth]{img/db1.png}\\
+  \vspace{0.5cm}
+  \end{center}
+    
+\end{frame}
+\begin{frame}[c]
+    \frametitle{couchDB}
+  \begin{center}
+  	\includegraphics[width=0.9\linewidth]{img/db2.png}\\
+  \vspace{0.5cm}
+  \end{center}
+\end{frame}
+\begin{frame}[c]
+    \frametitle{User interface}
+  \begin{center}
+  	\includegraphics[width=0.9\linewidth]{img/db2.png}\\
+  \vspace{0.5cm}
+  \end{center}
+\end{frame}
+\begin{frame}[c]
+    \frametitle{Ready to install}
+  \begin{center}
+  	\includegraphics[width=0.9\linewidth]{img/pic/cases.jpg}\\
+  \vspace{0.5cm}
+  \end{center}
+\end{frame}
+\begin{frame}[c]
+    \frametitle{3D - Printing}
+  \begin{center}
+  	\includegraphics[width=0.8\linewidth]{img/pic/IMG_20140530_184940.jpg}\\
+  \vspace{0.5cm}
+  \end{center}
+\end{frame}
+\begin{frame}[c]
+    \frametitle{Distribution in the field cage}
+  \begin{center}
+  	\includegraphics[width=0.9\linewidth]{img/installPlan.pdf}\\
+  \vspace{0.5cm}
+  \end{center}
+\end{frame}
+\begin{frame}[c]
+    \frametitle{Identification}
+  \begin{center}
+  	\includegraphics[width=0.9\linewidth]{img/installPlan.pdf}\\
+  \vspace{0.5cm}
+  \end{center}
+\end{frame}
+\begin{frame}[c]
+    \frametitle{Filled Requirements}
+		\begin{alertblock}{Must}
+      \textcolor{blue!30!green}{
+			\begin{itemize}
+        \item Temperature and humidity measurement
+        \item High accuracy: $\pm0.1\mathrm{K}$
+        \item High number of sensors: $\approx$ 40
+        \item Low cost
+        \item Send results to couchDB
+        \item Ready to use
+        \item Reliable and stable
+			\end{itemize}
+    }
+		\end{alertblock}
+\end{frame}
+\begin{frame}[c]
+    \frametitle{Requirements}
+		\begin{exampleblock}{May}
+			\begin{itemize}
+				\item Extendible
+        \item Easy maintenance
+				\item Plug and Play
+				\item Sample interval $\le 1\mathrm{s}$
+				\item Easy configuration at runtime
+			\end{itemize}
+		\end{exampleblock}
 \end{frame}
 \end{document}
