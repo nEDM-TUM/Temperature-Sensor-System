@@ -68,10 +68,11 @@
     \frametitle{Requirements}
 		\begin{alertblock}{High priority}
 			\begin{itemize}
-				\item High numer of sensors: 48
+				\item High numer of sensors: 48 or more
 				\item As accurate as possible:  $\pm0.1\mathrm{K}$
 				\item Support for temperature and humidity sensors
 				\item Send results to couchDB
+				\item Reliable
 			\end{itemize}
 		\end{alertblock}
 		\begin{exampleblock}{Low priority}
@@ -91,8 +92,8 @@
 	\hline
 	TSIC 506F& $\pm 0.1\mathrm{K}$ & $\pm 0.034\mathrm{K}$ & $8 \mathrm{EUR}$\tabularnewline
 	\hline
-	HYT271 (humidity)& $\pm 1.8\mathrm{\%RH}$ & $\pm 0.03\mathrm{\%RH}$ & $20 \mathrm{EUR}$\tabularnewline
-	HYT271 (temperature)& $\pm 0.2\mathrm{K}$ & $\pm 0.015\mathrm{K}$ & $20 \mathrm{EUR}$\tabularnewline
+	HYT271 & $\pm 1.8\mathrm{\%RH}$ & $\pm 0.03\mathrm{\%RH}$ & $20 \mathrm{EUR}$\tabularnewline
+	& $\pm 0.2\mathrm{K}$ & $\pm 0.015\mathrm{K}$ & \tabularnewline
 	\hline
 \end{tabular}
 \end{frame}
@@ -145,5 +146,23 @@
   	\includegraphics[width=0.9\linewidth]{img/pic/cases.jpg}\\
   \vspace{0.5cm}
   \end{center}
+\end{frame}
+\begin{frame}[c]
+    \frametitle{Distribution in the field cage}
+  \begin{center}
+  	\includegraphics[width=0.9\linewidth]{img/installPlan.pdf}\\
+  \vspace{0.5cm}
+  \end{center}
+\end{frame}
+\begin{frame}[c]
+    \frametitle{Material cost per board}
+		Without cases:
+		\begin{description}
+			\item{\textbf{Collector board:}} 18 EUR
+			\item{\textbf{Temperature board:}} 12 EUR
+			\item{\textbf{Humidity board:}} 29 EUR
+			\item{\textbf{Ethernet board:}} 55 EUR
+		\end{description}
+
 \end{frame}
 \end{document}
