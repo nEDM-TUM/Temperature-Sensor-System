@@ -1,0 +1,6 @@
+xx.xx     diverse leer messungen 
+
+25khz:
+xx:xx					leermessung
+18:xx        messung mit sensoren abgebrochen nach 40s
+ 18:xx 50??  messung mit sensoren 1 min

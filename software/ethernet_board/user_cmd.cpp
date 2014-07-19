@@ -96,7 +96,7 @@ struct cmd cmds[]={
   {"help", handleHelp, NULL, NULL}
 };
 
-const char Usage[] PROGMEM = "Available commands: ";
+const char Usage[] PROGMEM = "\nAvailable commands: ";
 const char New[] PROGMEM = "(NEW)";
 const char Enabled[] PROGMEM = " enabled";
 const char Disabled[] PROGMEM = " disabled";
@@ -121,7 +121,6 @@ int8_t handleViewMeasurement(){
 }
 
 int8_t handleInterval(){
-  // TODO no update information
   int16_t paramsCount=0;
 	uint32_t interval_tmp;
   int8_t result = FAILED_PARAMS_PARSE;
@@ -133,6 +132,9 @@ int8_t handleInterval(){
 	}
   fputs_P(Colon, &sock_stream);
   fprintf_P(&sock_stream, ULong, measure_interval/1000);
+  if(result == SUCCESS_PARAMS_PARSE){
+    fputs_P(StoreOption, &sock_stream);
+  }
   return result;
 }
 
@@ -362,7 +364,7 @@ int8_t handleRestart(){
 
 int8_t handleClose(){
   uint8_t index;
-  fputs_P(PSTR("The ethernet service will be closed, the future login is "), &sock_stream);
+  fputs_P(PSTR("\nThe ethernet service will be closed, the future login is "), &sock_stream);
   print4dotarr(&sock_stream, cfg.ip);
   fputc(' ', &sock_stream);
   fprintf_P(&sock_stream, Uint, cfg.port);
@@ -440,7 +442,6 @@ int8_t handlePortDB(){
 
 int8_t handleCookieDB(){
   int16_t paramsCount=fscanf_P(&sock_stream, String60, &(cfg.cookie_db));
-// FIXME do with ;
   if(paramsCount==1){
     fputs_P(New, &sock_stream);
   }
@@ -559,9 +560,7 @@ uint8_t execCMD(uint8_t sock, char * buff, int8_t hasParams){
       fputs(cmd.name, &sock_stream);
 			handle_state= cmd.handle();
       if(hasParams && handle_state==FAILED_PARAMS_PARSE && cmd.param_format!=NULL){
-        fputc('\n', &sock_stream);
         fputs_P(Usage, &sock_stream);
-        // TODO print always
         printOption(cmd);
       }
       fputc('\n', &sock_stream);
@@ -578,27 +577,19 @@ uint8_t ui_handleCMD(uint8_t sock){
 	uint8_t pointer=0;
 	int16_t b;
 	int8_t flag_return=0;
-	int8_t new_cmd_flag=1;
 	uint8_t cmd_result = NO_PARAMS_PARSE;
 	stream_set_sock(sock); 
 	while((b=fgetc(&sock_stream)) != EOF){
-		if(b == ' ' || b == '\n' || b == '\r' || b == ';'){
+    // After handling a cmd, rest of characters will be ignored
+    if(flag_return){
+      continue;
+    }
+		if(b == ' ' || b == '\n' || b == '\r'){
 			flag_return = 1;
 			if(pointer>0){
 				cmdBuff[pointer++] = '\0';
-				if(b == '\n' || b == ';'){
-					// if the read char is new line or ';', that means, from now on, a new cmd will be expected 
-					new_cmd_flag=1;
-				} else {
-					new_cmd_flag = 0;
-				}
-				cmd_result = execCMD(sock, cmdBuff, !new_cmd_flag);
+				cmd_result = execCMD(sock, cmdBuff, b == ' ');
 			}
-			if(b == '\n' || b == ';'){
-				// if the read char is new line or ';', that means, from now on, a new cmd will be expected 
-				new_cmd_flag=1;
-			}
-			pointer = 0;
 			if (cmd_result == SUSPEND){
 				// we have to wait, and not eat the socket contents
 				// as we are waiting for the twi bus to become free, to
@@ -614,11 +605,7 @@ uint8_t ui_handleCMD(uint8_t sock){
 		if(pointer >= MAX_CMD_LEN){
 			pointer = 0;
 		}
-		// if new cmd is expected, the read char will be stored into buff
-		// if not, the read char will be ignored
-		if(new_cmd_flag){
-			cmdBuff[pointer++] = b;
-		}
+    cmdBuff[pointer++] = b;
 	}
 	if (flag_return && (cmd_result != SUSPEND)){
 		fputs_P(PSTR("% "), &sock_stream);
