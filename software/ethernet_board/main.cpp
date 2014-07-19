@@ -8,7 +8,7 @@
 #include "networking.h"
 #include "collector_twi.h"
 #include "packet.h"
-
+#include "SPI.h"
 
 #define LOOP_MEASURE 1
 #define LOOP_IDLE 2
@@ -37,13 +37,14 @@ uint32_t get_time_delta(uint32_t a, uint32_t b){
   }
 }
 
-void loop2(){
+void loop_sampling(){
 	uint32_t current_time = millis();
-	uint8_t crc_state;
 	switch (loop_state){
 		case LOOP_IDLE:
 			if(get_time_delta(time_last_measurement, current_time) >= measure_interval){
-				printf("start!\n\r");
+#ifdef DEBUG
+				puts(PSTR("start!\n\r"));
+#endif
 				if(twi_try_lock_bus()){
 					time_last_measurement = current_time;
 					num_boards = twi_scan(scanresults, 20);
@@ -70,8 +71,10 @@ void loop2(){
 			rcv_state = twi_try_receive_data(addr_current_board, ((uint8_t*)received),8*sizeof(struct dummy_packet), rcv_state);
 			switch (rcv_state){
 				case TWI_RCV_FIN:
-					printf("measurement finished\n\r");
-					crc_state = twi_verify_checksums(received, 8);
+#ifdef DEBUG
+					puts_P(PSTR("measurement finished\n\r"));
+#endif
+					twi_verify_checksums(received, 8);
 
           // TODO: implement CRC check here
 					net_dataAvailable(received, addr_current_board);
@@ -103,11 +106,10 @@ void loop2(){
 					loop_state = LOOP_MEASURE;
 					if(get_time_delta(time_receive_start, current_time) >= 800){
 						// timeout occured, the collector board takes too long to return data!
-						printf("loop timeout\n\r");
+						puts_P(PSTR("loop timeout\n\r"));
 						// we have to abort everything as we might already have violated time
 						twi_free_bus();
 						loop_state = LOOP_IDLE;
-						// FIXME: what will be the TWI state here?
 					}
 					break;
 			}
@@ -122,26 +124,27 @@ int main (void)
 
   init();
 	uart_init();
+	// fast SPI mode:
+	SPI.setClockDivider(4);
 	sei();
 
 	DDRD = (1<<PD5);
 
-	printf("Controller started\n\r");
-  //setupServerLib();
+	puts_P(PSTR("Controller started\n\r"));
 	num_boards = twi_scan(scanresults, 20);
 
 	uint8_t i;
-	printf("found boards: ");
+	puts_P(PSTR("found boards: "));
 	for (i=0;i<num_boards;i++){
-		printf(" %u", scanresults[i]);
+		printf_P(PSTR(" %u"), scanresults[i]);
 	}
-	printf("\n\r");
+	puts_P(PSTR("\n\r"));
 
   net_setupServer();
 
 	// main event loop
 	while (1) {
-		loop2();
+		loop_sampling();
 		net_loop();
 	}
 }

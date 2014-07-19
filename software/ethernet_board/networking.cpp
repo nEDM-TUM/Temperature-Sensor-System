@@ -1,3 +1,4 @@
+#define __STDC_LIMIT_MACROS
 #include "networking.h"
 
 //#include <avr/io.h>
@@ -12,6 +13,7 @@
 #include "sock_stream.h"
 #include <Ethernet.h>
 #include "w5100.h"
+#include <Arduino.h>
 // set debug mode
 // #define DEBUG
 
@@ -32,6 +34,14 @@ void serve();
 uint8_t ui_state = UI_READY;
 
 const char UintDot_4Colon[] PROGMEM = "%u.%u.%u.%u:%u";
+
+uint32_t net_get_time_delta(uint32_t a, uint32_t b){
+  if(a>b){
+    return  UINT32_MAX - a + b;
+  }else{
+    return b-a;
+  }
+}
 
 void toSubnetMask(uint8_t subnet, uint8_t* addr){
   int8_t indexByte = 0;
@@ -99,35 +109,73 @@ int8_t connect_db(uint16_t srcPort){
   return 1;
 }
 
+void net_clear_rcv_buf(SOCKET s){
+  int16_t ret = W5100.getRXReceivedSize(s);
+  if ( ret != 0 )
+  {
+		uint16_t ptr;
+		ptr = W5100.readSnRX_RD(s);
+		ptr += ret;
+		W5100.writeSnRX_RD(s, ptr);
+
+    W5100.execCmdSn(s, Sock_RECV);
+
+	}
+
+}
+
 void handle_db_response(){
   uint8_t b;
   uint8_t index;
+  uint8_t content_flag = 0;
 #ifdef DEBUG
-    printf_P(PSTR("Received Size %u\n\r"), );
+	uint32_t t1;
+	t1 = millis();
 #endif
-  while(recv(DB_CLIENT_SOCK, &b, 1) > 0){
+	uint8_t redirect_flag = 0;
+	for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
+		if(db_response_request[index]){
+			redirect_flag = 1;
+		}
+	}
+
+	if(redirect_flag == 0){
+		net_clear_rcv_buf(DB_CLIENT_SOCK);
+	}else{
+		while(recv(DB_CLIENT_SOCK, &b, 1) > 0){
+			content_flag = 1;
 #ifdef DEBUG
-    putc(b, stdout);
+			putc(b, stdout);
 #endif
-    for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
-      if(db_response_request[index]){
-        stream_set_sock(index+FIRST_SERVER_SOCK); 
-        fputc(b, &sock_stream);
-        sock_stream_flush();
-      }
-    }
-  }
+			for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
+				if(db_response_request[index]){
+					stream_set_sock(index+FIRST_SERVER_SOCK); 
+					fputc(b, &sock_stream);
+					sock_stream_flush();
+				}
+			}
+		}
 #ifdef DEBUG
-  putc('\n', stdout);
-  putc('\r', stdout);
+		putc('\n', stdout);
+		putc('\r', stdout);
 #endif
-  for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
-    if(db_response_request[index]){
-      stream_set_sock(index+FIRST_SERVER_SOCK); 
-      fputc('\n', &sock_stream);
-      sock_stream_flush();
-    }
-  }
+		if(!content_flag){
+			return;
+		}
+		for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
+			if(db_response_request[index]){
+				stream_set_sock(index+FIRST_SERVER_SOCK); 
+				fputc('\n', &sock_stream);
+				sock_stream_flush();
+			}
+		}
+	}
+#ifdef DEBUG
+	t1 = net_get_time_delta(t1, millis());
+	if(t1 >= 2){
+		printf_P(PSTR("re %lu\n\r"),t1);
+	}
+#endif
 }
 
 void net_sendHeadToDB(uint16_t len){
@@ -142,20 +190,20 @@ void net_sendHeadToDB(uint16_t len){
   // 2nd line: Host: {ip}:{port}
   fputs_P(PSTR("Host: "), &sock_stream);
   fprintf_P(&sock_stream, UintDot_4Colon, cfg.ip_db[0], cfg.ip_db[1], cfg.ip_db[2], cfg.ip_db[3], cfg.port_db);
-  fputs_P(PSTR("\n"), &sock_stream);
+  fputc('\n', &sock_stream);
   // 3rd line: Cookie: AuthSession="{cookie_db}"
-  // fputs_P(PSTR("Cookie: AuthenSeesion=\""), &sock_stream);
-  // fputs(cfg.cookie_db, &sock_stream);
-  //fputs_P(PSTR("\"\n"), &sock_stream);
+  fputs_P(PSTR("Cookie: AuthenSeesion=\""), &sock_stream);
+  fputs(cfg.cookie_db, &sock_stream);
+  fputs_P(PSTR("\"\n"), &sock_stream);
   // 4th line: X-CouchDB-WWW-Authenticate: Cookie
-  //fputs_P(PSTR("X-CouchDB-WWW-Authenticate: Cookie\n"), &sock_stream);
+  fputs_P(PSTR("X-CouchDB-WWW-Authenticate: Cookie\n"), &sock_stream);
   // 5rd line: Content-type: application/json
   fputs_P(PSTR("Content-type: application/json\n"), &sock_stream);
   // 6th line: Content-Length: {len}
   fprintf_P(&sock_stream, PSTR("Content-Length: %u\n"), len);
   if(len>0){
     // 7th line: \newline
-    fputs_P(PSTR("\n"), &sock_stream);
+    fputc('\n', &sock_stream);
     // 8th line: {data}
   }
 }
@@ -165,7 +213,6 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
   int8_t comma_flag = 0;
   int16_t value;
   uint16_t len=0;
-  uint8_t currSock = stream_get_sock();
   if( W5100.readSnSR(DB_CLIENT_SOCK) != SnSR::ESTABLISHED ){
     if(!connect_db(cfg.port+1)){
       return;
@@ -260,19 +307,26 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
   printf_P(PSTR("Send finished \n\r"));
 #endif
   sock_stream_flush();
-  // restore socket stream, as we might be in the middle of a user interface transaction
-  // FIXME: the same thing should be done, when sending couchdb repiles, to allow commands
-  // like twiaddr to function correctly.
-  // otherwise it might happen, that we chnage the socket stream while waiting for
-  // twi lock, then the result might be sent to the wrong shell
-  stream_set_sock(currSock);
 }
 
 void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
 	uint8_t i;
+  uint8_t currSock = stream_get_sock();
+#ifdef DEBUG
+	uint32_t t1,t2;
+#endif
   if(cfg.send_db){
+#ifdef DEBUG
+		t1 = millis();
+#endif
     net_sendResultToDB(received, src_addr);
+#ifdef DEBUG
+		t1 = net_get_time_delta(t1, millis());
+#endif
   }
+#ifdef DEBUG
+	t2 = millis();
+#endif
 	for(i=0; i< MAX_SERVER_SOCK_NUM; i++){
 		if (data_request[i]){
       if(W5100.readSnSR(i+FIRST_SERVER_SOCK) == SnSR::ESTABLISHED){
@@ -285,6 +339,11 @@ void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
       }
 		}
 	}
+#ifdef DEBUG
+	t2 = net_get_time_delta(t2, millis());
+	printf_P(PSTR("ts %lu, %lu\n\r"),t1,t2);
+#endif
+  stream_set_sock(currSock);
 }
 
 void net_beginService() {
@@ -299,18 +358,21 @@ void net_beginService() {
   W5100.setSubnetMask(sn);
 	printf_P(PSTR("ip: %u.%u.%u.%u/%u:%u\n\r"), cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet, cfg.port);
   printf_P(PSTR("subnet %u.%u.%u.%u\n\r"), sn[0], sn[1], sn[2], sn[3]);
-	printf_P(PSTR("mac: %u.%u.%u.%u/%u\n\r"), cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet);
-	printf_P(PSTR("gw: %u.%u.%u.%u/%u\n\r"), cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet);
-	printf_P(PSTR("db: %u.%u.%u.%u:%u/%s/%s/%s\n\r"), cfg.ip_db[0], cfg.ip_db[1], cfg.ip_db[2], cfg.ip_db[3], cfg.port_db, cfg.name_db, cfg.doc_db, cfg.func_db);
+	printf_P(PSTR("mac: %x:%x:%x:%x:%x:%x\n\r"), cfg.mac[0], cfg.mac[1], cfg.mac[2], cfg.mac[3], cfg.mac[4], cfg.mac[5]);
+	printf_P(PSTR("gw: %u.%u.%u.%u\n\r"), cfg.gw[0], cfg.gw[1], cfg.gw[2], cfg.gw[3]);
+	printf_P(PSTR("db: %u.%u.%u.%u:%u/%s\n\r"), cfg.ip_db[0], cfg.ip_db[1], cfg.ip_db[2], cfg.ip_db[3], cfg.port_db, cfg.name_db);
+	printf_P(PSTR("cookie: %s\n\r"), cfg.cookie_db);
+	printf_P(PSTR("update function: %s/%s\n\r"), cfg.doc_db, cfg.func_db);
   // Create the first server socket
   socket(FIRST_SERVER_SOCK, SnMR::TCP, cfg.port, 0);
   while(!listen(FIRST_SERVER_SOCK)){
     // wait a second and try again
     _delay_ms(1000);
   }
+  // connect to db, if do send to db 
   // Create client to db
-  // Port of the client can be arbitary, but it should be different than the port of ui server
-  connect_db(cfg.port+1);
+  // Port of the client can be arbitary, but it should be different then the port of ui server
+  // connect_db(cfg.port+1);
 }
 
 void serve(){
@@ -322,7 +384,7 @@ void serve(){
   for(i=FIRST_SERVER_SOCK; i<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; i++){
     snSR = W5100.readSnSR(i);
 #ifdef DEBUG
-    printf("%u. Status: %x\n\r",i, snSR);
+    printf_P(PSTR("%u. Status: %x\n\r"),i, snSR);
 #endif
     switch (snSR){
       case SnSR::CLOSED:
@@ -330,7 +392,7 @@ void serve(){
         break;
       case SnSR::INIT:
 #ifdef DEBUG
-        printf("Init Sock: %u\n\r", i);
+        printf_P(PSTR("Init Sock: %u\n\r"), i);
 #endif
         break;
       case SnSR::LISTEN:
@@ -346,7 +408,7 @@ void serve(){
         break;
       case SnSR::CLOSE_WAIT:
 #ifdef DEBUG
-        printf("Close wait Sock: %u. Force it to close!\n\r", i);
+        printf_P(PSTR("Close wait Sock: %u. Force it to close!\n\r"), i);
 #endif
         close(i);
         break;
@@ -355,7 +417,7 @@ void serve(){
     }
   }
 #ifdef DEBUG
-  printf("Listening socket %d, closed socket %d\n\r",listeningSock, closedSock);
+  printf_P(PSTR("Listening socket %d, closed socket %d\n\r"),listeningSock, closedSock);
 #endif
   if(listeningSock == MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK && closedSock < MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK){
     socket(closedSock, SnMR::TCP, cfg.port, 0);    
@@ -398,7 +460,7 @@ void net_loop(){
 void net_setupServer() {
   sock_stream_init();
 #ifdef DEBUG
-  printf("Set up server\n\r");
+  puts_P(PSTR("Set up server\n\r"));
 #endif
   net_beginService();
 }
