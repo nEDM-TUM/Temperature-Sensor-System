@@ -49,6 +49,16 @@ In order to minimize soldering heat, which would influence the calibration, we u
 \end{table}
 \subsection{HYT271}
 \section{Logical design}
+Our network architecture is structured into 3 parts (see figure \ref{fig:topo}):
+\begin{description}
+  \item[Measuring:]
+    Sensors do periodic measurements. The results are transmitted, using an unified protocol. We used ZACwire, as the unified protocol, as in our application we have more temperature sensors than humidity sensors, which natively speak ZACwire. Hence no protocol conversion will be required for the majority of the sensor boards. To extend the range and noise behavior, we use RS485 as a physical layer protocol, to transport the ZACwire signal.
+  \item[Data acquisition:]
+    At this part of the network, the ZACwire signal from the sensors is interpreted and buffered. The measurement data is then provided over an I2C interface.\\
+    In our implementation, we support receiving of up to 8 Sensors per collector board. To increase the numbers of sensors in the network, multiple collector boards may be connected to the I2C bus, using the I2C chaining connectors. Using this technique, the network theoretically may consist of up to $128\cdot 8 = 1024$ sensors.
+  \item[Data forwarding:]
+    The forwarding part controls the data aquisition part of the network and provides an interface to IP networks. Data may be forwarded to a couchDB database on the internet and the network can be configured via an telnet terminal user interface.
+\end{description}
 \begin{figure}
 	\centering
 	\includegraphics[width=0.9\textwidth]{img/plan2.pdf}
@@ -56,17 +66,18 @@ In order to minimize soldering heat, which would influence the calibration, we u
 	\label{fig:topo}
 \end{figure}
 \section{Protocols}
-\subsection{ZAC}\label{chap:zac}
+\subsection{ZACwire}\label{chap:zac}
+ZACwire is a prorietary one wire comminucation protocol, developed by IST AG. Only one data line is needed . Bits are represented by different duty cycles of the waveform within the bit time $T_b$. Every normal bit starts and ends with a falling edge. At the beginning of each transmission, a start bit with a duty cycle of 50\% is transmitted. From this start bit, the bit time $T_b$ for the transmission can be extracted. If the bus is high for a time $>T_b$ the transmission ends, this is called a Stop bit. Figure \ref{fig:zac} shows the four different wafeform types, a ZACwire signal may be composed off. Figure \ref{fig:zacexample} shows an example transmission.
 \begin{figure}
 	\centering
 	\includegraphics[width=0.3\textwidth]{img/zac_bits.pdf}
-	\caption{ZAC protocol signal interpretation}
+	\caption{ZACwire protocol signal interpretation}
 	\label{fig:zac}
 \end{figure}
 \begin{figure}
 	\centering
 	\includegraphics[width=0.9\textwidth]{img/zac_example.pdf}
-	\caption{ZAC protocol example}
+	\caption{ZACwire protocol example}
 	\label{fig:zacexample}
 \end{figure}
 \subsection{I2C}
@@ -79,10 +90,12 @@ In order to minimize soldering heat, which would influence the calibration, we u
 - UART debugger
 - Arduino libraries
 \section{Temperature board}
+The temperature board consists of the TSic506F sensor and complementary circuitry. The ZACwire signal is transformed to the RS485 electrical layer, using a ST485 integrated circuit. The board provides a RJ45 socket,  over which the required supply voltage of 5V should be provided, and the two differential signal outputs can be received. The schematic diagram can be seen in figure \ref{fig:schem_temp}.\\
+Care was taken, when soldering the temperature sensor, to minimize heat transfer to the chip. We did this by soldering each pin for a maximum time of 2 seconds, We also tried to keep the total time spent for soldering all 3 pins less than 10 seconds. After soldering, we immediately blowed cold air to the pins and the chip itself.
 \begin{figure}
 	\centering
 	\includegraphics[width=0.6\textwidth]{img/schem_temperature_board.pdf}
-	\caption{Temperature board schematic}
+	\caption{Temperature board schematic. The Impedance adjustor circuit, R4 and C4 is not required to be populated, as we only transmit data.}
 	\label{fig:schem_temp}
 \end{figure}
 \section{Humidity board}
