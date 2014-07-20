@@ -233,7 +233,6 @@ highest execution time. The values near the arrows represent the execution time 
 address to the instruction causing the branch.}
 	\label{fig:wcet}
 \end{figure}
-
 \subsection{I2C interface}
 Communication with the collector board is done via I2C (Two Wire Interface). Thereby the board acts as an
 I2C slave, extending the clock, if it is currently not able to process incomming data.
@@ -331,6 +330,15 @@ LEDs need most of power
 Careful with multiple power sources
 Arduino fuses only accessable via ISP
 Makefile incomplete (.h dependencies)
+\section{Installation}
+42 temperature sensors, 2 hymility sensors with 6 collection boards and 2 arduino as internet board. We have tried to distribute them evenly in the lab room.
+\begin{figure}
+	\centering
+	\includegraphics[width=\textwidth]{img/installPlan.pdf}
+  \caption{Installation plan}
+	\label{fig:install}
+\end{figure}
+\section{Maintenance}
 \chapter{References}
 %\renewcommand\refname{\vskip -1cm}
 %\bibliographystyle{abbrv}
