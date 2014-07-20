@@ -128,6 +128,21 @@ The collector board decodes the ZAC protocol and provides an I2C interface for
 reading out temperature, as well as humidity values of connected sensors.
 Care was taken, to ensure a response time of $<1\,\mathrm{s}$.
 \subsection{Hardware}
+The schematic diagram can be seen in figure \ref{fig:schem_collect}. The hardware consists of the following main components:
+\begin{description}
+  \item[Microprocessor:]\hspace{1cm}\\
+    To do all protocol conversion tasks, we used an Atmel Atmega88PA microcontroller, running at a clock speed of $20MHz$. The clock is generated, using an external crystal oscillator.\\
+    The Atmega microconteoller provides a variety of useful features like asynchronous timers, pin change interrupts on every GPIO pin, hardware support for the I2C protocol and integrated EEPROM storage.\\
+    We connected the sensors in two groups, so that we are able to receive two independent interrupts for two sensors in different groups.
+  \item[I2C connection:]\hspace{1cm}\\
+    The board provides two 6 pin IDC pin headers (P3 and P4), which provide connection to the I2C bus, as well as an optional 5V power line (Vi2c). The two headers are connected in parallel, so they can be used for chaining multiple collector boards.\\
+    The board also has integrated I2C pullups, which can be enabled using the switch SW2, in case the I2C master does not provide pullups.
+
+
+  \item[Developer interface:]
+  \item[Sensor connection:]
+  \item[Power source:]
+\end{description}
 \begin{figure}
 	\centering
 	\includegraphics[width=1\textwidth]{img/schem_collector_board.pdf}
