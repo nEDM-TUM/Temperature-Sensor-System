@@ -185,7 +185,6 @@ void accessScan(void){
     fputs_P(PSTR("found boards:"), &sock_stream);
 #ifdef DEBUG
     puts_P(PSTR("found boards:"));
-    printf("found boards: ");
 #endif
     for (i=0;i<num_boards;i++){
       uint8_t t;
@@ -204,7 +203,7 @@ void accessScan(void){
 
 int8_t handleScan(){
 #ifdef DEBUG
-	printf("handle scan\n\r");
+	printf_P(PSTR("handle scan\n\r"));
 #endif
 	twi_access_fun = accessScan;
 	ui_state = UI_TWILOCK;
@@ -572,7 +571,7 @@ uint8_t execCMD(uint8_t sock, char * buff, int8_t hasParams){
   struct cmd cmd;
   uint8_t handle_state;
 #ifdef DEBUG
-  printf("Compare %s\n\r", buff);
+  printf_P(PSTR("Compare %s\n\r"), buff);
 #endif
   for(index= 0; index<DEFINED_CMD_COUNT; index++){
     cmd = cmds[index];
