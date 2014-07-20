@@ -25,7 +25,6 @@ uint8_t tempL=0;
 uint8_t crc=0;
 #ifdef DEBUG
 uint8_t crc_verified=0xff;
-// FIXME converted roughly for test
 uint8_t cap=0xff;
 uint8_t temp=0xff;
 #endif
@@ -239,6 +238,7 @@ void loop(){
   printf("tempL = %x\n\r", tempL);
   printf("crc=%x\n\r", crc);
 
+  // converted roughly for test
   cap = ((capH*3) >> 1) + (capH >>4);
   temp = (tempH >> 1) + (tempH >> 3) + (tempH >> 6) ;
 
