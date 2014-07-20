@@ -5,6 +5,7 @@ extern "C" {
 #endif
 
 #include <inttypes.h>
+#include <avr/pgmspace.h>
 #include "packet.h"
 	
 #define CRC8 49

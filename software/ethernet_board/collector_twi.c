@@ -14,10 +14,10 @@ uint8_t twi_bus_mutex;
 uint8_t twi_try_lock_bus(){
 	if (twi_bus_mutex == 0){
 		twi_bus_mutex = 1;
-		//printf(" bus locked\n\r");
+		//printf_P(PSTR(" bus locked\n\r"));
 		return 1;
 	}else{
-		//printf(" bus busy\n\r");
+		//printf_P(PSTR(" bus busy\n\r"));
 		return 0;
 	}
 }
@@ -59,13 +59,13 @@ uint8_t twi_computeCRC(uint8_t * data, uint8_t len, uint8_t crc){
     }
     i++;
   }
-  //printf("\t\t\t!!!Result is %x\n\r", result);
+  //printf_P(PSTR("\t\t\t!!!Result is %x\n\r"), result);
   return result;
 }
 
 uint8_t twi_wait(void){
 	while(!(TWCR & (1<<TWINT))){
-		//printf("wait: TWSR = %x\n\r", TWSR);
+		//printf_P(PSTR("wait: TWSR = %x\n\r"), TWSR);
 		// wait for interrupt
 	}
 	return 1;
@@ -122,14 +122,12 @@ uint8_t twi_scan(uint8_t * result, uint8_t max_results){
 
 uint8_t twi_start(){
 	//do{
-		//printf("sending start\n\r");
 		//TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
 		//_delay_us(200);
     _delay_us(5);
 		TWBR = 20;
 		TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
 		twi_wait_timeout(5);
-		//printf("got interrupt\n\r");
 	//}while(TWSR!=0x08);
 	if (TWSR != 0x08){
 		TWCR = 0;
@@ -146,18 +144,15 @@ uint8_t twi_start(){
 
 uint8_t twi_send_cmd(uint8_t addr, uint8_t cmd){
 	// send start condition:
-	//printf("start_measurement\n\r");
 	if (!twi_start()){
 		TWCR = (1<<TWSTO) | (1<<TWEN) | (1<<TWINT);
-		printf("could not send start\n\r");
+		printf_P(PSTR("could not send start\n\r"));
 		return 0;
 	}
-	//printf("send SLA+W\n\r");
 	// send SLA + W
 	TWDR = (addr<<1);
 	TWCR = (1<<TWINT) | (1<<TWEN);
 	twi_wait_timeout(5);
-	//printf("TWSR = %x\n\r", TWSR);
 	switch (TWSR){
 		case 0x18:
 			// SLA+W has been transmitted;
@@ -175,12 +170,12 @@ uint8_t twi_send_cmd(uint8_t addr, uint8_t cmd){
 					// Data byte has been transmitted;
 					// NOT ACK has been received
 					TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
-					printf("error: 0x30\n\r");
+					printf_P(PSTR("error: 0x30\n\r"));
 					return 0;
 					break;
 				default:
 					//TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
-					printf("bus error2: tate = %x\n\r", TWSR);
+					printf_P(PSTR("bus error2: tate = %x\n\r"), TWSR);
 					return 0;
 					break;
 			}
@@ -189,7 +184,7 @@ uint8_t twi_send_cmd(uint8_t addr, uint8_t cmd){
 			// SLA+W has been transmitted;
 			// NOT ACK has been received
 			TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
-			printf("error: 0x20\n\r");
+			printf_P(PSTR("error: 0x20\n\r"));
 			return 0;
 			break;
 		case 0x38:
@@ -198,7 +193,7 @@ uint8_t twi_send_cmd(uint8_t addr, uint8_t cmd){
 			// 2-wire Serial Bus will be released and not addressed
 			// Slave mode entered
 			TWCR = (1<<TWINT) | (1<<TWEN);
-			printf("error: 0x38\n\r");
+			printf_P(PSTR("error: 0x38\n\r"));
 			return 0;
 			break;
 		case 0xf8:
@@ -212,12 +207,12 @@ uint8_t twi_send_cmd(uint8_t addr, uint8_t cmd){
 			TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
 			_delay_us(10);
 			TWCR = 0;
-			//printf("error: 0xf8, no new state (timeout)\n\r");
+			//printf_P(PSTR("error: 0xf8, no new state (timeout)\n\r"));
 			return 0;
 			break;
 		default:
 			TWCR = 0;
-			printf("bus error: state = %x\n\r", TWSR);
+			printf_P(PSTR("bus error: state = %x\n\r"), TWSR);
 			return 0;
 			break;
 	}
@@ -227,7 +222,7 @@ uint8_t twi_send_cmd(uint8_t addr, uint8_t cmd){
 uint8_t twi_set_address(uint8_t addr, uint8_t new_addr){	
   if(!twi_send_cmd(addr, CMD_SET_ADDRESS)){
 		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
-		printf("cmd not successful\n\r");
+		printf_P(PSTR("cmd not successful\n\r"));
     return 0;
   }
   TWDR = new_addr;
@@ -241,7 +236,7 @@ uint8_t twi_set_address(uint8_t addr, uint8_t new_addr){
     return 1;
   }else{
 		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
-		printf("new addr not successful\n\r");
+		printf_P(PSTR("new addr not successful\n\r"));
     return 0;
   }
 }
@@ -255,7 +250,7 @@ uint8_t twi_set_led(uint8_t addr, uint8_t on, uint8_t num){
 	}
   if(!twi_send_cmd(addr, cmd)){
 		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
-		printf("cmd not successful\n\r");
+		printf_P(PSTR("cmd not successful\n\r"));
     return 0;
   }
   TWDR = num;
@@ -268,7 +263,7 @@ uint8_t twi_set_led(uint8_t addr, uint8_t on, uint8_t num){
     return 1;
   }else{
 		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
-		printf("new addr not successful\n\r");
+		printf_P(PSTR("new addr not successful\n\r"));
     return 0;
   }
 
@@ -316,7 +311,7 @@ uint8_t twi_try_receive_data(uint8_t address, uint8_t * buffer, uint8_t len, uin
 					// 2-wire Serial Bus will be released and not addressed
 					// Slave mode will be entered
 					TWCR = (1<<TWINT)|(1<<TWEN);
-					printf("error 0x38\n\r");
+					printf_P(PSTR("error 0x38\n\r"));
 					return TWI_RCV_ERROR;
 					break;
 				case 0x40:
@@ -335,7 +330,7 @@ uint8_t twi_try_receive_data(uint8_t address, uint8_t * buffer, uint8_t len, uin
 					// will be reset
 					TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);
 
-					printf("error 0x48\n\r");
+					printf_P(PSTR("error 0x48\n\r"));
 					return TWI_RCV_ERROR;
 					break;
 				case 0xf8:
@@ -344,7 +339,7 @@ uint8_t twi_try_receive_data(uint8_t address, uint8_t * buffer, uint8_t len, uin
 					// available; TWINT = “0”
 					// FIXME: this reaction causes a bus error
 					TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
-					printf("no new state\n\r");
+					printf_P(PSTR("no new state\n\r"));
 					return TWI_RCV_ERROR;
 					break;
 			}
@@ -352,7 +347,7 @@ uint8_t twi_try_receive_data(uint8_t address, uint8_t * buffer, uint8_t len, uin
 		case TWI_RCV_RECEIVE:
 			if (TWCR & (1<<TWINT)){
 				while(TWSR == 0x50 && len > 0){
-					//printf("byte received!\n\r");
+					//printf_P(PSTR("byte received!\n\r"));
 					*buffer = TWDR;
 					buffer++;
 					len--;
@@ -362,15 +357,15 @@ uint8_t twi_try_receive_data(uint8_t address, uint8_t * buffer, uint8_t len, uin
 						TWCR = (1<<TWINT)|(1<<TWEN)|(1<<TWEA);
 					}
 					if(!twi_wait_timeout(5)){
-						printf("timeout\n\r");
+						printf_P(PSTR("timeout\n\r"));
 						TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);
 						return TWI_RCV_ERROR;
 					}
-					//printf("TWSR = %x\n\r", TWSR);
+					//printf_P(PSTR("TWSR = %x\n\r"), TWSR);
 				}
 				*buffer = TWDR;
 				TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);
-				//printf("len = %d\n\r", len);
+				//printf_P(PSTR("len = %d\n\r", len));
 				if(len==1){
 					return TWI_RCV_FIN;
 				}else{
@@ -383,7 +378,7 @@ uint8_t twi_try_receive_data(uint8_t address, uint8_t * buffer, uint8_t len, uin
 }
 
 uint8_t twi_receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
-	//printf("receive_data\n\r");
+	//printf_P(PSTR("receive_data\n\r"));
 	// send start condition:
 	if (!twi_start()){
 		TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
@@ -394,7 +389,7 @@ uint8_t twi_receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 	TWCR = (1<<TWINT) | (1<<TWEN);
 	twi_wait_timeout(5);
 	//twi_wait();
-	//printf("TWSR = %x\n\r", TWSR);
+	//printf_P(PSTR("TWSR = %x\n\r", TWSR));
 	switch(TWSR){
 		case 0x38:
 			// Arbitration lost in SLA+R or NOT ACK bit
@@ -402,7 +397,7 @@ uint8_t twi_receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 			// 2-wire Serial Bus will be released and not addressed
 			// Slave mode will be entered
 			TWCR = (1<<TWINT)|(1<<TWEN);
-			printf("error 0x38\n\r");
+			printf_P(PSTR("error 0x38\n\r"));
 			return 0;
 			break;
 		case 0x40:
@@ -420,7 +415,7 @@ uint8_t twi_receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 			// will be reset
 			TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);
 
-			printf("error 0x48\n\r");
+			printf_P(PSTR("error 0x48\n\r"));
 			return 0;
 			break;
 		case 0xf8:
@@ -428,16 +423,16 @@ uint8_t twi_receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 			// available; TWINT = “0”
 			// FIXME: this reaction causes a bus error
 			TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
-			printf("no new state\n\r");
+			printf_P(PSTR("no new state\n\r"));
 			return 0;
 			break;
 	}
 	// wait max 800ms, as measurement should be finished by then
 	twi_wait_timeout(800);
 	//twi_wait();
-	//printf("TWSR = %x\n\r", TWSR);
+	//printf_P(PSTR("TWSR = %x\n\r", TWSR));
 	while(TWSR == 0x50 && len > 0){
-		//printf("byte received!\n\r");
+		//printf_P(PSTR("byte received!\n\r"));
 		*buffer = TWDR;
 		buffer++;
 		len--;
@@ -447,13 +442,12 @@ uint8_t twi_receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
 			TWCR = (1<<TWINT)|(1<<TWEN)|(1<<TWEA);
 		}
 		if(!twi_wait_timeout(5)){
-			printf("timeout\n\r");
+			printf_P(PSTR("timeout\n\r"));
 		}
-		//printf("TWSR = %x\n\r", TWSR);
+		//printf_P(PSTR("TWSR = %x\n\r", TWSR));
 	}
 	*buffer = TWDR;
 	TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);
-	//printf("len = %d\n\r", len);
 	return (len == 1);
 	
 	
