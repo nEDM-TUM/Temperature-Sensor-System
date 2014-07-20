@@ -131,17 +131,55 @@ Care was taken, to ensure a response time of $<1\,\mathrm{s}$.
 The schematic diagram can be seen in figure \ref{fig:schem_collect}. The hardware consists of the following main components:
 \begin{description}
   \item[Microprocessor:]\hspace{1cm}\\
-    To do all protocol conversion tasks, we used an Atmel Atmega88PA microcontroller, running at a clock speed of $20MHz$. The clock is generated, using an external crystal oscillator.\\
-    The Atmega microconteoller provides a variety of useful features like asynchronous timers, pin change interrupts on every GPIO pin, hardware support for the I2C protocol and integrated EEPROM storage.\\
-    We connected the sensors in two groups, so that we are able to receive two independent interrupts for two sensors in different groups.
+    To do all protocol conversion tasks, we used an Atmel Atmega88PA
+    microcontroller, running at a clock speed of $20MHz$. The clock
+    is generated, using an external crystal oscillator.\\
+    The Atmega microconteoller provides a variety of useful features
+    like asynchronous timers, pin change interrupts on every GPIO
+    pin, hardware support for the I2C protocol and integrated EEPROM
+    storage.\\
+    We connected the sensors in two groups, so that we are able to
+    receive two independent interrupts for two sensors in different
+    groups.
   \item[I2C connection:]\hspace{1cm}\\
-    The board provides two 6 pin IDC pin headers (P3 and P4), which provide connection to the I2C bus, as well as an optional 5V power line (Vi2c). The two headers are connected in parallel, so they can be used for chaining multiple collector boards.\\
-    The board also has integrated I2C pullups, which can be enabled using the switch SW2, in case the I2C master does not provide pullups.
-
-
-  \item[Developer interface:]
-  \item[Sensor connection:]
-  \item[Power source:]
+    The board provides two 6 pin IDC pin headers (P3 and P4), which
+    provide connection to the I2C bus, as well as an optional 5V
+    power line (Vi2c). The two headers are connected in parallel,
+    so they can be used for chaining multiple collector boards.\\
+    The board also has integrated I2C pullups, which can be enabled
+    using the switch SW2, in case the I2C master does not provide
+    pullups.
+  \item[Sensor connection:]\hspace{1cm}\\
+    The individual sensors are connected via an eight-port RJ45
+    socket header. The signal of each sensor is first interpreted
+    by an RS485 transceiver and afterwards directly provided to a
+    microcontroler GPIO pin. As this is the receiving side, we also
+    had do add impedance matching circuitry. We chose to implement
+    a power saving AC-termination solution, as suggested in \ref{XXX}.
+    To bring the output level of each transceiver to a defined state,
+    when no sensor is connected, we use pullup resistors on the
+    input side.
+  \item[Developer interface:]\hspace{1cm}\\
+    The microcontroller can be programmed with any AVR In System
+    Programmer, using the standard ISP header (P8).\\
+    For debugging code, we also added a USART pin header (P1), which
+    allows serial communication with the microcontroller. Care
+    has to be taken, when connecting the chip to a PC, as the logic
+    levels of our board are 5V TLL and hence are not compatible
+    with the RS-232 logic levels, used by most PCs. We suggest to use
+    a USB to USART TLL converter or a logic level converter.
+  \item[Power source:]\hspace{1cm}\\
+    We provide multiple ways to supply power to the collector board.
+    \begin{itemize}
+      \item Direct 5V input/output (P7 or P9)
+      \item Use the 5V supply voltage, provided via the I2C bus
+      \item Unregulated input (7V..25V). The onboard LM7805 linear
+        regulator, will convert the voltage to 5V.
+    \end{itemize}
+    Using the pin header K1, it is possible to select suitable
+    power inputs.\\
+    Example 1: If the board should get power over I2C, pins 1 and 2 should be shorted.\\
+    Example 2: If the board should get power from the on board regulator, and also provide power to the I2C bus, all three pins should be shorted.
 \end{description}
 \begin{figure}
 	\centering
