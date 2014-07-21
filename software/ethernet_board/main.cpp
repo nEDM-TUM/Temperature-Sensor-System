@@ -130,11 +130,11 @@ int main (void)
 
 	DDRD = (1<<PD5);
 
-	puts_P(PSTR("Controller started\n\r"));
+	printf_P(PSTR("Controller started\n\r"));
 	num_boards = twi_scan(scanresults, 20);
 
 	uint8_t i;
-	puts_P(PSTR("found boards: "));
+	printf_P(PSTR("found boards: "));
 	for (i=0;i<num_boards;i++){
 		printf_P(PSTR(" %u"), scanresults[i]);
 	}

@@ -20,7 +20,8 @@ int8_t handleCookieDB();
 int8_t handleNameDB();
 int8_t handleDocDB();
 int8_t handleFuncDB();
-int8_t handleRestart();
+int8_t handleReset();
+int8_t handleResetDB();
 int8_t handleStore();
 int8_t handleViewResponseDB();
 int8_t handleTwiaddr();
@@ -43,29 +44,33 @@ const char HexColon_6[] PROGMEM = "%x:%x:%x:%x:%x:%x";
 const char String60[] PROGMEM = "%60s";
 const char String25[] PROGMEM = "%25s";
 
-const char SendDBComment[] PROGMEM = "<1|0> 1: Enable sending data to database; 2: Disable sending data to db";
-const char ViewResponseDBComment[] PROGMEM = "Toggle display of db reponse";
-const char RestartComment[] PROGMEM = "Store changes and restart network"; 
+const char SendDBComment[] PROGMEM = "<1|0>\n\t\t1: Enable sending data to database; 2: Disable sending data to database";
+const char ViewResponseDBComment[] PROGMEM = "Toggle display of database reponse";
+const char ResetComment[] PROGMEM = "Store changes and reset all network services"; 
+const char ResetDBComment[] PROGMEM = "Store changes and reset connection to database"; 
 const char StoreComment[] PROGMEM = "Permanently store changes"; 
-const char TwiaddrComment[] PROGMEM = "<old> <new> Change board I2C address";
+
+const char TwiaddrComment[] PROGMEM = "<old> <new>\n\t\tChange board I2C address. The address should be between 7 and 120.";
 const char ScanComment[] PROGMEM = "Scan for connected collection boards";
 const char ViewMeasurementComment[] PROGMEM = "Toggle displaying of current measurement results";
-const char IntervalComment[] PROGMEM = "<seconds> Change the measurement interval";
-const char LEDComment[] PROGMEM = "<board addr> <led num> <1|0> Control the leds of collector boards, 1: led on; 0: led off";
-const char IpComment[] PROGMEM = "<ip/subnet> Change the IP address and subnet";
-const char PortComment[] PROGMEM = "<port> Change the TCP port of this user interface";
-const char MacComment[] PROGMEM = "<mac> Change the ethernet mac";
-const char GwComment[] PROGMEM = "<gw> Change the gateway";
-const char IpDBComment[] PROGMEM = "<ip> Change the IP address of couchdb";
-const char PortDBComment[] PROGMEM = "<port> Change port of couchdb";
-const char CookieDBComment[] PROGMEM = "<cookie> Change cookie for couchdb (max 60 chars)";
-const char NameDBComment[] PROGMEM = "<name> Set database name (max 25 chars)";
-const char DocDBComment[] PROGMEM = "<name> Set json document name (max 25 chars)";
-const char FuncDBComment[] PROGMEM = "<name> Set couchdb insert function (max 25 chars)";
+const char IntervalComment[] PROGMEM = "<seconds>\n\t\tChange the measurement interval";
+const char LEDComment[] PROGMEM = "<board addr> <led num> <1|0>\n\t\tControl the leds of collector boards, 1: led on; 0: led off";
+const char IpComment[] PROGMEM = "<ip/subnet>\n\t\tChange the IP address and subnet";
+const char PortComment[] PROGMEM = "<port>\n\t\tChange the TCP port of this user interface";
+const char MacComment[] PROGMEM = "<mac>\n\t\tChange the ethernet mac";
+const char GwComment[] PROGMEM = "<gw>\n\t\tChange the gateway";
+const char IpDBComment[] PROGMEM = "<ip>\n\t\tChange the IP address of database";
+const char PortDBComment[] PROGMEM = "<port>\n\t\tChange port of database";
+const char CookieDBComment[] PROGMEM = "<cookie>\n\t\tChange cookie for communication with database (max 60 chars)";
+const char NameDBComment[] PROGMEM = "<name>\n\t\tChange database name (max 25 chars)";
+const char DocDBComment[] PROGMEM = "<name>\n\t\tChange json document name (max 25 chars)";
+const char FuncDBComment[] PROGMEM = "<name>\n\t\tChange insert into database function name (max 25 chars)";
 const char CloseComment[] PROGMEM = "Close user interface savely";
 
+struct cmd baCMD = {"ba", handleTwiaddr, Uint_2, TwiaddrComment};
+struct cmd ledCMD = {"led", handleLED, Uint_2_Char, LEDComment};
 // XXX this should always be the length of the registered cmd array below! 
-#define DEFINED_CMD_COUNT 21
+#define DEFINED_CMD_COUNT 22
 
 struct cmd cmds[]={
   // Network cmd
@@ -83,30 +88,32 @@ struct cmd cmds[]={
   {"d.f", handleFuncDB, String25, FuncDBComment},
   {"d.v", handleViewResponseDB, NULL, ViewResponseDBComment},
   // eeprom cmd
-  {"res", handleRestart, NULL, RestartComment},
+  {"res", handleReset, NULL, ResetComment},
+  {"d.re", handleResetDB, NULL, ResetDBComment},
   {"sto", handleStore, NULL, StoreComment},
   //boards cmd
-  {"ba", handleTwiaddr, Uint_2, TwiaddrComment},
+  baCMD, //{"ba", handleTwiaddr, Uint_2, TwiaddrComment}
   {"s", handleScan, NULL, ScanComment},
   {"v", handleViewMeasurement, NULL, ViewMeasurementComment},
   {"i", handleInterval, ULong, IntervalComment},
-  {"led", handleLED, Uint_2_Char, LEDComment},
+  ledCMD, //{"led", handleLED, Uint_2_Char, LEDComment}
   {"c", handleClose, NULL, CloseComment},
   // XXX the help handler should always be at the end
   {"help", handleHelp, NULL, NULL}
 };
 
-const char Usage[] PROGMEM = "\nAvailable commands: ";
+const char Usage[] PROGMEM = "Available commands:";
 const char New[] PROGMEM = "(NEW)";
-const char Enabled[] PROGMEM = " enabled";
-const char Disabled[] PROGMEM = " disabled";
 const char Colon[] PROGMEM = ": ";
 
-const char RestartOption[] PROGMEM = "\nto store changes and restart connections for changes to become effective, type\n\tres";
+const char ResetOption[] PROGMEM = "\nto store changes and reset network services for changes to become effective, type\n\tres";
+const char ResetDBOption[] PROGMEM = "\nto store changes and reset the connection to database for changes to become effective, type\n\td.re";
 const char StoreOption[] PROGMEM = "\nto store changes type\n\tsto";
 const char CmdNotFound[] PROGMEM = "cmd not found! type 'help' to view options\n";
 
 char cmdBuff[MAX_CMD_LEN];
+
+void printOption(struct cmd);
 
 uint8_t print4dotarr(FILE *stream, uint8_t * arr){
   return fprintf_P(stream, UintDot_4, arr[0], arr[1], arr[2], arr[3]);
@@ -172,17 +179,21 @@ void send_result(struct dummy_packet * packets){
 void accessScan(void){
 	uint8_t i;
 	num_boards = twi_scan(scanresults, 20);
-  fputs_P(PSTR("found boards:"), &sock_stream);
+  if(num_boards == 0){
+    fputs_P(PSTR("No boards found!"), &sock_stream);
+  } else {
+    fputs_P(PSTR("found boards:"), &sock_stream);
 #ifdef DEBUG
-	printf("found boards: ");
+    puts_P(PSTR("found boards:"));
 #endif
-	for (i=0;i<num_boards;i++){
-		uint8_t t;
-    fprintf(&sock_stream, " %u", scanresults[i]);
+    for (i=0;i<num_boards;i++){
+      uint8_t t;
+      fprintf(&sock_stream, " %u", scanresults[i]);
 #ifdef DEBUG
-		printf(" %u", scanresults[i]);
+      printf(" %u", scanresults[i]);
 #endif
-	}
+    }
+  }
   fputc('\n', &sock_stream);
 #ifdef DEBUG
 	printf("\n\r");
@@ -192,7 +203,7 @@ void accessScan(void){
 
 int8_t handleScan(){
 #ifdef DEBUG
-	printf("handle scan\n\r");
+	printf_P(PSTR("handle scan\n\r"));
 #endif
 	twi_access_fun = accessScan;
 	ui_state = UI_TWILOCK;
@@ -206,12 +217,14 @@ void accessLED(void){
   uint8_t paramsCount = fscanf_P(&sock_stream, Uint_2_Char, &addr, &lednum, &onoff);
 	if(paramsCount == 3){
 		if(twi_set_led(addr, onoff=='1', lednum)){
-      fputs_P(PSTR("success\n"), &sock_stream);
+      fputs_P(PSTR("OK :)\n"), &sock_stream);
 		}else{
-      fputs_P(PSTR("failed\n"), &sock_stream);
+      fputs_P(PSTR("Failed :(\n"), &sock_stream);
 		}
 	}else{
-    fputs_P(PSTR("led <board addr> <led num> <1|0>\n"), &sock_stream);
+		fputs_P(Usage, &sock_stream);
+    printOption(ledCMD);
+    fputc('\n', &sock_stream);
 	}
 }
 
@@ -232,16 +245,18 @@ void accessTwiaddr(void){
 
 	if(paramsCount == 2){
 		if(new_addr < 8 || new_addr >=120 ){
-      fputs_P(PSTR("7<addr<120\n"), &sock_stream);
+      fputs_P(PSTR("7 < addr < 120\n"), &sock_stream);
 			return;
 		}
 		if(twi_set_address(old_addr, new_addr)){
-      fputs_P(PSTR("success\n"), &sock_stream);
+      fputs_P(PSTR("OK :)\n"), &sock_stream);
 		}else{
-      fputs_P(PSTR("failed\n"), &sock_stream);
+      fputs_P(PSTR("Failed :(\n"), &sock_stream);
 		}
 	}else{
-		fputs_P(PSTR("twiaddr <old> <new>\n"), &sock_stream);
+		fputs_P(Usage, &sock_stream);
+    printOption(baCMD);
+    fputc('\n', &sock_stream);
 	}
 }
 
@@ -268,7 +283,7 @@ int8_t handleIp(){
   fputs_P(Colon, &sock_stream);
   fprintf_P(&sock_stream, UintDot_4Slash, cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet);
   if(result == SUCCESS_PARAMS_PARSE){
-    fputs_P(RestartOption, &sock_stream);
+    fputs_P(ResetOption, &sock_stream);
   }
   return result;
 }
@@ -289,7 +304,7 @@ int8_t handleGw(){
   fputs_P(Colon, &sock_stream);
   print4dotarr(&sock_stream, cfg.gw);
   if(result == SUCCESS_PARAMS_PARSE){
-    fputs_P(RestartOption, &sock_stream);
+    fputs_P(ResetOption, &sock_stream);
   }
   return result;
 }
@@ -310,7 +325,7 @@ int8_t handleMac(){
   fputs_P(Colon, &sock_stream);
   fprintf_P(&sock_stream, HexColon_6, cfg.mac[0], cfg.mac[1], cfg.mac[2], cfg.mac[3], cfg.mac[4], cfg.mac[5]);
   if(result == SUCCESS_PARAMS_PARSE){
-    fputs_P(RestartOption, &sock_stream);
+    fputs_P(ResetOption, &sock_stream);
   }
   return result;
 }
@@ -324,7 +339,7 @@ int8_t handlePort(){
   fputs_P(Colon, &sock_stream);
   fprintf_P(&sock_stream, Uint, cfg.port);
   if(paramsCount==1){
-    fputs_P(RestartOption, &sock_stream);
+    fputs_P(ResetOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
   }
   return FAILED_PARAMS_PARSE;
@@ -332,10 +347,27 @@ int8_t handlePort(){
 
 int8_t handleStore(){
   config_write(&cfg);
+  fputs_P(PSTR(" done!"), &sock_stream);
   return NO_PARAMS_PARSE;
 }
 
-int8_t handleRestart(){
+int8_t handleResetDB(){
+  uint8_t index;
+  disconnect(DB_CLIENT_SOCK);
+  config_write(&cfg);
+  fputc('\n', &sock_stream);
+  fputs_P(PSTR("The connection to database will be reset, the new database address is "), &sock_stream);
+  print4dotarr(&sock_stream, cfg.ip_db);
+  fputc(':', &sock_stream);
+  fprintf_P(&sock_stream, Uint, cfg.port_db);
+  sock_stream_flush();
+  // Wait a second to close all sockets
+  if(W5100.readSnSR(DB_CLIENT_SOCK) != SnSR::CLOSED){
+    close(DB_CLIENT_SOCK);
+  }
+  return NO_PARAMS_PARSE;
+}
+int8_t handleReset(){
   uint8_t index;
   // broadcast
   stream_set_sock(MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK); 
@@ -381,23 +413,19 @@ int8_t handleSendDB(){
   paramsCount = fscanf_P(&sock_stream, Int, &param);
   if(paramsCount==1 && (param == 1 || param == 0)){
     cfg.send_db = param;
-
-    switch(cfg.send_db){
-      case 0:
-        fputs_P(Disabled, &sock_stream);
-        result = SUCCESS_PARAMS_PARSE;
-        break;
-      case 1:
-        fputs_P(Enabled, &sock_stream);
-        cfg.send_db = 1;
-        result = SUCCESS_PARAMS_PARSE;
-        break;
-      default:
-        ;
-    }
+    result = SUCCESS_PARAMS_PARSE;
   }
-  fputs_P(Colon, &sock_stream);
-  fprintf_P(&sock_stream, Int, cfg.send_db);
+  switch(cfg.send_db){
+    case 0:
+      fputs_P(PSTR(" disabled"), &sock_stream);
+      break;
+    case 1:
+      fputs_P(PSTR(" enabled"), &sock_stream);
+      cfg.send_db = 1;
+      break;
+    default:
+      ;
+  }
   if(result == SUCCESS_PARAMS_PARSE){
     fputs_P(StoreOption, &sock_stream);
   }
@@ -420,7 +448,7 @@ int8_t handleIpDB(){
   fputs_P(Colon, &sock_stream);
   print4dotarr(&sock_stream, cfg.ip_db);
   if(result == SUCCESS_PARAMS_PARSE){
-    fputs_P(RestartOption, &sock_stream);
+    fputs_P(ResetDBOption, &sock_stream);
   }
   return result;
 }
@@ -434,7 +462,7 @@ int8_t handlePortDB(){
   fputs_P(Colon, &sock_stream);
   fprintf_P(&sock_stream, Uint, cfg.port_db);
   if(paramsCount==1){
-    fputs_P(RestartOption, &sock_stream);
+    fputs_P(ResetDBOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
   }
   return FAILED_PARAMS_PARSE;
@@ -448,7 +476,7 @@ int8_t handleCookieDB(){
   fputs_P(Colon, &sock_stream);
   fputs(cfg.cookie_db, &sock_stream);
   if(paramsCount==1){
-    fputs_P(RestartOption, &sock_stream);
+    fputs_P(StoreOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
   }
   return FAILED_PARAMS_PARSE;
@@ -463,7 +491,7 @@ int8_t handleNameDB(){
   fputs_P(Colon, &sock_stream);
   fputs(cfg.name_db, &sock_stream);
   if(paramsCount==1){
-    fputs_P(RestartOption, &sock_stream);
+    fputs_P(StoreOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
   }
   return FAILED_PARAMS_PARSE;
@@ -478,7 +506,7 @@ int8_t handleDocDB(){
   fputs_P(Colon, &sock_stream);
   fputs(cfg.doc_db, &sock_stream);
   if(paramsCount==1){
-    fputs_P(RestartOption, &sock_stream);
+    fputs_P(StoreOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
   }
   return FAILED_PARAMS_PARSE;
@@ -493,7 +521,7 @@ int8_t handleFuncDB(){
   fputs_P(Colon, &sock_stream);
   fputs(cfg.func_db, &sock_stream);
   if(paramsCount==1){
-    fputs_P(RestartOption, &sock_stream);
+    fputs_P(StoreOption, &sock_stream);
     return SUCCESS_PARAMS_PARSE;
   }
   return FAILED_PARAMS_PARSE;
@@ -501,8 +529,14 @@ int8_t handleFuncDB(){
 
 
 int8_t handleViewResponseDB(){
-   uint8_t serverSockIndex = stream_get_sock()-FIRST_SERVER_SOCK;
-  if(serverSockIndex<MAX_SERVER_SOCK_NUM){
+  uint8_t serverSockIndex = stream_get_sock()-FIRST_SERVER_SOCK;
+  if( W5100.readSnSR(DB_CLIENT_SOCK) != SnSR::ESTABLISHED ){
+    if(W5100.readSnSR(DB_CLIENT_SOCK) == SnSR::CLOSED){
+      fputs_P(PSTR("\nNot connected with database!"), &sock_stream);
+    } else {
+      fprintf_P(&sock_stream, PSTR("\nConnection with database failed! Status %x"), W5100.readSnSR(DB_CLIENT_SOCK));
+    } 
+  } else if(serverSockIndex<MAX_SERVER_SOCK_NUM){
     db_response_request[serverSockIndex]= !db_response_request[serverSockIndex];
   }
   return NO_PARAMS_PARSE;
@@ -524,6 +558,7 @@ void printOption(struct cmd cmd){
 
 int8_t handleHelp(){
   int8_t index;
+  fputc('\n', &sock_stream);
   fputs_P(Usage, &sock_stream);
   for(index= 0; index<DEFINED_CMD_COUNT - 1; index++){
     printOption(cmds[index]);
@@ -531,28 +566,12 @@ int8_t handleHelp(){
   return 1;
 }
 
-char* cmpCMD(char* cmdstr, const char * cmd){
-  while(*cmd!='\0' && cmdstr!='\0' && *cmd == *cmdstr){
-    cmd++;
-    cmdstr++;
-  }
-  if(*cmd=='\0'){
-    if(*cmdstr=='\0'){
-      return cmdstr; // equal, no param
-    }else if(*cmdstr == ' '){
-      cmdstr ++;
-      return cmdstr; // equal, contains param
-    }
-  }
-  return NULL; // not equal
-}
-
 uint8_t execCMD(uint8_t sock, char * buff, int8_t hasParams){
   int8_t index;
   struct cmd cmd;
   uint8_t handle_state;
 #ifdef DEBUG
-  printf("Compare %s\n\r", buff);
+  printf_P(PSTR("Compare %s\n\r"), buff);
 #endif
   for(index= 0; index<DEFINED_CMD_COUNT; index++){
     cmd = cmds[index];
@@ -560,6 +579,7 @@ uint8_t execCMD(uint8_t sock, char * buff, int8_t hasParams){
       fputs(cmd.name, &sock_stream);
 			handle_state= cmd.handle();
       if(hasParams && handle_state==FAILED_PARAMS_PARSE && cmd.param_format!=NULL){
+        fputc('\n', &sock_stream);
         fputs_P(Usage, &sock_stream);
         printOption(cmd);
       }
@@ -604,6 +624,10 @@ uint8_t ui_handleCMD(uint8_t sock){
 		}
 		if(pointer >= MAX_CMD_LEN){
 			pointer = 0;
+			flag_return = 1;
+      cmdBuff[pointer++] = '\0';
+      cmd_result = execCMD(sock, cmdBuff, 0);
+      continue;
 		}
     cmdBuff[pointer++] = b;
 	}

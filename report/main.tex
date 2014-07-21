@@ -454,6 +454,27 @@ figure \ref{fig:packetorder}.\\
 \subsection{Hardware}
 \subsection{Software}
 \subsection{User interface}
+\begin{table}[Hh!]
+	\centering
+	\begin{tabularx}{\textwidth}{ | c | c | c | X | }
+		\hline
+    Name & Parameters format &Parameters & Action\\
+		\hline
+		\hline
+    START\_MEASUREMENT & 0x01 & --- & All 8 sensor values will be captured as soon as the STOP bit is received. If during measurement
+		the slave is addressed again, the I2C clock will immediately be extended until the measurement is complete, blocking the whole I2C bus.\\
+		\hline
+    SET\_ADDRESS & 0x02 & address & The own I2C address will be updated with the 1 byte value following the command. The address should
+		be in the range from 8 to 112. The default address is 42\\
+		\hline
+    LED\_ON & 0x03 & number & The LED with the given number will be turned on.\\
+		\hline
+    LED\_OFF & 0x04 & number & The LED with the given number will be turned off.\\
+		\hline
+	\end{tabularx}
+	\caption{List of implemented I2C commands}
+	\label{tab:i2c}
+\end{table}
 \chapter{Deployment}
 \section{Read before modifying}
 EEPROM persistance enable

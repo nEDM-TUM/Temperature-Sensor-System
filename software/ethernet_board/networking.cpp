@@ -77,6 +77,9 @@ uint16_t getAvailableSrcPort(uint16_t srcPort){
 }
 
 void try_connect_db(uint16_t srcPort){
+#ifdef DEBUG
+  printf_P(PSTR("Try to connect with DB with port %d\n\r"), srcPort);
+#endif
   close(DB_CLIENT_SOCK);
   _delay_ms(100);
   srcPort = getAvailableSrcPort(srcPort);
@@ -105,6 +108,7 @@ int8_t connect_db(uint16_t srcPort){
 #endif
       return 0;  
     }
+    _delay_ms(10);
   }
   return 1;
 }
@@ -362,7 +366,7 @@ void net_beginService() {
 	printf_P(PSTR("gw: %u.%u.%u.%u\n\r"), cfg.gw[0], cfg.gw[1], cfg.gw[2], cfg.gw[3]);
 	printf_P(PSTR("db: %u.%u.%u.%u:%u/%s\n\r"), cfg.ip_db[0], cfg.ip_db[1], cfg.ip_db[2], cfg.ip_db[3], cfg.port_db, cfg.name_db);
 	printf_P(PSTR("cookie: %s\n\r"), cfg.cookie_db);
-	printf_P(PSTR("update function: %s/%s\n\r"), cfg.doc_db, cfg.func_db);
+	printf_P(PSTR("function for inserting into DB: %s/%s\n\r"), cfg.doc_db, cfg.func_db);
   // Create the first server socket
   socket(FIRST_SERVER_SOCK, SnMR::TCP, cfg.port, 0);
   while(!listen(FIRST_SERVER_SOCK)){
