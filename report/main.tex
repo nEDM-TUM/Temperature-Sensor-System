@@ -112,13 +112,13 @@ the transmission ends, this is called a Stop bit. Figure \ref{fig:zac}
 shows the four different wafeform types, of which a ZACwire signal may be
 composed off. Figure \ref{fig:zacexample} shows an example
 transmission.
-\begin{figure}
+\begin{figure}[b]
 	\centering
 	\includegraphics[width=0.3\textwidth]{img/zac_bits.pdf}
 	\caption{ZACwire protocol signal interpretation}
 	\label{fig:zac}
 \end{figure}
-\begin{figure}
+\begin{figure}[b]
 	\centering
 	\includegraphics[width=0.9\textwidth]{img/zac_example.pdf}
 	\caption{ZACwire protocol example}
@@ -160,11 +160,14 @@ Figure \ref{fig:rs485} illustrates the working principle of the protocol. The en
 
 \chapter{Implementation}
 \section{Toolchain}
-- Makefiles
-- USBASP Programmer
-- Arduino programmer
-- UART debugger
-- Arduino libraries
+\subsection{ISP programmer}
+To upload the compiled code and to configure the microprocessors, we used the USBasp programmer in combination with the avrdude software.\\
+As we needed to access the fuse bytes of the arduino too, which was not possible with the arduino bootloader, we also use the ISP header on the Arduino board for programming. The arduino bootloader was removed. Hence it is not possible anymore, to programm the arduino with the arduino software suite, without reinstalling the bootloader.\\
+Note that the arduino ISP header is not compatible with the one, provided by the USBasp programmer. A mechanical adaptor or individual cabling is required. Figure \ref{XXX} shows the pin asignments of the different ISP headers.
+\subsection{USART for debugging}
+
+\subsection{Arduino libraries}
+\subsection{Makefiles}
 \section{Temperature board}
 The temperature board consists of the TSic506F sensor and
 complementary circuitry. The ZACwire signal is transformed to the
