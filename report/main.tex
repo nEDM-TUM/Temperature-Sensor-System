@@ -125,10 +125,33 @@ transmission.
 	\label{fig:zacexample}
 \end{figure}
 \subsection{I2C}
+I2C is a bus protocol, which specifies the physical layer, as well as an arbitration and addressing layer. The protocol allows communication between multiple bus participants.\\
+Transmissions are done over two transmission lines SCL and SDA, which
+are pulled to logical high voltage level by pullup resistors (see
+figure \ref{fig:i2c}). Each transmission is controlled by a device
+in master mode, which provides a clock by controlling the SCL line.\\
+A transmission is surrounded by a START and a STOP bit, which are code violations.\\
+At the beginning of a transmission, the master first transmits an
+address to the bus, addressing one or all connected devices which
+are in slave mode. After that a data direction bit is sent to the
+bus, which defines the slave behavior. If the direction bit specifies a write, all addressed slave devices read bits from the bus at every 
+lock cycle, the SDA line stats under control of the master. If the
+direction bit describes a read, the slave should take control over
+the SDA line and transmits bits at every clock cycle.\\
+The Slave is allowed to take control over the SCL line at any time
+by pulling it low. this is called clock extenstion, and signals the
+master to not proceed transmitting or receiving data.
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\textwidth]{img/i2c.pdf}
+  \caption{I2C logical bus structure. Source \ref{}.}
+	\label{fig:i2c}
+\end{figure}
+
 \subsection{RS485}
 RS485 is a transmission line standard, which specifies differential line communication over twisted pair cables. It allows very long distance communication of up to 1 kilometer with high noise immunity and reduced noise emission.\\
 Figure \ref{fig:rs485} illustrates the working principle of the protocol. The encoder transforms a single bit line DI into two separate lines A and B. If DI is high, the output voltage at line A, $V_{OA}$ will bigger than at line B ($V_{OB}$). If the input voltage at DI is low, $V_{OB}>V_{OA}$ holds.\\
-\begin{figure}
+\begin{figure}[b]
 	\centering
 	\includegraphics[width=0.7\textwidth]{img/rs485.pdf}
   \caption{RS485 encoding/decoding - Logical structure. Source: \ref{XXX}.}
