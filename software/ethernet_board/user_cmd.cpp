@@ -532,14 +532,15 @@ int8_t handleFuncDB(){
 
 int8_t handleViewResponseDB(){
   uint8_t serverSockIndex = stream_get_sock()-FIRST_SERVER_SOCK;
-  if( W5100.readSnSR(DB_CLIENT_SOCK) != SnSR::ESTABLISHED ){
+  if(serverSockIndex<MAX_SERVER_SOCK_NUM){
+    db_response_request[serverSockIndex]= !db_response_request[serverSockIndex];
+  }
+  if(db_response_request[serverSockIndex] && W5100.readSnSR(DB_CLIENT_SOCK) != SnSR::ESTABLISHED ){
     if(W5100.readSnSR(DB_CLIENT_SOCK) == SnSR::CLOSED){
       fputs_P(PSTR("\nNot connected with database!"), &sock_stream);
     } else {
       fprintf_P(&sock_stream, PSTR("\nConnection with database failed! Status %x"), W5100.readSnSR(DB_CLIENT_SOCK));
     } 
-  } else if(serverSockIndex<MAX_SERVER_SOCK_NUM){
-    db_response_request[serverSockIndex]= !db_response_request[serverSockIndex];
   }
   return NO_PARAMS_PARSE;
 }
