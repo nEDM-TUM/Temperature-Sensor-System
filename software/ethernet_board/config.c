@@ -13,18 +13,32 @@ struct {
 	.magic = EEPROM_MAGIC,
 	.start_pointer = 3,
 	.init_cfg ={
+	//// Arduino 1
+  ///*.mac = */{0x90, 0xA2, 0xDA, 0x00, 0xE3, 0x5A},
+  ///*.ip = */{192, 168, 1, 61},
+  ///*.subnet = */24,
+  ///*.gw = */{192, 168, 1, 1},
+  ///*.port = */8888,
+  ///*.send_db = */0,
+  ///*.ip_db = */{10, 0, 1, 2},
+  ///*.port_db = */5984,
+  ///*.cookie_db[DB_COOKIE_SIZE] = */"YXJkdWlub190ZW1wZXJhdHVyZV93cml0ZXI6NTNDRDA2NUU6sXrFV2CQrCD87BQ3-9ghir_1QGM",
+  ///*.name_db[DB_NAME_SIZE] = */"nedm%2Ftemperature_environment",
+  ///*.doc_db[DB_DOC_SIZE] = */"nedm_default",
+  ///*.func_db[DB_FUNC_SIZE] = */"insert_with_timestamp"
+	// Arduino 2
   /*.mac = */{0x90, 0xA2, 0xDA, 0x00, 0xE3, 0x5B},
-  /*.ip = */{10,0,1, 100},
-  /*.subnet = */16,
-  /*.gw = */{10, 0, 1, 1},
+  /*.ip = */{192, 168, 1, 62},
+  /*.subnet = */24,
+  /*.gw = */{192, 168, 1, 1},
   /*.port = */8888,
   /*.send_db = */0,
   /*.ip_db = */{10, 0, 1, 2},
   /*.port_db = */5984,
-  /*.cookie_db[60] = */"c29sYXI6NTIwNEU4OTA66nT2KHyr9n5RrouelBtLnBru00c",
-  /*.name_db[25] = */"idp",
-  /*.doc_db[25] = */"nedm_default",
-  /*.func_db[25] = */"insert_with_timestamp"
+  /*.cookie_db[DB_COOKIE_SIZE] = */"YXJkdWlub190ZW1wZXJhdHVyZV93cml0ZXI6NTNDRDA2NUU6sXrFV2CQrCD87BQ3-9ghir_1QGM",
+  /*.name_db[DB_NAME_SIZE] = */"nedm%2Ftemperature_environment",
+  /*.doc_db[DB_DOC_SIZE] = */"nedm_default",
+  /*.func_db[DB_FUNC_SIZE] = */"insert_with_timestamp"
   }
 };
 

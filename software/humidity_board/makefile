@@ -28,6 +28,9 @@ AVRDUDE_PROGRAMMER = usbasp
 AVRDUDE_PORT = /dev/ttyACM0
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 AVRDUDE_FLAGS = -p $(MCU) -c $(AVRDUDE_PROGRAMMER)
+
+FUSE_LOW = 0b11100010:m
+AVRDUDE_WRITE_FUSES = -U lfuse:w:$(FUSE_LOW)
 # -F forces programming without checking device
 #  identifier.
 #  This is, because the arduino bootloader does
@@ -79,6 +82,8 @@ build: elf hex
 # upload the program to the microcontroller flash:
 upload:
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH)
+fuse:
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FUSES)
 
 # analyze compiled program size:
 size:

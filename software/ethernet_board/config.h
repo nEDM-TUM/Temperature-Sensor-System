@@ -5,7 +5,14 @@ extern "C" {
 #define EEPROM_STORAGE_H
 #include <inttypes.h>
 
+#define STR1(x)  #x
+#define STR(x)  STR1(x)
+
 #define EEPROM_MAGIC 171
+#define DB_COOKIE_SIZE 100
+#define DB_NAME_SIZE 50
+#define DB_DOC_SIZE 25
+#define DB_FUNC_SIZE 25
 
 struct config {
   uint8_t mac[6] ;
@@ -16,10 +23,10 @@ struct config {
   int8_t send_db;
   uint8_t ip_db[4];
   uint16_t port_db;
-  char cookie_db[60];
-  char name_db[25];
-  char doc_db[25];
-  char func_db[25];
+  char cookie_db[DB_COOKIE_SIZE];
+  char name_db[DB_NAME_SIZE];
+  char doc_db[DB_DOC_SIZE];
+  char func_db[DB_FUNC_SIZE];
 };
 
 extern struct config cfg;
