@@ -41,9 +41,10 @@ const char Uint_2[] PROGMEM = "%u %u";
 const char UintDot_4[] PROGMEM = "%u.%u.%u.%u";
 const char UintDot_4Slash[] PROGMEM = "%u.%u.%u.%u/%u";
 const char HexColon_6[] PROGMEM = "%x:%x:%x:%x:%x:%x";
-const char String100[] PROGMEM = "%100s";
-const char String50[] PROGMEM = "%50s";
-const char String25[] PROGMEM = "%25s";
+const char FormatCookieDB[] PROGMEM = "%" STR(DB_COOKIE_SIZE) "s";
+const char FormatNameDB[] PROGMEM = "%" STR(DB_NAME_SIZE) "s";
+const char FormatDocDB[] PROGMEM = "%" STR(DB_DOC_SIZE) "s";
+const char FormatFuncDB[] PROGMEM = "%" STR(DB_FUNC_SIZE) "s";
 
 const char SendDBComment[] PROGMEM = "<1|0>\n\t\t1: Enable sending data to database; 2: Disable sending data to database";
 const char ViewResponseDBComment[] PROGMEM = "Toggle display of database reponse";
@@ -62,10 +63,10 @@ const char MacComment[] PROGMEM = "<mac>\n\t\tChange the ethernet mac";
 const char GwComment[] PROGMEM = "<gw>\n\t\tChange the gateway";
 const char IpDBComment[] PROGMEM = "<ip>\n\t\tChange the IP address of database";
 const char PortDBComment[] PROGMEM = "<port>\n\t\tChange port of database";
-const char CookieDBComment[] PROGMEM = "<cookie>\n\t\tChange cookie for communication with database (max 100 chars)";
-const char NameDBComment[] PROGMEM = "<name>\n\t\tChange database name (max 50 chars)";
-const char DocDBComment[] PROGMEM = "<name>\n\t\tChange json document name (max 25 chars)";
-const char FuncDBComment[] PROGMEM = "<name>\n\t\tChange insert into database function name (max 25 chars)";
+const char CookieDBComment[] PROGMEM = "<cookie>\n\t\tChange cookie for communication with database (max " STR(DB_COOKIE_SIZE) " chars)";
+const char NameDBComment[] PROGMEM = "<name>\n\t\tChange database name (max " STR(DB_NAME_SIZE) " chars)";
+const char DocDBComment[] PROGMEM = "<name>\n\t\tChange json document name (max " STR(DB_DOC_SIZE) " chars)";
+const char FuncDBComment[] PROGMEM = "<name>\n\t\tChange insert into database function name (max " STR(DB_FUNC_SIZE) " chars)";
 const char CloseComment[] PROGMEM = "Close user interface savely";
 
 struct cmd baCMD = {"ba", handleTwiaddr, Uint_2, TwiaddrComment};
@@ -83,10 +84,10 @@ struct cmd cmds[]={
   {"d.s", handleSendDB, Int, SendDBComment},
   {"d.ip", handleIpDB, UintDot_4, IpDBComment},
   {"d.p", handlePortDB, Uint, PortDBComment},
-  {"d.ck", handleCookieDB, String100, CookieDBComment},
-  {"d.n", handleNameDB, String50, NameDBComment},
-  {"d.d", handleDocDB, String25, DocDBComment},
-  {"d.f", handleFuncDB, String25, FuncDBComment},
+  {"d.ck", handleCookieDB, FormatCookieDB, CookieDBComment},
+  {"d.n", handleNameDB, FormatNameDB, NameDBComment},
+  {"d.d", handleDocDB, FormatDocDB, DocDBComment},
+  {"d.f", handleFuncDB, FormatFuncDB, FuncDBComment},
   {"d.v", handleViewResponseDB, NULL, ViewResponseDBComment},
   // eeprom cmd
   {"res", handleReset, NULL, ResetComment},
@@ -470,7 +471,7 @@ int8_t handlePortDB(){
 }
 
 int8_t handleCookieDB(){
-  int16_t paramsCount=fscanf_P(&sock_stream, String100, &(cfg.cookie_db));
+  int16_t paramsCount=fscanf_P(&sock_stream, FormatCookieDB, &(cfg.cookie_db));
   if(paramsCount==1){
     fputs_P(New, &sock_stream);
   }
@@ -484,7 +485,7 @@ int8_t handleCookieDB(){
 }
 
 int8_t handleNameDB(){
-  int16_t paramsCount=fscanf_P(&sock_stream, String50, &(cfg.name_db));
+  int16_t paramsCount=fscanf_P(&sock_stream, FormatNameDB, &(cfg.name_db));
 
   if(paramsCount==1){
     fputs_P(New, &sock_stream);
@@ -499,7 +500,7 @@ int8_t handleNameDB(){
 }
 
 int8_t handleDocDB(){
-  int16_t paramsCount=fscanf_P(&sock_stream, String25, &(cfg.doc_db));
+  int16_t paramsCount=fscanf_P(&sock_stream, FormatDocDB, &(cfg.doc_db));
 
   if(paramsCount==1){
     fputs_P(New, &sock_stream);
@@ -514,7 +515,7 @@ int8_t handleDocDB(){
 }
 
 int8_t handleFuncDB(){
-  int16_t paramsCount=fscanf_P(&sock_stream, String25, &(cfg.func_db));
+  int16_t paramsCount=fscanf_P(&sock_stream, FormatFuncDB, &(cfg.func_db));
 
   if(paramsCount==1){
     fputs_P(New, &sock_stream);
