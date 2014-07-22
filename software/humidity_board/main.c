@@ -15,7 +15,8 @@
 #define TLONG_US 96
 #define TSHORT_US 32
 #define CRC8 49
-//set debug module
+// set debug module
+// XXX using debug module will influent the frequence of the sending data via ZAC wire protocol because of printf, so the connected collection board will not alreadys get sent data
 //#define DEBUG
 
 uint8_t capH=0;

@@ -41,7 +41,8 @@ const char Uint_2[] PROGMEM = "%u %u";
 const char UintDot_4[] PROGMEM = "%u.%u.%u.%u";
 const char UintDot_4Slash[] PROGMEM = "%u.%u.%u.%u/%u";
 const char HexColon_6[] PROGMEM = "%x:%x:%x:%x:%x:%x";
-const char String60[] PROGMEM = "%60s";
+const char String100[] PROGMEM = "%100s";
+const char String50[] PROGMEM = "%50s";
 const char String25[] PROGMEM = "%25s";
 
 const char SendDBComment[] PROGMEM = "<1|0>\n\t\t1: Enable sending data to database; 2: Disable sending data to database";
@@ -61,8 +62,8 @@ const char MacComment[] PROGMEM = "<mac>\n\t\tChange the ethernet mac";
 const char GwComment[] PROGMEM = "<gw>\n\t\tChange the gateway";
 const char IpDBComment[] PROGMEM = "<ip>\n\t\tChange the IP address of database";
 const char PortDBComment[] PROGMEM = "<port>\n\t\tChange port of database";
-const char CookieDBComment[] PROGMEM = "<cookie>\n\t\tChange cookie for communication with database (max 60 chars)";
-const char NameDBComment[] PROGMEM = "<name>\n\t\tChange database name (max 25 chars)";
+const char CookieDBComment[] PROGMEM = "<cookie>\n\t\tChange cookie for communication with database (max 100 chars)";
+const char NameDBComment[] PROGMEM = "<name>\n\t\tChange database name (max 50 chars)";
 const char DocDBComment[] PROGMEM = "<name>\n\t\tChange json document name (max 25 chars)";
 const char FuncDBComment[] PROGMEM = "<name>\n\t\tChange insert into database function name (max 25 chars)";
 const char CloseComment[] PROGMEM = "Close user interface savely";
@@ -82,8 +83,8 @@ struct cmd cmds[]={
   {"d.s", handleSendDB, Int, SendDBComment},
   {"d.ip", handleIpDB, UintDot_4, IpDBComment},
   {"d.p", handlePortDB, Uint, PortDBComment},
-  {"d.ck", handleCookieDB, String60, CookieDBComment},
-  {"d.n", handleNameDB, String25, NameDBComment},
+  {"d.ck", handleCookieDB, String100, CookieDBComment},
+  {"d.n", handleNameDB, String50, NameDBComment},
   {"d.d", handleDocDB, String25, DocDBComment},
   {"d.f", handleFuncDB, String25, FuncDBComment},
   {"d.v", handleViewResponseDB, NULL, ViewResponseDBComment},
@@ -150,7 +151,7 @@ void send_result(struct dummy_packet * packets){
 	uint8_t s;
 	int16_t value;
   for (s=0;s<8;s++){
-    fprintf_P(&sock_stream, PSTR(" | S%u: "), s+1);
+    fprintf_P(&sock_stream, PSTR(" | S%u: "), s);
     if(packets[s].header.error && packets[s].header.connected){
       fprintf_P(&sock_stream, PSTR("ERROR %4u"), packets[s].header.error);
     }
@@ -469,7 +470,7 @@ int8_t handlePortDB(){
 }
 
 int8_t handleCookieDB(){
-  int16_t paramsCount=fscanf_P(&sock_stream, String60, &(cfg.cookie_db));
+  int16_t paramsCount=fscanf_P(&sock_stream, String100, &(cfg.cookie_db));
   if(paramsCount==1){
     fputs_P(New, &sock_stream);
   }
@@ -483,7 +484,7 @@ int8_t handleCookieDB(){
 }
 
 int8_t handleNameDB(){
-  int16_t paramsCount=fscanf_P(&sock_stream, String25, &(cfg.name_db));
+  int16_t paramsCount=fscanf_P(&sock_stream, String50, &(cfg.name_db));
 
   if(paramsCount==1){
     fputs_P(New, &sock_stream);

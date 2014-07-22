@@ -16,8 +16,8 @@ struct config {
   int8_t send_db;
   uint8_t ip_db[4];
   uint16_t port_db;
-  char cookie_db[60];
-  char name_db[25];
+  char cookie_db[100];
+  char name_db[50];
   char doc_db[25];
   char func_db[25];
 };
