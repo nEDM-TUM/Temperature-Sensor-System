@@ -27,6 +27,8 @@ struct config {
   char name_db[DB_NAME_SIZE];
   char doc_db[DB_DOC_SIZE];
   char func_db[DB_FUNC_SIZE];
+  uint8_t interval;
+  uint32_t measure_interval;
 };
 
 extern struct config cfg;

@@ -22,7 +22,6 @@ uint8_t closedSock = MAX_SERVER_SOCK_NUM + FIRST_SERVER_SOCK;
 
 uint8_t data_request[MAX_SERVER_SOCK_NUM] = {0};
 uint8_t db_response_request[MAX_SERVER_SOCK_NUM] = {0};
-uint32_t measure_interval = 1000;
 
 char receiveBuff[MAX_SERVER_SOCK_NUM][MAX_CMD_LEN];
 uint8_t receiveBuffPointer[MAX_SERVER_SOCK_NUM] = {0}; // Point to a byte, which will be written
@@ -196,9 +195,9 @@ void net_sendHeadToDB(uint16_t len){
   fprintf_P(&sock_stream, UintDot_4Colon, cfg.ip_db[0], cfg.ip_db[1], cfg.ip_db[2], cfg.ip_db[3], cfg.port_db);
   fputc('\n', &sock_stream);
   // 3rd line: Cookie: AuthSession="{cookie_db}"
-  fputs_P(PSTR("Cookie: AuthenSeesion=\""), &sock_stream);
+  fputs_P(PSTR("Cookie: AuthSession="), &sock_stream);
   fputs(cfg.cookie_db, &sock_stream);
-  fputs_P(PSTR("\"\n"), &sock_stream);
+  fputc('\n', &sock_stream);
   // 4th line: X-CouchDB-WWW-Authenticate: Cookie
   fputs_P(PSTR("X-CouchDB-WWW-Authenticate: Cookie\n"), &sock_stream);
   // 5rd line: Content-type: application/json

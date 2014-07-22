@@ -25,7 +25,6 @@ extern uint8_t ui_state;
 
 extern uint8_t data_request[MAX_SERVER_SOCK_NUM];
 extern uint8_t db_response_request[MAX_SERVER_SOCK_NUM];
-extern uint32_t measure_interval;
 extern void (*twi_access_fun)();
 
 void net_beginService(void);

@@ -9,6 +9,7 @@
 #include "collector_twi.h"
 #include "packet.h"
 #include "SPI.h"
+#include "config.h"
 
 #define LOOP_MEASURE 1
 #define LOOP_IDLE 2
@@ -41,7 +42,7 @@ void loop_sampling(){
 	uint32_t current_time = millis();
 	switch (loop_state){
 		case LOOP_IDLE:
-			if(get_time_delta(time_last_measurement, current_time) >= measure_interval){
+			if(get_time_delta(time_last_measurement, current_time) >= cfg.measure_interval){
 #ifdef DEBUG
 				puts(PSTR("start!\n\r"));
 #endif

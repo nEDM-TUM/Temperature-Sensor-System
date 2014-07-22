@@ -135,12 +135,12 @@ int8_t handleInterval(){
   int8_t result = FAILED_PARAMS_PARSE;
   paramsCount = fscanf_P(&sock_stream, ULong, &interval_tmp);
 	if(paramsCount == 1){
-		measure_interval = interval_tmp*1000;
+		cfg.measure_interval = interval_tmp*1000;
     fputs_P(New, &sock_stream);
     result = SUCCESS_PARAMS_PARSE;
 	}
   fputs_P(Colon, &sock_stream);
-  fprintf_P(&sock_stream, ULong, measure_interval/1000);
+  fprintf_P(&sock_stream, ULong, cfg.measure_interval/1000);
   if(result == SUCCESS_PARAMS_PARSE){
     fputs_P(StoreOption, &sock_stream);
   }
