@@ -22,11 +22,11 @@ struct {
   ///*.send_db = */0,
   ///*.ip_db = */{192., 168, 1, 9},
   ///*.port_db = */5984,
-  ///*.cookie_db[DB_COOKIE_SIZE] = */"YXJkdWlub190ZW1wZXJhdHVyZV93cml0ZXI6NTNDRDA2NUU6sXrFV2CQrCD87BQ3-9ghir_1QGM",
+  ///*.cookie_db[DB_COOKIE_SIZE] = */"YXJkdWlub190ZW1wZXJhdHVyZV93cml0ZXI6NTNDRTREMUM6Lf5Oi3ewnCudlP4694jiaMcSXKc",
   ///*.name_db[DB_NAME_SIZE] = */"nedm%2Ftemperature_environment",
   ///*.doc_db[DB_DOC_SIZE] = */"nedm_default",
   ///*.func_db[DB_FUNC_SIZE] = */"insert_with_timestamp",
-  ///*.interval = */5,
+  ///*.interval = */5000,
 	// Arduino 2
   /*.mac = */{0x90, 0xA2, 0xDA, 0x00, 0xE3, 0x5B},
   /*.ip = */{192, 168, 1, 62},
@@ -36,11 +36,11 @@ struct {
   /*.send_db = */0,
   /*.ip_db = */{192., 168, 1, 9},
   /*.port_db = */5984,
-  /*.cookie_db[DB_COOKIE_SIZE] = */"YXJkdWlub190ZW1wZXJhdHVyZV93cml0ZXI6NTNDRDA2NUU6sXrFV2CQrCD87BQ3-9ghir_1QGM",
+  /*.cookie_db[DB_COOKIE_SIZE] = */"YXJkdWlub190ZW1wZXJhdHVyZV93cml0ZXI6NTNDRTREMUM6Lf5Oi3ewnCudlP4694jiaMcSXKc",
   /*.name_db[DB_NAME_SIZE] = */"nedm%2Ftemperature_environment",
   /*.doc_db[DB_DOC_SIZE] = */"nedm_default",
   /*.func_db[DB_FUNC_SIZE] = */"insert_with_timestamp",
-  /*.measure_interval = */5,
+  /*.measure_interval = */5000,
   }
 };
 
