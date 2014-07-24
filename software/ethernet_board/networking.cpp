@@ -143,8 +143,12 @@ void handle_db_response(){
 	}
 
 	if(redirect_flag == 0){
+    // if no one wants to have the data, we can just clear the whole socket receive buffer.
 		net_clear_rcv_buf(DB_CLIENT_SOCK);
 	}else{
+    // if at leat one wants to have the DB response redirected,
+    // we receive byte by byte and forward them to the apropriate user interface:
+    // FIXME: do we have to backup the current socket here, as we change socket?
 		while(recv(DB_CLIENT_SOCK, &b, 1) > 0){
 			content_flag = 1;
 #ifdef DEBUG
@@ -163,8 +167,10 @@ void handle_db_response(){
 		putc('\r', stdout);
 #endif
 		if(!content_flag){
+      // no data was available:
 			return;
 		}
+    // we just feel like sending some newlines  :P ... FIXME: do we need this?
 		for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
 			if(db_response_request[index]){
 				stream_set_sock(index+FIRST_SERVER_SOCK); 
@@ -222,7 +228,7 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
     }
   }
   // Calculate length for the JSON header:
-  for (sensor_index=0;sensor_index<8;sensor_index++){
+  for (sensor_index=0; sensor_index<8; sensor_index++){
     if(packets[sensor_index].header.error && packets[sensor_index].header.connected){
       // We do not send data, which might have an error
       continue;
@@ -314,38 +320,55 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
 
 void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
 	uint8_t i;
+  // make a backup of currently active socket
+  // as we have to switch socket to db socket
+  // FIXME: should we flush the active socket here?
   uint8_t currSock = stream_get_sock();
+
 #ifdef DEBUG
 	uint32_t t1,t2;
 #endif
+
+  // send data to the database, if required:
   if(cfg.send_db){
+
 #ifdef DEBUG
 		t1 = millis();
 #endif
+
     net_sendResultToDB(received, src_addr);
+
 #ifdef DEBUG
 		t1 = net_get_time_delta(t1, millis());
 #endif
+
   }
+
 #ifdef DEBUG
 	t2 = millis();
 #endif
-	for(i=0; i< MAX_SERVER_SOCK_NUM; i++){
-		if (data_request[i]){
+
+  // now send data to user intrefaces, if they requested so:
+  for(i=0; i< MAX_SERVER_SOCK_NUM; i++){
+    if (data_request[i]){
       if(W5100.readSnSR(i+FIRST_SERVER_SOCK) == SnSR::ESTABLISHED){
-			stream_set_sock(i+FIRST_SERVER_SOCK);
-			fprintf_P(&sock_stream, PSTR("\n%u :: "), src_addr);
-			send_result(received);
-      sock_stream_flush();
+        stream_set_sock(i+FIRST_SERVER_SOCK);
+        fprintf_P(&sock_stream, PSTR("\n%u :: "), src_addr);
+        send_result(received);
+        sock_stream_flush();
       }else{
+        // if no the requesting client is already disconnected,
+        // remove him from the request list:
         data_request[i] = 0;
       }
-		}
-	}
+    }
+  }
 #ifdef DEBUG
 	t2 = net_get_time_delta(t2, millis());
 	printf_P(PSTR("ts %lu, %lu\n\r"),t1,t2);
 #endif
+
+  // restore socket:
   stream_set_sock(currSock);
 }
 
@@ -390,6 +413,8 @@ void serve(){
   uint8_t cmd_state;
   closedSock = MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK;
   listeningSock = MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK;
+
+  // iterate over all user interface sockets:
   for(i=FIRST_SERVER_SOCK; i<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; i++){
     snSR = W5100.readSnSR(i);
 #ifdef DEBUG
@@ -409,12 +434,13 @@ void serve(){
         break;
       case SnSR::ESTABLISHED:
         cmd_state = ui_handleCMD(i);
-        puts_P("c\n\r");
-				if(cmd_state == SUSPEND){
-					// handleCMD requested, to not accept new commands,
-					// so we return here:
-					return;
-				}
+        // in current uploaded version PSTR was missing. -> wrong data is printed
+        puts_P(PSTR("c\n\r"));
+        if(cmd_state == SUSPEND){
+          // handleCMD requested, to not accept new commands,
+          // so we return here:
+          return;
+        }
         break;
       case SnSR::CLOSE_WAIT:
 #ifdef DEBUG
@@ -429,17 +455,19 @@ void serve(){
 #ifdef DEBUG
   printf_P(PSTR("Listening socket %d, closed socket %d\n\r"),listeningSock, closedSock);
 #endif
-  if(listeningSock == MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK && closedSock < MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK){
+  if( (listeningSock == MAX_SERVER_SOCK_NUM + FIRST_SERVER_SOCK) && (closedSock < MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK) ){
+    // no one is listening, and we have at least one closed socket available
+    // -> we can again open one closed socket for listening
     socket(closedSock, SnMR::TCP, cfg.port, 0);    
     listen(closedSock);
   }
-  handle_db_response();
 }
 
 void net_loop(){
 	switch(ui_state){
 		case UI_READY:
 			serve();
+      handle_db_response();
 			break;
 		case UI_TWILOCK:
 			// we do not process new socket inputs, as we have to wait for the twi bus to become ready:

@@ -91,9 +91,14 @@ void loop_sampling(){
 #ifdef DEBUG
 					puts_P(PSTR("measurement finished\n\r"));
 #endif
+          // --------------------------------------------
+          // we have received data from a collector board
+          // --------------------------------------------
+          // verify checksums:
 					twi_verify_checksums(received, 8);
-
+          // hand packets to network layer:
 					net_dataAvailable(received, addr_current_board);
+
 					// switch to next board:
 					loop_current_board ++;
 					if(loop_current_board < num_boards){
