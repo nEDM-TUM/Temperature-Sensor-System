@@ -14,6 +14,7 @@
 #include <Ethernet.h>
 #include "w5100.h"
 #include <Arduino.h>
+#include "wdt_delay.h"
 // set debug mode
 // #define DEBUG
 
@@ -80,7 +81,8 @@ void try_connect_db(uint16_t srcPort){
   printf_P(PSTR("Try to connect with DB with port %d\n\r"), srcPort);
 #endif
   close(DB_CLIENT_SOCK);
-  _delay_ms(100);
+  // FIXME: why does this delay exist?
+  wdt_delay_ms(100);
   srcPort = getAvailableSrcPort(srcPort);
   socket(DB_CLIENT_SOCK, SnMR::TCP, srcPort, 0);
   connect(DB_CLIENT_SOCK, cfg.ip_db, cfg.port_db);
@@ -107,7 +109,8 @@ int8_t connect_db(uint16_t srcPort){
 #endif
       return 0;  
     }
-    _delay_ms(10);
+    // FIXME: delay!!! is this avoidable?
+    wdt_delay_ms(10);
   }
   return 1;
 }
@@ -399,7 +402,9 @@ void net_beginService() {
   socket(FIRST_SERVER_SOCK, SnMR::TCP, cfg.port, 0);
   while(!listen(FIRST_SERVER_SOCK)){
     // wait a second and try again
-    _delay_ms(1000);
+    // FIXME: why is this delay so long? is it posible to make this watchdog friendly?
+    // or just shorter?
+    wdt_delay_ms(1000);
   }
   // connect to db, if do send to db 
   // Create client to db

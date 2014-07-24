@@ -21,7 +21,7 @@ FORMAT = ihex
 
 # Project files
 PROJECT_PATH = .
-PROJECT_C_OBJS = usart.o collector_twi.o config.o
+PROJECT_C_OBJS = usart.o collector_twi.o config.o wdt_delay.o
 PROJECT_CPP_OBJS = main.o networking.o sock_stream.o user_cmd.o
 
 PROJECT_UTIL_PATH = ../util

@@ -10,6 +10,7 @@
 #include "packet.h"
 #include "SPI.h"
 #include "config.h"
+#include <avr/wdt.h>
 
 #define LOOP_MEASURE 1
 #define LOOP_IDLE 2
@@ -157,6 +158,7 @@ void loop_sampling(){
 int main (void)
 {
 
+  wdt_enable(WDTO_2S);
   init();
 	uart_init();
 	// fast SPI mode:
@@ -177,9 +179,12 @@ int main (void)
 
   net_setupServer();
 
+  wdt_reset();
 	// main event loop
 	while (1) {
 		loop_sampling();
+    wdt_reset();
 		net_loop();
+    wdt_reset();
 	}
 }

@@ -124,7 +124,7 @@ uint8_t twi_start(){
 	//do{
 		//TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
 		//_delay_us(200);
-    _delay_us(5);
+    _delay_us(10);
 		TWBR = 20;
 		TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
 		twi_wait_timeout(5);

@@ -4,6 +4,7 @@
 #include "config.h"
 #include "socket.h"
 #include "packet.h"
+#include "wdt_delay.h"
 #include <util/delay.h>
 
 // set debug mode
@@ -384,8 +385,8 @@ int8_t handleReset(){
   for(index= DB_CLIENT_SOCK; index<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; index++){
     disconnect(index);
   }
-  // Wait a second to close all sockets
-  _delay_ms(500);
+  // Wait a some time to close all sockets
+  wdt_delay_ms(500);
   for(index= DB_CLIENT_SOCK; index<MAX_SERVER_SOCK_NUM+FIRST_SERVER_SOCK; index++){
     if(W5100.readSnSR(index) != SnSR::CLOSED){
       // If a socket is still not closed, force it
