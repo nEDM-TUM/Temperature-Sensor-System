@@ -270,6 +270,7 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
   printf_P(PSTR("Send PREFIX \n\r"));
 #endif
   comma_flag = 0;
+  puts_P(PSTR("+"));
   for (sensor_index=0;sensor_index<8;sensor_index++){
     if(packets[sensor_index].header.error && packets[sensor_index].header.connected){
       continue;
@@ -325,6 +326,7 @@ void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
 	uint32_t t1,t2;
 #endif
 
+  puts_P(PSTR("."));
   // send data to the database, if required:
   if(cfg.send_db){
 
@@ -333,6 +335,7 @@ void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
 #endif
 
     net_sendResultToDB(received, src_addr);
+  puts_P(PSTR(","));
 
 #ifdef DEBUG
 		t1 = net_get_time_delta(t1, millis());
@@ -364,6 +367,7 @@ void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
 	printf_P(PSTR("ts %lu, %lu\n\r"),t1,t2);
 #endif
 
+  puts_P(PSTR("-"));
   // restore socket:
   stream_set_sock(currSock);
 }

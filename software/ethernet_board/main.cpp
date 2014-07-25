@@ -88,7 +88,8 @@ void loop_sampling(){
 			rcv_state = twi_try_receive_data(addr_current_board, ((uint8_t*)received),8*sizeof(struct dummy_packet), rcv_state);
 			switch (rcv_state){
 				case TWI_RCV_FIN:
-          puts_P(PSTR("rcfi\n\r"));
+          puts_P(PSTR("f"));
+          // DBG here
 #ifdef DEBUG
 					puts_P(PSTR("measurement finished\n\r"));
 #endif
@@ -97,8 +98,10 @@ void loop_sampling(){
           // --------------------------------------------
           // verify checksums:
 					twi_verify_checksums(received, 8);
+          puts_P(PSTR("c"));
           // hand packets to network layer:
 					net_dataAvailable(received, addr_current_board);
+          puts_P(PSTR("d"));
 
 					// switch to next board:
 					loop_current_board ++;
@@ -108,7 +111,10 @@ void loop_sampling(){
 						if(rcv_state != TWI_RCV_ERROR){
 							loop_state = LOOP_MEASURE;
 						}else{
+              //puts_P(PSTR("x")); // XXX not in currently uploaded
 							// FIXME: this wil abort every succeeding board readout if one fails
+              // FIXME: do we need to set rcv_state here to valid value?
+              // should not be a problem, because we go to loop_idle ...
 							twi_free_bus();
               // ////////
               // BUS FREE
@@ -122,6 +128,7 @@ void loop_sampling(){
             // ////////
 						loop_state = LOOP_IDLE;
 					}
+          puts_P(PSTR("s\n\r"));
 					break;
 				case TWI_RCV_ERROR:
           puts_P(PSTR("rcERR\n\r"));
@@ -134,7 +141,7 @@ void loop_sampling(){
 					loop_state = LOOP_IDLE;
 					break;
 				default:
-          puts_P(PSTR("rcv\n\r"));
+          //puts_P(PSTR("rcv\n\r"));
 					// we still have to receive:
 					loop_state = LOOP_MEASURE;
 					if(get_time_delta(time_receive_start, current_time) >= 800){
@@ -158,14 +165,17 @@ void loop_sampling(){
 int main (void)
 {
 
-  wdt_enable(WDTO_2S);
+  //wdt_enable(WDTO_2S);
   init();
 	uart_init();
 	// fast SPI mode:
 	SPI.setClockDivider(4);
 	sei();
 
+
+
 	DDRD = (1<<PD5);
+  DDRB = (1<<PB1);
 
 	printf_P(PSTR("Controller started\n\r"));
 	num_boards = twi_scan(scanresults, 20);
@@ -180,8 +190,14 @@ int main (void)
   net_setupServer();
 
   wdt_reset();
+  uint16_t dcnt = 0;
 	// main event loop
 	while (1) {
+    dcnt ++;
+    if(dcnt >= 1000){
+      PORTB ^= (1<<PB1);
+      dcnt = 0;
+    }
 		loop_sampling();
     wdt_reset();
 		net_loop();

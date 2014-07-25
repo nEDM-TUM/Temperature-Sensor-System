@@ -294,6 +294,7 @@ uint8_t twi_verify_checksums(struct dummy_packet * packet, uint8_t num){
 }
 
 uint8_t twi_try_receive_data(uint8_t address, uint8_t * buffer, uint8_t len, uint8_t state){
+  // FIXME: check this state machine, if main does make weird transition because of receive error
 	switch(state){
 		case TWI_RCV_START:
 			if (!twi_start()){
@@ -375,6 +376,7 @@ uint8_t twi_try_receive_data(uint8_t address, uint8_t * buffer, uint8_t len, uin
 				return TWI_RCV_RECEIVE;
 			}
 	}
+  // FIXME: no default case! might be responsible for problem
 }
 
 uint8_t twi_receive_data(uint8_t address, uint8_t * buffer, uint8_t len){
