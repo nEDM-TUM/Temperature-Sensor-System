@@ -99,14 +99,12 @@ void loop_sampling(){
           // we have received data from a collector board
           // --------------------------------------------
           // verify checksums:
-          PORTD &= ~(1<<PD5);
+            // XXX hang here??? XXX
 					twi_verify_checksums(received, 8);
-          PORTD |= (1<<PD5);
           //puts_P(PSTR("c"));
           // hand packets to network layer:
-          PORTB &= ~(1<<PB1);
+            // XXX hang here??? XXX
 					net_dataAvailable(received, addr_current_board);
-          PORTB |= (1<<PB1);
           //puts_P(PSTR("d"));
 
 					// switch to next board:
@@ -116,6 +114,7 @@ void loop_sampling(){
           }
 					if(loop_current_board < num_boards){
 						addr_current_board = scanresults[loop_current_board];
+            // XXX hang here??? XXX
 						rcv_state = twi_try_receive_data(addr_current_board, ((uint8_t*)received),8*sizeof(struct dummy_packet), TWI_RCV_START);
 						if(rcv_state != TWI_RCV_ERROR){
 							loop_state = LOOP_MEASURE;

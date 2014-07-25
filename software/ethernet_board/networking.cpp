@@ -91,7 +91,10 @@ void try_connect_db(uint16_t srcPort){
 int8_t connect_db(uint16_t srcPort){
   int8_t syn_flag = 0;
   try_connect_db(srcPort);
+  // should we add a delay here???? we might get stuck
+  // XXX XXX XXX
   while(W5100.readSnSR(DB_CLIENT_SOCK) != SnSR::ESTABLISHED) {
+    // FIXME: implement a maximum number of tries here!
 #ifdef DEBUG
     printf_P(PSTR("Connection to DB Status %x\n\r"), W5100.readSnSR(DB_CLIENT_SOCK));
 #endif
@@ -200,11 +203,13 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
   int8_t comma_flag = 0;
   int16_t value;
   uint16_t len=0;
+  PORTB &= ~(1<<PB1);
   if( W5100.readSnSR(DB_CLIENT_SOCK) != SnSR::ESTABLISHED ){
     if(!connect_db(cfg.port+1)){
       return;
     }
   }
+  PORTB |= (1<<PB1);
   // Calculate length for the JSON header:
   for (sensor_index=0; sensor_index<8; sensor_index++){
     if(packets[sensor_index].header.error && packets[sensor_index].header.connected){
@@ -308,7 +313,9 @@ void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
   //puts_P(PSTR("."));
   // send data to the database, if required:
   if(cfg.send_db){
+    PORTD &= ~(1<<PD5);
     net_sendResultToDB(received, src_addr);
+    PORTD |= (1<<PD5);
   //puts_P(PSTR(","));
   }
 
