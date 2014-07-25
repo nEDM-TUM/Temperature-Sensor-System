@@ -204,12 +204,12 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
   int16_t value;
   uint16_t len=0;
   PORTB &= ~(1<<PB1);
+  PORTD &= ~(1<<PD5);
   if( W5100.readSnSR(DB_CLIENT_SOCK) != SnSR::ESTABLISHED ){
     if(!connect_db(cfg.port+1)){
       return;
     }
   }
-  PORTB |= (1<<PB1);
   // Calculate length for the JSON header:
   for (sensor_index=0; sensor_index<8; sensor_index++){
     if(packets[sensor_index].header.error && packets[sensor_index].header.connected){
@@ -236,6 +236,7 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
       }
     }
   }
+  PORTB |= (1<<PB1);
   if(len==0){
     return;
   }
@@ -259,6 +260,8 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
 #endif
   comma_flag = 0;
   //puts_P(PSTR("+"));
+  PORTB &= ~(1<<PB1);
+  PORTD |= (1<<PD5);
   for (sensor_index=0;sensor_index<8;sensor_index++){
     if(packets[sensor_index].header.error && packets[sensor_index].header.connected){
       continue;
@@ -300,6 +303,7 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
   printf_P(PSTR("Send finished \n\r"));
 #endif
   sock_stream_flush();
+  PORTB |= (1<<PB1);
 }
 
 void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
@@ -313,9 +317,7 @@ void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
   //puts_P(PSTR("."));
   // send data to the database, if required:
   if(cfg.send_db){
-    PORTD &= ~(1<<PD5);
     net_sendResultToDB(received, src_addr);
-    PORTD |= (1<<PD5);
   //puts_P(PSTR(","));
   }
 
