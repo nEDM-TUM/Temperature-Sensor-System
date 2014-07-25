@@ -45,24 +45,24 @@ void loop_sampling(){
 		case LOOP_IDLE:
 			if(get_time_delta(time_last_measurement, current_time) >= cfg.measure_interval){
         // time is ready, we have to do measurement
-        puts_P(PSTR("t=0,"));
+        puts_P(PSTR("t=0\n\r"));
 				if(twi_try_lock_bus()){
           // ##########
           // BUS LOCKED
           // ##########
-          puts_P(PSTR("lck,"));
+          //puts_P(PSTR("lck,"));
 					time_last_measurement = current_time;
 					num_boards = twi_scan(scanresults, 20);
 					twi_start_measurement(0x00);
 					loop_current_board = 0;
 					if(loop_current_board < num_boards){
             // we have boards :)
-            puts_P(PSTR(",brd"));
+            //puts_P(PSTR(",brd"));
 						time_receive_start = current_time;
 						addr_current_board = scanresults[loop_current_board];
 						rcv_state = twi_try_receive_data(addr_current_board, ((uint8_t*)received),8*sizeof(struct dummy_packet), TWI_RCV_START);
 						if(rcv_state != TWI_RCV_ERROR){
-              puts_P(PSTR("ok\n\r"));
+              //puts_P(PSTR("ok\n\r"));
 							loop_state = LOOP_MEASURE;
               // bus is still locked!!
 						}else{
@@ -79,7 +79,9 @@ void loop_sampling(){
             // BUS FREE
             // ////////
 					}
-				}
+				}else{
+            puts_P(PSTR("lock error\n\r"));
+        }
 			}
 			break;
 
@@ -88,7 +90,7 @@ void loop_sampling(){
 			rcv_state = twi_try_receive_data(addr_current_board, ((uint8_t*)received),8*sizeof(struct dummy_packet), rcv_state);
 			switch (rcv_state){
 				case TWI_RCV_FIN:
-          puts_P(PSTR("f"));
+          //puts_P(PSTR("f"));
           // DBG here
 #ifdef DEBUG
 					puts_P(PSTR("measurement finished\n\r"));
@@ -97,21 +99,28 @@ void loop_sampling(){
           // we have received data from a collector board
           // --------------------------------------------
           // verify checksums:
+          PORTD &= ~(1<<PD5);
 					twi_verify_checksums(received, 8);
-          puts_P(PSTR("c"));
+          PORTD |= (1<<PD5);
+          //puts_P(PSTR("c"));
           // hand packets to network layer:
+          PORTB &= ~(1<<PB1);
 					net_dataAvailable(received, addr_current_board);
-          puts_P(PSTR("d"));
+          PORTB |= (1<<PB1);
+          //puts_P(PSTR("d"));
 
 					// switch to next board:
 					loop_current_board ++;
+          if(num_boards < 3){ // XXX just for debug
+            puts_P(PSTR("not brd\n\r"));
+          }
 					if(loop_current_board < num_boards){
 						addr_current_board = scanresults[loop_current_board];
 						rcv_state = twi_try_receive_data(addr_current_board, ((uint8_t*)received),8*sizeof(struct dummy_packet), TWI_RCV_START);
 						if(rcv_state != TWI_RCV_ERROR){
 							loop_state = LOOP_MEASURE;
 						}else{
-              //puts_P(PSTR("x")); // XXX not in currently uploaded
+              puts_P(PSTR("x"));
 							// FIXME: this wil abort every succeeding board readout if one fails
               // FIXME: do we need to set rcv_state here to valid value?
               // should not be a problem, because we go to loop_idle ...
@@ -128,7 +137,7 @@ void loop_sampling(){
             // ////////
 						loop_state = LOOP_IDLE;
 					}
-          puts_P(PSTR("s\n\r"));
+          //puts_P(PSTR("s\n\r"));
 					break;
 				case TWI_RCV_ERROR:
           puts_P(PSTR("rcERR\n\r"));
@@ -177,6 +186,12 @@ int main (void)
 	DDRD = (1<<PD5);
   DDRB = (1<<PB1);
 
+
+  PORTB &= ~(1<<PB1);
+  PORTD &= ~(1<<PD5);
+  _delay_ms(1000); //debug only XXX
+
+
 	printf_P(PSTR("Controller started\n\r"));
 	num_boards = twi_scan(scanresults, 20);
 
@@ -193,11 +208,11 @@ int main (void)
   uint16_t dcnt = 0;
 	// main event loop
 	while (1) {
-    dcnt ++;
-    if(dcnt >= 1000){
-      PORTB ^= (1<<PB1);
-      dcnt = 0;
-    }
+    //dcnt ++;
+    //if(dcnt >= 1000){
+    //  PORTB ^= (1<<PB1);
+    //  dcnt = 0;
+    //}
 		loop_sampling();
     wdt_reset();
 		net_loop();

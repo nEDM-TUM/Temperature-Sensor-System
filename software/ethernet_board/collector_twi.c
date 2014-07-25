@@ -299,6 +299,7 @@ uint8_t twi_try_receive_data(uint8_t address, uint8_t * buffer, uint8_t len, uin
 		case TWI_RCV_START:
 			if (!twi_start()){
 				TWCR = (1<<TWINT) | (1<<TWSTO) | (1<<TWEN);
+        printf_P(PSTR("twi start err\n\r"));
 				return TWI_RCV_ERROR;
 			}
 			TWDR = (address<<1) | 1;
@@ -347,6 +348,8 @@ uint8_t twi_try_receive_data(uint8_t address, uint8_t * buffer, uint8_t len, uin
 			break;
 		case TWI_RCV_RECEIVE:
 			if (TWCR & (1<<TWINT)){
+        // FIXME: we might hang here!!! sometimes it might happen that no interrupt of i2c arrives (maybe some bus error)
+        // and we stay in TWI_RCV_RECEIVE forever
 				while(TWSR == 0x50 && len > 0){
 					//printf_P(PSTR("byte received!\n\r"));
 					*buffer = TWDR;
@@ -370,6 +373,7 @@ uint8_t twi_try_receive_data(uint8_t address, uint8_t * buffer, uint8_t len, uin
 				if(len==1){
 					return TWI_RCV_FIN;
 				}else{
+				  printf_P(PSTR("not enough data\n\r"));
 					return TWI_RCV_ERROR;
 				}
 			}else{

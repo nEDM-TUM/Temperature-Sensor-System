@@ -134,10 +134,6 @@ void handle_db_response(){
   uint8_t b;
   uint8_t index;
   uint8_t content_flag = 0;
-#ifdef DEBUG
-	uint32_t t1;
-	t1 = millis();
-#endif
 	uint8_t redirect_flag = 0;
 	for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
 		if(db_response_request[index]){
@@ -154,9 +150,6 @@ void handle_db_response(){
     // Do not need to backup the current socket here, because it is not in serve function
 		while(recv(DB_CLIENT_SOCK, &b, 1) > 0){
 			content_flag = 1;
-#ifdef DEBUG
-			putc(b, stdout);
-#endif
 			for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
 				if(db_response_request[index]){
 					stream_set_sock(index+FIRST_SERVER_SOCK); 
@@ -165,21 +158,11 @@ void handle_db_response(){
 				}
 			}
 		}
-#ifdef DEBUG
-		putc('\n', stdout);
-		putc('\r', stdout);
-#endif
 		if(!content_flag){
       // no data was available:
 			return;
 		}
 	}
-#ifdef DEBUG
-	t1 = net_get_time_delta(t1, millis());
-	if(t1 >= 2){
-		printf_P(PSTR("re %lu\n\r"),t1);
-	}
-#endif
 }
 
 void net_sendHeadToDB(uint16_t len){
@@ -270,7 +253,7 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
   printf_P(PSTR("Send PREFIX \n\r"));
 #endif
   comma_flag = 0;
-  puts_P(PSTR("+"));
+  //puts_P(PSTR("+"));
   for (sensor_index=0;sensor_index<8;sensor_index++){
     if(packets[sensor_index].header.error && packets[sensor_index].header.connected){
       continue;
@@ -322,30 +305,12 @@ void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
   // flush the active socket here?
   sock_stream_flush();
 
-#ifdef DEBUG
-	uint32_t t1,t2;
-#endif
-
-  puts_P(PSTR("."));
+  //puts_P(PSTR("."));
   // send data to the database, if required:
   if(cfg.send_db){
-
-#ifdef DEBUG
-		t1 = millis();
-#endif
-
     net_sendResultToDB(received, src_addr);
-  puts_P(PSTR(","));
-
-#ifdef DEBUG
-		t1 = net_get_time_delta(t1, millis());
-#endif
-
+  //puts_P(PSTR(","));
   }
-
-#ifdef DEBUG
-	t2 = millis();
-#endif
 
   // now send data to user intrefaces, if they requested so:
   for(i=0; i< MAX_SERVER_SOCK_NUM; i++){
@@ -362,12 +327,7 @@ void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
       }
     }
   }
-#ifdef DEBUG
-	t2 = net_get_time_delta(t2, millis());
-	printf_P(PSTR("ts %lu, %lu\n\r"),t1,t2);
-#endif
-
-  puts_P(PSTR("-"));
+  //puts_P(PSTR("-"));
   // restore socket:
   stream_set_sock(currSock);
 }
