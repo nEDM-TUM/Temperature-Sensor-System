@@ -404,6 +404,9 @@ void net_beginService() {
     // wait a second and try again
     // FIXME: why is this delay so long? is it posible to make this watchdog friendly?
     // or just shorter?
+    // FIXME: this might block forever!!!! (but it might be OK, as we can not do anything anyways)
+    // XXX this should not cause our random hang after some hous problem. ? because it is only called
+    // at the beginning.
     wdt_delay_ms(1000);
   }
   // connect to db, if do send to db 
