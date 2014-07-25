@@ -81,7 +81,7 @@ void try_connect_db(uint16_t srcPort){
   printf_P(PSTR("Try to connect with DB with port %d\n\r"), srcPort);
 #endif
   close(DB_CLIENT_SOCK);
-  // FIXME: why does this delay exist?
+  // wait 1 ms for closing the sock
   wdt_delay_ms(100);
   srcPort = getAvailableSrcPort(srcPort);
   socket(DB_CLIENT_SOCK, SnMR::TCP, srcPort, 0);
@@ -103,14 +103,14 @@ int8_t connect_db(uint16_t srcPort){
       }else{
         syn_flag = 1;
       }
+      // Wait 10 ms for sending syn
+      wdt_delay_ms(10);
     }else if (W5100.readSnSR(DB_CLIENT_SOCK) == SnSR::CLOSED) {
 #ifdef DEBUG
       printf_P(PSTR("DB closed!!!!\n\r"));
 #endif
       return 0;  
     }
-    // FIXME: delay!!! is this avoidable?
-    wdt_delay_ms(10);
   }
   return 1;
 }
@@ -151,7 +151,7 @@ void handle_db_response(){
 	}else{
     // if at leat one wants to have the DB response redirected,
     // we receive byte by byte and forward them to the apropriate user interface:
-    // FIXME: do we have to backup the current socket here, as we change socket?
+    // Do not need to backup the current socket here, because it is not in serve function
 		while(recv(DB_CLIENT_SOCK, &b, 1) > 0){
 			content_flag = 1;
 #ifdef DEBUG
@@ -172,14 +172,6 @@ void handle_db_response(){
 		if(!content_flag){
       // no data was available:
 			return;
-		}
-    // we just feel like sending some newlines  :P ... FIXME: do we need this?
-		for(index = 0; index< MAX_SERVER_SOCK_NUM; index++){
-			if(db_response_request[index]){
-				stream_set_sock(index+FIRST_SERVER_SOCK); 
-				fputc('\n', &sock_stream);
-				sock_stream_flush();
-			}
 		}
 	}
 #ifdef DEBUG
@@ -325,8 +317,9 @@ void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
 	uint8_t i;
   // make a backup of currently active socket
   // as we have to switch socket to db socket
-  // FIXME: should we flush the active socket here?
   uint8_t currSock = stream_get_sock();
+  // flush the active socket here?
+  sock_stream_flush();
 
 #ifdef DEBUG
 	uint32_t t1,t2;
@@ -386,8 +379,6 @@ void net_beginService() {
   toSubnetMask(cfg.subnet, sn);
   W5100.setSubnetMask(sn);
 
-
-
 	printf_P(PSTR("ip: %u.%u.%u.%u/%u:%u\n\r"), cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.subnet, cfg.port);
   printf_P(PSTR("subnet %u.%u.%u.%u\n\r"), sn[0], sn[1], sn[2], sn[3]);
 	printf_P(PSTR("mac: %x:%x:%x:%x:%x:%x\n\r"), cfg.mac[0], cfg.mac[1], cfg.mac[2], cfg.mac[3], cfg.mac[4], cfg.mac[5]);
@@ -401,10 +392,8 @@ void net_beginService() {
   // Create the first server socket
   socket(FIRST_SERVER_SOCK, SnMR::TCP, cfg.port, 0);
   while(!listen(FIRST_SERVER_SOCK)){
-    // wait a second and try again
-    // FIXME: why is this delay so long? is it posible to make this watchdog friendly?
-    // or just shorter?
-    wdt_delay_ms(1000);
+    // wait 100ms and try again
+    wdt_delay_ms(100);
   }
   // connect to db, if do send to db 
   // Create client to db
