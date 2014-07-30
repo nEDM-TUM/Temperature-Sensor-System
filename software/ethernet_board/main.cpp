@@ -45,7 +45,7 @@ void loop_sampling(){
 		case LOOP_IDLE:
 			if(get_time_delta(time_last_measurement, current_time) >= cfg.measure_interval){
         // time is ready, we have to do measurement
-        puts_P(PSTR("t=0\n\r"));
+        //puts_P(PSTR("t=0\n\r"));
 				if(twi_try_lock_bus()){
           // ##########
           // BUS LOCKED
@@ -99,22 +99,22 @@ void loop_sampling(){
           // we have received data from a collector board
           // --------------------------------------------
           // verify checksums:
-            // XXX hang here??? XXX
 					twi_verify_checksums(received, 8);
           //puts_P(PSTR("c"));
           // hand packets to network layer:
-            // XXX hang here??? XXX
+          // FIXME: this is blocking after 1 to 8 hous and not releasing!!
+          // watchdog should do a system reset if this happens, but this
+          // is just a workaround.
 					net_dataAvailable(received, addr_current_board);
           //puts_P(PSTR("d"));
 
 					// switch to next board:
 					loop_current_board ++;
-          if(num_boards < 3){ // XXX just for debug
-            puts_P(PSTR("not brd\n\r"));
-          }
+          //if(num_boards < 3){ // XXX just for debug
+          //  puts_P(PSTR("not brd\n\r"));
+          //}
 					if(loop_current_board < num_boards){
 						addr_current_board = scanresults[loop_current_board];
-            // XXX hang here??? XXX
 						rcv_state = twi_try_receive_data(addr_current_board, ((uint8_t*)received),8*sizeof(struct dummy_packet), TWI_RCV_START);
 						if(rcv_state != TWI_RCV_ERROR){
 							loop_state = LOOP_MEASURE;
@@ -173,7 +173,7 @@ void loop_sampling(){
 int main (void)
 {
 
-  //wdt_enable(WDTO_2S);
+  wdt_enable(WDTO_2S);
   init();
 	uart_init();
 	// fast SPI mode:
@@ -188,7 +188,7 @@ int main (void)
 
   PORTB &= ~(1<<PB1);
   PORTD &= ~(1<<PD5);
-  _delay_ms(1000); //debug only XXX
+  //_delay_ms(1000); //debug only XXX
 
 
 	printf_P(PSTR("Controller started\n\r"));

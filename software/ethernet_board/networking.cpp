@@ -91,10 +91,9 @@ void try_connect_db(uint16_t srcPort){
 int8_t connect_db(uint16_t srcPort){
   int8_t syn_flag = 0;
   try_connect_db(srcPort);
-  // should we add a delay here???? we might get stuck
-  // XXX XXX XXX
   while(W5100.readSnSR(DB_CLIENT_SOCK) != SnSR::ESTABLISHED) {
-    // FIXME: implement a maximum number of tries here!
+    // FIXME: implement a maximum number of tries here, as this might
+    // block for a long time!
 #ifdef DEBUG
     printf_P(PSTR("Connection to DB Status %x\n\r"), W5100.readSnSR(DB_CLIENT_SOCK));
 #endif
@@ -106,8 +105,8 @@ int8_t connect_db(uint16_t srcPort){
       }else{
         syn_flag = 1;
       }
-      // Wait 10 ms for sending syn
-      wdt_delay_ms(10);
+      // Wait 30 ms for sending syn
+      wdt_delay_ms(30);
     }else if (W5100.readSnSR(DB_CLIENT_SOCK) == SnSR::CLOSED) {
 #ifdef DEBUG
       printf_P(PSTR("DB closed!!!!\n\r"));
