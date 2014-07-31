@@ -454,6 +454,64 @@ figure \ref{fig:packetorder}.\\
 \subsection{Hardware}
 \subsection{Software}
 \subsection{User interface}
+The ethernet board provides a terminal user interface over TCP/IP, which may be accessed via applications like telnet or netcat.
+This allows users to conveniently change or view system settings. The interface is command driven, every command should be terminated
+by a newline and/or carrier return character.\\
+It is possible to open up to three simultaneous connections to the user interface.\\
+All commands to change the configuration may also be executed, without providing
+arguments. The command will then return the current configuration value.\\
+The following commands are supported:
+\subsubsection{System and network configuration}
+\begin{description}
+  \item[ip] [ip1.ip2.ip3.ip4/subnet]\\
+    The internet address and subnet will be set to the supplied
+    values.\\
+    Note, that changes to network settings only get effective, after the system
+    is reset, or the \emph{res} command is executed.\\
+    Example: ip 10.0.1.42/24
+  \item[p] [port]\\
+    The TCP port, under which the user interface is reachable will be
+    set to the given value.\\
+    Note, that changes to network settings only get effective, after the system
+    is reset, or the \emph{res} command is executed.\\
+    Example: p 23
+  \item[mac] [mac1:mac2:mac3:mac4:mac5:mac6]\\
+    The ethernet MAC address if the device will be set to the given value.\\
+    Note, that changes to network settings only get effective, after the system
+    is reset, or the \emph{res} command is executed.\\
+    Example: mac 60:76:d3:c4:7a:70
+  \item[gw] [gw1.gw2.gw3.gw4]\\
+    The internet gateway address is set to the given value.
+    Note, that changes to network settings only get effective, after the system
+    is reset, or the \emph{res} command is executed.\\
+    Example: gw 10.0.1.1
+  \item[res]\hspace{1cm}\\
+    This command stores configuration changes to EEPROM and restarts all network
+    services.
+  \item[sto]\hspace{1cm}\\
+    All configuration changes will be stored to EEPROM and hence will be available
+    after a system reset.
+  \item[c]\hspace{1cm}\\
+    This will close the terminal user interface session.
+\end{description}
+\subsubsection{Database configuration}
+\begin{description}
+  \item[d.s]
+  \item[d.ip]
+  \item[d.p]
+  \item[d.ck]
+  \item[d.n]
+  \item[d.d]
+  \item[d.f]
+  \item[d.v]
+  \item[d.re]
+\end{description}
+\subsubsection{Sensor network configuration}
+\begin{description}
+  \item[s]
+  \item[v]
+  \item[i]
+\end{description}
 \begin{table}[Hh!]
 	\centering
 	\begin{tabularx}{\textwidth}{ | c | c | c | X | }
