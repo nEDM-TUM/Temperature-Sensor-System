@@ -457,6 +457,7 @@ figure \ref{fig:packetorder}.\\
 The ethernet board provides a terminal user interface over TCP/IP, which may be accessed via applications like telnet or netcat.
 This allows users to conveniently change or view system settings. The interface is command driven, every command should be terminated
 by a newline and/or carrier return character.\\
+By default, the user interface is reachable at port 8888.
 It is possible to open up to three simultaneous connections to the user interface.\\
 All commands to change the configuration may also be executed, without providing
 arguments. The command will then return the current configuration value.\\
@@ -496,43 +497,61 @@ The following commands are supported:
 \end{description}
 \subsubsection{Database configuration}
 \begin{description}
-  \item[d.s]
-  \item[d.ip]
-  \item[d.p]
-  \item[d.ck]
-  \item[d.n]
-  \item[d.d]
-  \item[d.f]
-  \item[d.v]
-  \item[d.re]
+  \item[d.s] [ 1 $|$ 0 ]\\
+    Enables or disables the sending of measurement results to the database. If the
+    argument is \emph{1}, sensor values will be sent to the database, if the argument
+    is \emph{0} nothing will be transmitted to the database.\\
+    Example: d.s 1
+  \item[d.ip] [ip1.ip2.ip3.ip4]\\
+    Sets the IP address, under which the couchDB database is reachable.\\
+    Example: d.ip 10.0.1.9
+  \item[d.p] [port]\\
+    Sets the TCP port, under wich the couchDB database HTTP interface is reachable.\\
+    Example: d.p 5984
+  \item[d.ck] [cookie]\\
+    Configures the cookie, used for authentification with the couchDB database.\\
+    Note that the length of the argument is limited. To get the maximum allowed
+    length for this command, use the \emph{help} command.\\
+    Example: d.c YXJkdWlub190ZW1wZXJhdHVyZV93cml0ZXI6
+  \item[d.n] [db\_name]\\
+    Configures the couchDB database name, to which sensor values will be stored.\\
+    Note that the length of the argument is limited. To get the maximum allowed
+    length for this command, use the \emph{help} command.\\
+    Example: d.n nedm/temperature\_environment
+  \item[d.d] [document\_name]\\
+    Specifies the name of the JSON document, to write the sensor values to.
+    Note that the length of the argument is limited. To get the maximum allowed
+    length for this command, use the \emph{help} command.\\
+    Example: d.d nedm\_default
+  \item[d.f] [filename]\\
+    Specifies the name of the function used, to insert data into the database.
+    Note that the length of the argument is limited. To get the maximum allowed
+    length for this command, use the \emph{help} command.\\
+    Example: d.f insert\_with\_timestamp
+  \item[d.v]\hspace{1cm}\\
+    This toggles forwarding of the database HTTP response to the current terminal.
+    This is useful for debugging database configuration problems.\\
+    Note that forwarding has a huge impact on the system performance and should be
+    disbaled during normal operation.
+  \item[d.re]\hspace{1cm}\\
+    This command stores configuration changes to EEPROM and resets all network
+    connections to the database.
 \end{description}
 \subsubsection{Sensor network configuration}
 \begin{description}
-  \item[s]
-  \item[v]
-  \item[i]
+  \item[s] \hspace{1cm}\\
+    This causes a I2C bus scan to be performed. Scanning addresses in the range from
+    8 to 120. After the scan, a list of connected I2C devices will be printed out.
+  \item[v] \hspace{1cm}\\
+    This toggles forwarding of measurement results to the current terminal.\\
+    Note that forwarding has a huge impact on the system performance and should be
+    disbaled during normal operation.
+  \item[i] [interval]\\
+    Configures the sampling interval in seconds. No floating point values are allowed.
+    A value of 0 causes the system to sample at maximum rate, which is typically
+    between 1 Hz and 2 Hz, depending on the amount of connected collector boards.\\
+    Example: i 5
 \end{description}
-\begin{table}[Hh!]
-	\centering
-	\begin{tabularx}{\textwidth}{ | c | c | c | X | }
-		\hline
-    Name & Parameters format &Parameters & Action\\
-		\hline
-		\hline
-    START\_MEASUREMENT & 0x01 & --- & All 8 sensor values will be captured as soon as the STOP bit is received. If during measurement
-		the slave is addressed again, the I2C clock will immediately be extended until the measurement is complete, blocking the whole I2C bus.\\
-		\hline
-    SET\_ADDRESS & 0x02 & address & The own I2C address will be updated with the 1 byte value following the command. The address should
-		be in the range from 8 to 112. The default address is 42\\
-		\hline
-    LED\_ON & 0x03 & number & The LED with the given number will be turned on.\\
-		\hline
-    LED\_OFF & 0x04 & number & The LED with the given number will be turned off.\\
-		\hline
-	\end{tabularx}
-	\caption{List of implemented I2C commands}
-	\label{tab:i2c}
-\end{table}
 \chapter{Deployment}
 \section{Read before modifying}
 EEPROM persistance enable
