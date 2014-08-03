@@ -160,15 +160,40 @@ Figure \ref{fig:rs485} illustrates the working principle of the protocol. The en
 
 \chapter{Implementation}
 \section{Toolchain}
-\subsection{ISP programmer}
+\subsection{ISP programming}
 To upload the compiled code and to configure the microprocessors, we used the USBasp programmer in combination with the avrdude software.\\
 As we needed to access the fuse bytes of the arduino too, which was not possible with the arduino bootloader, we also use the ISP header on the Arduino board for programming. The arduino bootloader was removed. Hence it is not possible anymore, to programm the arduino with the arduino software suite, without reinstalling the bootloader.\\
 Note that the arduino ISP header is not compatible with the one, provided by the USBasp programmer. A mechanical adaptor or individual cabling is required. Figure \ref{XXX} shows the pin asignments of the different ISP headers.
 \subsection{USART for debugging}
-
-\subsection{Arduino libraries}
-\subsection{Makefiles}
-\section{Temperature board}
+For convenient debuging, we added a USART header on each board with a microcontroller. These pins are directly connected to the hardware USART unit of the
+microconteoller. Note, that the signal level on this header is TTL and is not compatible with the RS232 standard. Using either an external signal level converter from TTL to RS232, or a direct USB to USART TTL converter, it is possible to connect the boards to a PC.\\
+In every software component, we set the \emph{stdout} file descriptor, to point to a USART file, implementing writing data to the USART line.
+Hence standard file handling functions like \emph{printf} or \emph{puts} can be used.\\
+To read and write data at the PC side, software like \emph{screen} or \emph{picocom} may be used. The default baudrate is 9600bps.
+\subsection{Build process}
+To build and upload the code the following software and libraries are required:\\
+Tools:
+\begin{itemize}
+  \item avr-gcc
+  \item avr-objcopy
+  \item avrdude or other ISP programming software
+\end{itemize}
+Libraries:
+\begin{itemize}
+  \item avr-libc
+  \item Arduino ethernet library (only for ethernet board)
+  \item Arduino core library (only for ethernet board)
+\end{itemize}
+We use the make build environment. The Makefiles in each software directory contain instructions on how to build and upload the software to the microcontroller, using the following rules:
+\begin{description}
+  \item[make clean] Clears the build directory.
+  \item[make] Compiles and links the source code to the elf and intel hex binary format. Also a eeprom image is generated in intel hex binary format. The output directory for binary files will be \emph{./build/}.
+  \item[make fuse] Configures the controller, to use the right system clock source, burnout detection and eeprom persistency settings.
+  \item[make eeprom] Uploads the eeprom image to the controller
+  \item[make upload] Uploads the compiled software to the microcontroller, using avrdude. By default the usbasp programmer is selected.
+\end{description}
+For a first time build and upload, the above order should be respected. After the initial upload, fuses and eeprom should not be touched everytime, the software changes.
+\section{Temperature board} \label{chap:tempbrd}
 The temperature board consists of the TSic506F sensor and
 complementary circuitry. The ZACwire signal is transformed to the
 RS485 electrical layer, using a ST485 integrated circuit. The board
@@ -189,6 +214,10 @@ immediately blowed cold air to the pins and the chip itself.
 \end{figure}
 \section{Humidity board}
 \subsection{Hardware}
+The hardware structure is similar to the temperature board, described in section \ref{chap:tempbrd}. However, as the HYT271 sensors use I2C for
+communication, we added a microcontroller to repediately poll the sensor for current measurement results and send the data out, using a software
+implementation of the ZAC wire protocol. Therefore we also placed an ISP socket, a debugging adapter, a reset switch and two LEDs onto the board, which makes it
+slightly bigger than the temperature board. The schematic can be seen in figure \ref{fig:schem_hum}.
 \begin{figure}
 	\centering
 	\includegraphics[width=0.8\textwidth]{img/schem_humidity_board.pdf}
