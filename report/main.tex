@@ -582,6 +582,12 @@ The following commands are supported:
     A value of 0 causes the system to sample at maximum rate, which is typically
     between 1 Hz and 2 Hz, depending on the amount of connected collector boards.\\
     Example: i 5
+  \item[ba] [old\_address new\_address]\\
+    Changes the address of a connected collector board.\\
+    Example: ba 13 22
+  \item[led] board\_addr led\_number ( 1 $|$ 0 )\\
+    Controls the leds of connected collector boards. It is currently not possible, to read the state of the LEDs.\\
+    Example: led 13 2 1
 \end{description}
 \chapter{Deployment}
 \section{Read before modifying}
