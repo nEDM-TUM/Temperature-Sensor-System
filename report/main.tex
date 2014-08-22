@@ -189,10 +189,12 @@ We use the make build environment. The Makefiles in each software directory cont
   \item[make clean] Clears the build directory.
   \item[make] Compiles and links the source code to the elf and intel hex binary format. Also a eeprom image is generated in intel hex binary format. The output directory for binary files will be \emph{./build/}.
   \item[make fuse] Configures the controller, to use the right system clock source, burnout detection and eeprom persistency settings.
-  \item[make eeprom] Uploads the eeprom image to the controller
+  \item[make eeprom] Uploads the eeprom image to the controller.
   \item[make upload] Uploads the compiled software to the microcontroller, using avrdude. By default the usbasp programmer is selected.
 \end{description}
-For a first time build and upload, the above order should be respected. After the initial upload, fuses and eeprom should not be touched everytime, the software changes.
+For a first time build and upload, the above order should be respected. After the initial upload, fuses and eeprom should not be touched everytime, the software changes.\\
+To be able to find the Arduino library root path, the \emph{ARDUINO\_PATH} environment variable should be set to the Arduino installation directory. This for example is the Path to the cloned Arduino git reporitory.\\
+Note, that the Makefiles in the current version, do not automatically search for file dependancies, hence a make clean should be executed, after every change in not explicitly specified files, namely every non .c or .cpp file.
 \section{Temperature board} \label{chap:tempbrd}
 The temperature board consists of the TSic506F sensor and
 complementary circuitry. The ZACwire signal is transformed to the
