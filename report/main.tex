@@ -37,7 +37,8 @@ The temperature is converted to a digital value, which is sent out over a
 proprietary one wire protocol variant, called \emph{ZAC-Wire}. The Transmission structure can be seen in figure \ref{fig:tsic_transmission}. Details about the ZACwire protocol are described in section \ref{chap:zac}.\\
 The temperature $T_{cels}$ in celsius can be calculated from the received value $T_{dig}$ using
 $$T_{cels} = \frac{T_{dig}}{2047} \cdot 70\,^{\circ} - 10\,^{\circ}.$$
-In order to minimize soldering heat, which would influence the calibration, we used the TO92 packaged sensor.
+In order to minimize soldering heat, which would influence the calibration, we used the TO92 packaged sensor.\\
+For further information about the sensor, and data interpretation, please refer to \cite{tsic} and \cite{tsic2}.
 \begin{table}[Hh!]
 	\centering
 	\begin{tabular}{| r | c |}
@@ -49,7 +50,7 @@ In order to minimize soldering heat, which would influence the calibration, we u
 		Resolution & $0.034\,\mathrm{K}$  \\
 		\hline
 	\end{tabular}
-	\caption{TSIC 506F specs}
+  \caption{TSIC 506F specs \cite{tsic2}}
 	\label{tab:tsic}
 \end{table}
 \begin{figure}[Hh!]
@@ -60,10 +61,43 @@ In order to minimize soldering heat, which would influence the calibration, we u
     \bitbox{1}{ST} & \bitbox{5}{0} & \bitbox{3}{$T_{dig}$[10:8]} & \bitbox{1}{P}\\
     \bitbox{1}{ST} & \bitbox{8}{$T_{dig}$[7:0]} & \bitbox{1}{P}
 	\end{bytefield}
-  \caption{TSIC transmission structure. The temperature is sent over the wire, with two ZACwire transmissions. P is an even parity bit. ST is the start bit.}
+  \caption{TSIC transmission structure. The temperature is sent over the wire, with two ZACwire transmissions. P is an even parity bit. ST is the start bit \cite{tsic}.}
 	\label{fig:tsic_transmission}
 \end{figure}
 \subsection{HYT271}
+For humidity measurement, we use the HYT271 sensor. At a price of about \EUR{20} per device it is significantly more expensive than the temperature sensors, however it delivers precice, temperature compensated humidity readout. In addition, the temperature can also be read out. Table \ref{tab:hyt} lists the specified sensor characteristics.\\
+Communication with the sensor is done via I2C. Thereby measurements can be initialized via addressing the sensor and sending a write bit. The result of a measurement can be received by initializing an I2C read transfer, followed by reading the measurement data. Figure \ref{fig:hyt_transmission} shows the format of received measurement data.\\
+For further information about the sensor, and data interpretation, please refer to \cite{hyt}, \cite{hyt2} and \cite{hyt3}.
+\begin{table}[Hh!]
+	\centering
+	\begin{tabular}{| r | c | c |}
+		\hline
+    &Temperature & Humidity\\
+		\hline
+		\hline
+    Range & $-40\,^{\circ}\mathrm{C}$ to $125\,^{\circ}\mathrm{C}$ & $0\, \mathrm {\%RH}$ to $100\, \mathrm {\%RH}$\\
+		\hline
+    Calibrated accuracy & $\pm 0.2\,\mathrm{K}$ & $\pm 1.8\, \mathrm {\%RH}$   \\
+		\hline
+    Resolution & $0.015\,\mathrm{K}$ & $\pm 0.03\, \mathrm {\%RH}$ \\
+		\hline
+	\end{tabular}
+  \caption{HYT271 specs \cite{hyt}}
+	\label{tab:hyt}
+\end{table}
+\begin{figure}[Hh!]
+	\centering
+	\definecolor{lightgray}{gray}{0.8}
+	\begin{bytefield}[endianness=big, bitwidth=2.1em]{8}
+		\bitheader{0-7}\\
+    \bitbox{2}{\color{lightgray}\rule{\width}{\height}} & \bitbox{6}{Humidity [13:8]}\\
+    \bitbox{8}{Humidity [7:0]}\\
+    \bitbox{8}{Temperature [15:8]}\\
+    \bitbox{8}{Temperature  [7:0]}
+	\end{bytefield}
+  \caption{HYT271 transmission structure. The reception of data may be aborted, by the I2C master after every byte, if not all data is needed \cite{hyt2}.}
+	\label{fig:hyt_transmission}
+\end{figure}
 \section{Logical design}
 Our network architecture is structured into 3 parts (see figure \ref{fig:topo}):
 \begin{description}
@@ -111,7 +145,7 @@ transmission can be extracted. If the bus is high for a time $>T_b$
 the transmission ends, this is called a Stop bit. Figure \ref{fig:zac}
 shows the four different wafeform types, of which a ZACwire signal may be
 composed off. Figure \ref{fig:zacexample} shows an example
-transmission.
+transmission. For further information see \cite{zac}.
 \begin{figure}[b]
 	\centering
 	\includegraphics[width=0.3\textwidth]{img/zac_bits.pdf}
@@ -140,21 +174,23 @@ direction bit describes a read, the slave should take control over
 the SDA line and transmits bits at every clock cycle.\\
 The Slave is allowed to take control over the SCL line at any time
 by pulling it low. this is called clock extenstion, and signals the
-master to not proceed transmitting or receiving data.
+master to not proceed transmitting or receiving data.\\
+The full I2C specification can be found in \cite{i2c}.
 \begin{figure}
 	\centering
 	\includegraphics[width=0.7\textwidth]{img/i2c.pdf}
-  \caption{I2C logical bus structure. Source \ref{}.}
+  \caption{I2C logical bus structure. Source \cite{i2c}.}
 	\label{fig:i2c}
 \end{figure}
 
 \subsection{RS485}
 RS485 is a transmission line standard, which specifies differential line communication over twisted pair cables. It allows very long distance communication of up to 1 kilometer with high noise immunity and reduced noise emission.\\
 Figure \ref{fig:rs485} illustrates the working principle of the protocol. The encoder transforms a single bit line DI into two separate lines A and B. If DI is high, the output voltage at line A, $V_{OA}$ will bigger than at line B ($V_{OB}$). If the input voltage at DI is low, $V_{OB}>V_{OA}$ holds.\\
+A detailed description of the protocol and its implementation can be found in \cite{rs485}, \cite{st485} and \cite{st485appnote}.
 \begin{figure}[b]
 	\centering
 	\includegraphics[width=0.7\textwidth]{img/rs485.pdf}
-  \caption{RS485 encoding/decoding - Logical structure. Source: \ref{XXX}.}
+  \caption{RS485 encoding/decoding - Logical structure. Source: \cite{rs485}.}
 	\label{fig:rs485}
 \end{figure}
 
@@ -244,7 +280,7 @@ The schematic diagram can be seen in figure \ref{fig:schem_collect}. The hardwar
     The Atmega microconteoller provides a variety of useful features
     like asynchronous timers, pin change interrupts on every GPIO
     pin, hardware support for the I2C protocol and integrated EEPROM
-    storage.\\
+    storage (Datasheet: \cite{atmega88}).\\
     We connected the sensors in two groups, so that we are able to
     receive two independent interrupts for two sensors in different
     groups.
