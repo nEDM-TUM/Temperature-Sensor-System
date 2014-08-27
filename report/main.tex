@@ -160,6 +160,9 @@ Figure \ref{fig:rs485} illustrates the working principle of the protocol. The en
 
 \chapter{Implementation}
 \section{Toolchain}
+\subsection{KiCad}
+To design schematic circuit diagrams, as well as printed multilayer circuit boards, we used the open source EDA suite KiCad\footnote{http://www.kicad-pcb.org}. Most of the schematic and footprint components, were designed by ourselfes and can be found in the project git repository.\\
+The finished board files were exported to the Gerber / Echelon file format and sent to Fischer Leiterplatten\footnote{http://www.fischer-leiterplatten.de} for production.
 \subsection{ISP programming}
 To upload the compiled code and to configure the microprocessors, we used the USBasp programmer in combination with the avrdude software.\\
 As we needed to access the fuse bytes of the arduino too, which was not possible with the arduino bootloader, we also use the ISP header on the Arduino board for programming. The arduino bootloader was removed. Hence it is not possible anymore, to programm the arduino with the arduino software suite, without reinstalling the bootloader.\\
