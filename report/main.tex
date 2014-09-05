@@ -629,14 +629,9 @@ The following commands are supported:
     Example: led 13 2 1
 \end{description}
 \chapter{Deployment}
-\section{Read before modifying}
-EEPROM persistance enable
-LEDs need most of power
-Careful with multiple power sources
-Arduino fuses only accessable via ISP
-Makefile incomplete (.h dependencies)
+\section{Casings for the hardware}
 \section{Installation}
-42 temperature sensors, 2 hymility sensors with 6 collection boards and 2 arduino as internet board. We have tried to distribute them evenly in the lab room.
+42 temperature sensors, 2 hymidity sensors with 6 collection boards and 2 arduino as internet board. We have tried to distribute them evenly in the lab room.
 \begin{figure}
 	\centering
 	\includegraphics[width=\textwidth]{img/installPlan.pdf}
@@ -644,6 +639,17 @@ Makefile incomplete (.h dependencies)
 	\label{fig:install}
 \end{figure}
 \section{Maintenance}
+\section{Problems}
+Unsuccessful squid measurement\\
+Crash afer long runtime bug\\
+I2C connection only short ranged
+\section{Developing / Extending}
+EEPROM persistance enable\\
+LEDs need most of power\\
+Careful with multiple power sources\\
+Arduino fuses only accessable via ISP\\
+Makefile incomplete (.h dependencies)\\
+Link to git repo
 \chapter{References}
 %\renewcommand\refname{\vskip -1cm}
 %\bibliographystyle{abbrv}
