@@ -1,0 +1,39 @@
+
+48 temperature board
+8 humidity
+7 collector board
+
+
+Kondensatoren:
+x358   100nF     xxx
+85    10uF
+7     330nF
+x14    22pF      xxx
+
+Widerstände:
+x224   22k     xxx
+51    150
+48    220
+22    10k
+x30    2k2     xxx
+56    120
+
+IC:
+x112   ST485
+x15    atmega88p
+7     lm7805
+51    LED
+7     20mhz
+
+Mechanisch:
+x56    RJ45 Buchse
+x22    push switch
+x15    Wannenstecker 5x2
+x14    Wannenstecker 3x2
+x15    Stiftleiste 4x1
+x7     Stiftleiste 3x1
+x7     RJ45 buchsr 8 fach
+x21    2pol stecker
+x7     hohlbuchse
+x7     doppelschalter
+14    kabelstecker 3x2

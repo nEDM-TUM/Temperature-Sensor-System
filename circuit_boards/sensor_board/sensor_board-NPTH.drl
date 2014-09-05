@@ -1,0 +1,25 @@
+M48
+;DRILL file {Pcbnew (2013-may-18)-stable} date Tue 06 May 2014 04:52:23 PM CEST
+;FORMAT={-:-/ absolute / metric / decimal}
+FMAT,2
+METRIC,TZ
+T1C1.500
+T2C3.200
+T3C3.400
+%
+G90
+G05
+M71
+T1
+X204.Y-61.
+X204.Y-67.
+T2
+X254.62Y-58.386
+X254.62Y-112.986
+X254.62Y-167.586
+T3
+X203.Y-49.
+X203.Y-176.
+X255.Y-176.
+T0
+M30

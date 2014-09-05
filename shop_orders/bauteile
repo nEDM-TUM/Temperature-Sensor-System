@@ -1,0 +1,54 @@
+Temperature board:
+
+1 TSIC506
+x1 220 ohm
+x3 100nF
+x1 10uF
+x2 22 Kohm
+x1 RJ45 buchse
+x1 ST485
+
+
+Humidity board:
+
+x4 100nF
+x2 10uF
+x2 LED
+x1 atmega88p
+x1 rj45
+x1 5x2 wannenstecker
+x1 4x1 stiftleiste
+x2 150
+x1 10k
+x2 22k
+x1 switch
+x1 st485
+1 hyt271
+x2 2k2
+
+
+Collector board
+x2 22p
+x26 100nF
+x1 330nF
+x3 10uF
+x5 LED
+x1 atmega88
+x1 rj45 8 fach
+x1 stiftleiste 3 pol
+x1 stiftleiste 4 pol
+x2 wannenstecker 3x2
+x1 wannenstecker 5x2
+x3 stiftleister 2pol / stecker
+x1 hohlbuchse
+x8 120 ohm
+x5 150 ohm
+x2 2k2 ohm
+x2 10k
+x16 22k
+x2 schalter
+x1 doppelschalter
+x1 lm7805
+x8 st485
+x1 20mhz
+x2 wannenstecker stecker 2x3

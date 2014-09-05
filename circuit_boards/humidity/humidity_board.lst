@@ -1,0 +1,27 @@
+eeschema (2013-may-18)-stable  >> Creation date: Wed 21 May 2014 04:04:30 PM CEST
+
+#Cmp ( order = Value )
+| 100nF        C1        
+| 100nF        C3        
+| 100nF        C5        
+| 100nF        C6        
+| 10uF         C2        
+| 10uF         C4        
+| LED          D1        
+| LED          D2        
+| ATMEGA88-A   IC1       
+| RJ45         J1        
+| ISP          P1        
+| UART         P2        
+| 120          R6        
+| 150          R1        
+| 150          R2        
+| 10k          R3        
+| 22k          R4        
+| 22k          R5        
+| SW_RESET     SW1       
+| ST485        U1        
+| HYT271       U2        
+#End Cmp
+
+#End List

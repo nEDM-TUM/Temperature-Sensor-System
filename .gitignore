@@ -16,7 +16,19 @@ main.pdf
 *.aux
 
 plan.pdf
+talk.pdf
+*_autosave*
 
 *.ps
 *.tmp
 *.pho
+
+*.nav
+*.out
+*.snm
+*.toc
+*.vrb
+*.bbl
+*.blg
+*.idx
+

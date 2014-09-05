@@ -1,0 +1,52 @@
+
+x5 RJ45 buchse 8 fach
+x40  RJ45 Buchse
+x16  push switch
+x10  Wannenstecker 5x2
+x10  Wannenstecker 3x2
+x11  Stiftleiste 10x1
+x20  2pol Stecker
+x4   Hohlbuchse
+x3   doppelschalter
+x20  kabelstecker 3x2
+
+x112 st485
+x12  atmega88p
+x6   lm7805
+x45  LED
+x4   20mhz
+
+x220 22k
+x350 100nF
+x100 22pF
+x100 2k2
+
+
+-----------------------
+
+CSD:
+10-12  atmega88p
+40-45  LED
+200    22k
+300    100nF
+100    22pF
+100    2k2
+20     2pol Stecker
+3      doppelschalter
+20  push switch
+
+POLLIN:
+ix5   lm7805
+ix4   20mhz
+ix4   Hohlbuchse
+ix20  Stiftleiste 10x1
+ix10  Wannenstecker 5x2
+ix12  Wannenstecker 3x2
+ix5   RJ45 buchse 8 fach
+ix40  RJ45 Buchse
+ix20  kabelstecker 3x2
+
+FARNELL:
+41 2191826 TSIC
+112 1564307 st485
+1 8400296 Lötdraht

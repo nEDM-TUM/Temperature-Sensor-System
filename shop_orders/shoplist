@@ -1,0 +1,25 @@
+CSD:
+12  atmega88p
+45  LED
+220 22k
+350 100nF
+100 22pF
+100 2k2
+20  2pol Stecker
+3   doppelschalter
+
+POLLIN:
+4   20mhz
+4   Hohlbuchse
+11  Stiftleiste 10x1
+16  push switch
+10  Wannenstecker 5x2
+10  Wannenstecker 3x2
+5 RJ45 buchse 8 fach
+40  RJ45 Buchse
+20  kabelstecker 3x2
+6   lm7805
+
+FARNELL:
+112 1564307 st485
+1 8400296 Lötdraht
