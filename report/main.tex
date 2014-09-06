@@ -294,14 +294,17 @@ The schematic diagram can be seen in figure \ref{fig:schem_collect}. The hardwar
     pullups.
   \item[Sensor connection:]\hspace{1cm}\\
     The individual sensors are connected via an eight-port RJ45
-    socket header. The signal of each sensor is first interpreted
+    socket header. Shielding of the RJ45 sockets is connected to
+    board ground. The The signal of each sensor is first interpreted
     by an RS485 transceiver and afterwards directly provided to a
     microcontroler GPIO pin. As this is the receiving side, we also
     had do add impedance matching circuitry. We chose to implement
     a power saving AC-termination solution, as suggested in \ref{XXX}.
     To bring the output level of each transceiver to a defined state,
     when no sensor is connected, we use pullup resistors on the
-    input side.
+    input side. Optionally the board and shield ground can be wired to
+    the screw pad P2 for a connection with the casing. This is done by
+    placing the 0 Ohm resistor R34.
   \item[Developer interface:]\hspace{1cm}\\
     The microcontroller can be programmed with any AVR In System
     Programmer, using the standard ISP header (P8).\\
@@ -522,6 +525,17 @@ figure \ref{fig:packetorder}.\\
 
 \section{Ethernet board}
 \subsection{Hardware}
+For the ethernet board we use a pre built Arduino Ethernet board
+\footnote{http://arduino.cc/en/Main/ArduinoBoardEthernet}, equipped with a
+Power over Ethernet module. The board features an atmega328 microcontroller,
+which has 32KByte Flash and 2KByte RAM storage \cite{atmega328}. The atmega328
+controller is connected to a W5100 ethernet controller and PHY with integrated
+TCP/IP stack.\\
+As the I/O Pin headers of the Arduino board were not suitable to
+use for a reliable connection with the collector boards, we designed an adapter
+board, which provides sockets for I2C and power connections. The adapter also
+provides I2C pullup resistors and a LED for debugging. Hence, when using it
+the optional pullup resistors on the collector boards can be switched off.
 \subsection{Software}
 \subsection{User interface}
 The ethernet board provides a terminal user interface over TCP/IP, which may be accessed via applications like telnet or netcat.
