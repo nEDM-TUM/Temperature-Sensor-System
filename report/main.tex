@@ -537,6 +537,33 @@ board, which provides sockets for I2C and power connections. The adapter also
 provides I2C pullup resistors and a LED for debugging. Hence, when using it
 the optional pullup resistors on the collector boards can be switched off.
 \subsection{Software}
+\subsubsection{Running tasks in parallel}
+On the software side, the ethernet board has the following requirements:
+\begin{itemize}
+  \item Periodically poll all connected collector boards for new measurement results.
+  \item Forward measurement results over ethernet.
+  \item Provide a user interface for easy configuration and debugging.
+\end{itemize}
+%% FIXME: what about synchronization between user interface W5100 and measurement w5100 access?
+We implemented these requirements in two abstract tasks: one for aquiring measurements and sending them
+over ethernet and an other one for handling the user interface.
+As these tasks should run in parallel, we implemented a modified event loop approach. We
+implemented two functions for each task, which allow us to execute the abstract tasks
+in a semi parallel way:\\
+In the main program loop, the two functions are called in turn. Each function however has to guarantee to
+not block program execution for more time than is absolutely neccessary. Especially waiting for I/O
+should not be done via busy waiting. Respecting this constraint, one function
+call is most of the time not sufficient to finish a task, but does only some progress on the
+current task. For example receiving of a measurement result needs multiple calls
+of the corresponding receive function. This is implemented using state machines and different
+return values for 'task finished' or 'task needs more time'.\\
+However both the user interface task, as well as the measurement task may access shared ressources
+like the I2C bus. As semi parrallel access will lead to undefined behavior, shared ressources
+have a associated mutex, which has to be aquired before accessing the ressource. Note that implementing
+busy waiting when trying to aquire a mutex will immediately lead to a deadlock, due to the nature
+of the event loop approach.
+\subsubsection{TCP/IP Interface}
+\subsubsection{I2C interface}
 \subsection{User interface}
 The ethernet board provides a terminal user interface over TCP/IP, which may be accessed via applications like telnet or netcat.
 This allows users to conveniently change or view system settings. The interface is command driven, every command should be terminated
