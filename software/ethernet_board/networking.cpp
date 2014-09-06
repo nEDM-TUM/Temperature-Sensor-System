@@ -77,6 +77,8 @@ uint16_t getAvailableSrcPort(uint16_t srcPort){
 }
 
 void try_connect_db(uint16_t srcPort){
+  // non blocking function to establish a connection
+  
 #ifdef DEBUG
   printf_P(PSTR("Try to connect with DB with port %d\n\r"), srcPort);
 #endif
@@ -89,6 +91,7 @@ void try_connect_db(uint16_t srcPort){
 }
 
 int8_t connect_db(uint16_t srcPort){
+  // establishes a connection to the database
   int8_t syn_flag = 0;
   try_connect_db(srcPort);
   while(W5100.readSnSR(DB_CLIENT_SOCK) != SnSR::ESTABLISHED) {
@@ -118,6 +121,11 @@ int8_t connect_db(uint16_t srcPort){
 }
 
 void net_clear_rcv_buf(SOCKET s){
+  // this functions advances the RX read pointer of the
+  // W5100 for a specific socket.
+  // This has the effect, that the receive data queue is
+  // emptied, without actually loading the received data
+  // to the AVR via SPI.
   int16_t ret = W5100.getRXReceivedSize(s);
   if ( ret != 0 )
   {
@@ -133,6 +141,15 @@ void net_clear_rcv_buf(SOCKET s){
 }
 
 void handle_db_response(){
+  // Couchdb will send responses after receiving json documents.
+  // we have to receive these in order for the w5100 receive buffer
+  // not to overflow.
+  // Alternatively we can just clear the whole receive queue, as
+  // receiving the whole data will take a lot of time
+  //
+  // here both approaches are implemented, as it might be useful to see
+  // the database response for debugging. In this case, the response
+  // can be redirected to the TCP user interface (redirect_flag)
   uint8_t b;
   uint8_t index;
   uint8_t content_flag = 0;
@@ -168,6 +185,7 @@ void handle_db_response(){
 }
 
 void net_sendHeadToDB(uint16_t len){
+  // this sends the HTTP/Json header for a transmission.
   // 1st line: POST /{name_db}/_design/{doc_db}/_update/{func_db} HTTP/1.1
   fputs_P(PSTR("POST /"), &sock_stream);
   fputs(cfg.name_db, &sock_stream);
@@ -198,6 +216,8 @@ void net_sendHeadToDB(uint16_t len){
 }
 
 void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
+  // Sends a set of 8 measurement results to the couchdb database
+
   int8_t sensor_index;
   int8_t comma_flag = 0;
   int16_t value;
@@ -306,6 +326,9 @@ void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
 }
 
 void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
+  // This function is called, everytime, a set o measurement results from
+  // one collector board was successfully received.
+
 	uint8_t i;
   // make a backup of currently active socket
   // as we have to switch socket to db socket
@@ -341,6 +364,8 @@ void net_dataAvailable(struct dummy_packet * received, uint8_t src_addr){
 }
 
 void net_beginService() {
+  // initializes the W5100 and the TCP server for the user interface
+
   config_read(&cfg);
   uint8_t sn[4]={0};
   //Init and config ethernet device w5100
@@ -374,6 +399,8 @@ void net_beginService() {
 }
 
 void serve(){
+  // TCP server for user interface
+
   uint8_t i;
   uint8_t snSR;
   uint8_t cmd_state;
@@ -430,6 +457,9 @@ void serve(){
 }
 
 void net_loop(){
+  // main networking loop
+  // this handles the user interface, but also repiles from couchdb
+
 	switch(ui_state){
 		case UI_READY:
 			serve();
@@ -462,6 +492,9 @@ void net_loop(){
 }
 
 void net_setupServer() {
+  // this function initializes the socket filestream abstraction
+  // as well as the tcp server
+
   sock_stream_init();
 #ifdef DEBUG
   puts_P(PSTR("Set up server\n\r"));
