@@ -317,7 +317,16 @@ figure \ref{fig:pcb_hum} and figure \ref{fig:soldered_hum} of a soldered humidit
 	\caption{Humidity printed circuit board schematic.}
 	\label{fig:soldered_hum}
 \end{figure}
-\subsubsection{Protocol Conversion}
+\subsubsection{ZAC encoding}
+The easiliest method to generate ZAC encoding is to set a pin high, then use busy-wait delay loop ($\_delay\_us()$) to wait a certain time interval. After that set the pin to low. 
+But the timing of this method is not very exact (more than 6 $\mu$s inaccuracy according to an experimentation). Hence we had decided to use a timer to achive a higher timing accuracy. \\
+% FIXME describe
+Timer0
+\subsubsection{Cyclic redundancy check (CRC)}
+In order to detect the bits error after a long distance transmission, 
+%FIXME describe crc
+an 8-bit CRC checksum is computed and sent after the measured values. \\
+The using polynomial of GF(2) is 100110001.
 \section{Collector board}
 The collector board decodes the ZAC protocol and provides an I2C interface for
 reading out temperature, as well as humidity values of connected sensors.

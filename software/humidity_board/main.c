@@ -14,6 +14,8 @@
 #define TSTART_US 64
 #define TLONG_US 96
 #define TSHORT_US 32
+// the using polynomial is 100110001
+// the 9. bit is implicit in computation 
 #define CRC8 49
 // set debug module
 // XXX using debug module will influent the frequence of the sending data via ZAC wire protocol because of printf, so the connected collection board will not alreadys get sent data
@@ -279,18 +281,4 @@ int main (void)
   while(1){
     loop();
   }
-}
-void led0(){
-  // TODO debug, LED blink
-  _delay_ms(500);
-  PORTC = PORTC ^ (1<<PC0);
-  _delay_ms(500);
-  PORTC = PORTC ^ (1<<PC0);
-}
-void led1(){
-  // TODO debug, LED blink
-  _delay_ms(500);
-  PORTC = PORTC ^ (1<<PC1);
-  _delay_ms(500);
-  PORTC = PORTC ^ (1<<PC1);
 }
