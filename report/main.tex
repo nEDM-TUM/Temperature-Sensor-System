@@ -562,8 +562,6 @@ like the I2C bus. As semi parrallel access will lead to undefined behavior, shar
 have a associated mutex, which has to be aquired before accessing the ressource. Note that implementing
 busy waiting when trying to aquire a mutex will immediately lead to a deadlock, due to the nature
 of the event loop approach.
-\subsubsection{TCP/IP Interface}
-% W5100 driver extension, to support clear receive buffer
 \subsubsection{Receiving of measurement results}
 \begin{enumerate}
   \item In the main event loop the function \texttt{loop\_sample()} is called periodically. To trigger the sampling process in fixed time
@@ -573,7 +571,8 @@ of the event loop approach.
     currend millisecond time.
   \item As soon, as sampling should be started, the mutex for the TWI bus will be aquired. Then a TWI bus scan will be performed, to detect
     all connected collector boards. The result of this scan is required later, when reading the measurement results from each board.
-  \item After that, the \emph{twi\_start\_measurement()} command is sent to the broadcast address $0x00$. This triggers all connected collector
+  \item After that, the \texttt{twi\_start\_measurement()} function is called, to send a measurement request to the broadcast address $0x00$.
+    This triggers all connected collector
     boards to simultaneously sample all 8 connected sensors.
   \item Now the ethernet board tries to receive data from each collector board in turn, by issuing a read request. However, the collector boards
     need some time to finish sampling of all sensors and will hence do I2C clock extension. This is detected by the ethernet board
@@ -582,6 +581,32 @@ of the event loop approach.
     handed over to the networking layer, for distribution over ethernet.
   \item When all collector boards have been processed, the mutex for the TWI bus is released again.
 \end{enumerate}
+\subsubsection{String handling}
+\subsubsection{TCP/IP networking}
+% W5100 driver extension, to support clear receive buffer
+We built our networking code on top of the W5100 driver, provided by Arduino. We did not use the \texttt{EthernetServer} interface, as
+this did not provide enough flexibility for handling independent TCP connections. Our code works directly with sockets, provided by
+the arduino library \texttt{socket.h}. We also had to extend the W5100 driver, to allow fast clearing of the socket receive buffer,
+without reading all received data for performance reasons (\texttt{net\_clear\_rcv\_buf(SOCKET)}).\\
+To allow convenient reading and writing to sockets, using the C standard input output library (cstdio), we created an interface
+above the sockets, which provides a \texttt{FILE} object, representing a stream. However due to lack of memory, we only created one
+stream for all sockets. So multiplexing has to be done when writing/reading to/from different sockets, by telling the stream to switch
+to a different socket (\texttt{stream\_set\_socket(sock)}). As the stream utilizes buffers, a stream flush (\texttt{sock\_stream\_flush()})
+can be performend to force sending of the buffer contents over the network.\\
+The final networking layer provides two essential services:
+\begin{enumerate}
+  \item A handling function \texttt{net\_data\_available()}, which is used to process measurement data from a collector board:\\
+    This function is called by the measurement sampling task, as soon as data was received from one collector board. It will then
+    calculate the estimated length of a JSON document, containig the data and then sennd a valid JSON document to the data base
+    server, using a reserved TCP client socket.
+  \item An event loop function \texttt{net\_loop()}, which is responsible for the user interface and incomming data from the database:\\
+    This function implements a TCP server, which is able to handle up to three simultaneous terminal user interface sessions. A parser
+    will parse incomming data from TCP connections and call command handler functions, if the data is recognized as a valid command.
+    New commands with respective callback functions can be registered in a command array \texttt{struct cmd cmds[]}. Care has to be
+    taken, when accessing shared resources like the I2C bus in a handler, as busy waiting for aquiring the mutex will lead to a deadlock.
+\end{enumerate}
+
+\subsubsection{Configuration}
 
 \subsection{User interface}
 The ethernet board provides a terminal user interface over TCP/IP, which may be accessed via applications like telnet or netcat.
