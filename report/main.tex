@@ -595,6 +595,15 @@ of the event loop approach.
   \item When all collector boards have been processed, the mutex for the TWI bus is released again.
 \end{enumerate}
 \subsubsection{String handling}
+In C, strings are represented as char arrays. If such string arrays are initialized in C code, the data is placed
+into the \texttt{.bss} or \texttt{.data} section of the compiled program. During program execution the whole data
+will then be initialized inside the AVR RAM. As our application uses a huge amount of string constants for the user interface and
+generation of JSON documents, this approach would use up way more memory in RAM, than we have available on the Atmega328 (2Kbyte).\\
+Because of that we use the \texttt{PROGMEM} compiler attribute, which causes the string data to be linked to the \texttt{.text} section.
+To access data from text section however, it has to be read directly from flash memory, hence standard string manipulating methods
+can not be used. However the avr \texttt{cstdio} library provides alternative methods for string processing (e.g. \texttt{fputs\_P()}
+as a replacement for \texttt{fputs()}). Using these, strings are usually read char by char directly from flash memory and a minimum
+amount of RAM is used.
 \subsubsection{TCP/IP networking}
 % W5100 driver extension, to support clear receive buffer
 We built our networking code on top of the W5100 driver, provided by Arduino. We did not use the \texttt{EthernetServer} interface, as
@@ -618,9 +627,9 @@ The final networking layer provides two essential services:
     New commands with respective callback functions can be registered in a command array \texttt{struct cmd cmds[]}. Care has to be
     taken, when accessing shared resources like the I2C bus in a handler, as busy waiting for aquiring the mutex will lead to a deadlock.
 \end{enumerate}
-
 \subsubsection{Configuration}
-
+To store the system configuration, we use the Atmega328 integrated EEPROM storage. We also implemented EEPROM wear leveling, to allow
+maximum lifetime, even for many configuration changes. Note that for reliable EEPROM persistency, the integrated burnout detection should be enabled, to keep the AVR controller in reset state at voltages below 4.5 V, as the EEPROM shows undefined behavior, if the controller is running at voltages below 4.5 V.
 \subsection{User interface}
 The ethernet board provides a terminal user interface over TCP/IP, which may be accessed via applications like telnet or netcat.
 This allows users to conveniently change or view system settings. The interface is command driven, every command should be terminated
