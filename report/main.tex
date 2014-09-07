@@ -106,59 +106,63 @@ Communication with the sensor is done via I2C. Thereby measurements can be initi
 For further information about the sensor, and data interpretation, please refer to \cite{hyt}, \cite{hyt3} and \cite{hyt2}.
 \section{Logical design}
 Our network architecture is structured into 3 parts (see figure \ref{fig:topo}):
+%FIXME the number 20, a meaning? It does not pass the number descript below
+\begin{figure}[Hh!]
+	\centering
+	\includegraphics[width=0.9\textwidth]{img/plan2.pdf}
+	\caption{Network topology}
+	\label{fig:topo}
+\end{figure}
 \begin{description}
-  \item[Measuring:]
+  \item[Measuring]\hfill \\
     Sensors do periodic measurements. The results are transmitted,
     using an unified protocol. We used ZACwire, as the unified
     protocol, as in our application we have more temperature sensors
     than humidity sensors, which natively speak ZACwire. Hence no
     protocol conversion will be required for the majority of the
-    sensor boards. To extend the range and noise behavior, we use
-    RS485 as a physical layer protocol, to transport the ZACwire
-    signal.
-  \item[Data acquisition:]
+    sensor boards. 
+    Using RS485 as a physical layer protocol, the range of the transport of the ZACwire signal has been extended with a improved noise behavior.
+  \item[Data acquisition]\hfill \\
     At this part of the network, the ZACwire signal from the sensors
     is interpreted and buffered. The measurement data is then
     provided over an I2C interface.\\
     In our implementation, we support receiving of up to 8 Sensors
     per collector board. To increase the numbers of sensors in the
     network, multiple collector boards may be connected to the I2C
-    bus, using the I2C chaining connectors. Using this technique,
+    bus, using the I2C chaining connectors. With this technique,
     the network theoretically may consist of up to
+    %FIXME really 128, I think there are 8 addresses already reserved
     $128\cdot 8 = 1024$ sensors.
-  \item[Data forwarding:]
+  \item[Data forwarding]\hfill \\
     The forwarding part controls the data aquisition part of the
-    network and provides an interface to IP networks. Data may be
-    forwarded to a couchDB database on the internet and the network
-    can be configured via an telnet terminal user interface.
+    network and provides an interface to IP networks. Data can be
+    forwarded to a couchDB database on the internet. Furthermore, the network 
+    is configurable via an telnet/netcat terminal user interface.
 \end{description}
-\begin{figure}
-	\centering
-	\includegraphics[width=0.9\textwidth]{img/plan2.pdf}
-	\caption{Network topology}
-	\label{fig:topo}
-\end{figure}
 \section{Protocols}
 \subsection{ZACwire}\label{chap:zac}
-ZACwire is a prorietary one wire comminucation protocol, developed
-by IST AG. Only one data line is needed.\\
-Bits are represented by
+ZACwire is a proprietary one wire comminucation protocol, developed
+by IST AG. ``One wire'' means, only one data line is needed.\\
+Each bit is represented by
 different duty cycles of the waveform within the bit time $T_b$.
 Every normal bit starts and ends with a falling edge. At the beginning
 of each transmission, a start bit with a duty cycle of 50\% is
 transmitted. From this start bit, the bit time $T_b$ for the
-transmission can be extracted. If the bus is high for a time $>T_b$
+transmission can be extracted. 
+If the bus is 75\% high within the bit time $T_b$, bit `1' is transfered, otherwise bit `0'. 
+If the bus is high for a time $>T_b$
 the transmission ends, this is called a Stop bit. Figure \ref{fig:zac}
+% FIXME why may be here
 shows the four different wafeform types, of which a ZACwire signal may be
 composed off. Figure \ref{fig:zacexample} shows an example
 transmission. For further information see \cite{zac}.
-\begin{figure}[b]
+\begin{figure}[Hh!]
 	\centering
 	\includegraphics[width=0.3\textwidth]{img/zac_bits.pdf}
 	\caption{ZACwire protocol signal interpretation}
 	\label{fig:zac}
 \end{figure}
-\begin{figure}[b]
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=0.9\textwidth]{img/zac_example.pdf}
 	\caption{ZACwire protocol example}
@@ -166,7 +170,7 @@ transmission. For further information see \cite{zac}.
 \end{figure}
 \subsection{I2C}
 I2C is a bus protocol, which specifies the physical layer, as well as an arbitration and addressing layer. The protocol allows communication between multiple bus participants.\\
-Transmissions are done over two transmission lines SCL and SDA, which
+It is a two wire protocol. Transmissions are done over two transmission lines SCL and SDA, which
 are pulled to logical high voltage level by pullup resistors (see
 figure \ref{fig:i2c}). Each transmission is controlled by a device
 in master mode, which provides a clock by controlling the SCL line.\\
@@ -174,24 +178,27 @@ A transmission is surrounded by a START and a STOP bit, which are code violation
 At the beginning of a transmission, the master first transmits an
 address to the bus, addressing one or all connected devices which
 are in slave mode. After that a data direction bit is sent to the
-bus, which defines the slave behavior. If the direction bit specifies a write, all addressed slave devices read bits from the bus at every 
+bus, which defines the slave behavior: read or write. If the direction bit specifies a write, all addressed slave devices read bits from the bus at every 
 lock cycle, the SDA line stats under control of the master. If the
 direction bit describes a read, the slave should take control over
 the SDA line and transmits bits at every clock cycle.\\
 The Slave is allowed to take control over the SCL line at any time
 by pulling it low. this is called clock extenstion, and signals the
-master to not proceed transmitting or receiving data.\\
+master to not proceed transmitting or receiving data.
 The full I2C specification can be found in \cite{i2c}.
-\begin{figure}
+\begin{figure}[Hh!]
 	\centering
 	\includegraphics[width=0.7\textwidth]{img/i2c.pdf}
   \caption{I2C logical bus structure. Source \cite{i2c}.}
 	\label{fig:i2c}
 \end{figure}
-
 \subsection{RS485}
-RS485 is a transmission line standard, which specifies differential line communication over twisted pair cables. It allows very long distance communication of up to 1 kilometer with high noise immunity and reduced noise emission.\\
-Figure \ref{fig:rs485} illustrates the working principle of the protocol. The encoder transforms a single bit line DI into two separate lines A and B. If DI is high, the output voltage at line A, $V_{OA}$ will bigger than at line B ($V_{OB}$). If the input voltage at DI is low, $V_{OB}>V_{OA}$ holds.\\
+RS485 is a transmission line standard, which specifies differential line communication over twisted pair cables.
+It allows very long distance communication of up to 1 kilometer with high noise immunity and reduced noise emission.\\
+Figure \ref{fig:rs485} illustrates the working principle of the protocol.
+The encoder transforms a single bit line DI into two separate lines A and B.
+If DI is high, the output voltage at line A ($V_{OA}$) will bigger than at line B ($V_{OB}$).
+If the input voltage at DI is low, $V_{OB}>V_{OA}$ holds.\\
 A detailed description of the protocol and its implementation can be found in \cite{rs485}, \cite{st485} and \cite{st485appnote}.
 \begin{figure}[b]
 	\centering
