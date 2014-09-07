@@ -209,6 +209,8 @@ A detailed description of the protocol and its implementation can be found in \c
 \end{figure}
 
 \chapter{Implementation}
+According to the logical design, three types of hardware boards are developed for implementation of the features in each parts: sensor board for measuring, collector board for data acquistion and ethernet board for data forwarding.\\
+In this capital, the used and needed tools for the development and mainteness will be described, as well as the hardware and sofware implementation details of the tree types of boards.
 \section{Toolchain}
 \subsection{KiCad}
 To design schematic circuit diagrams, as well as printed multilayer circuit boards, we used the open source EDA suite KiCad\footnote{http://www.kicad-pcb.org}. Most of the schematic and footprint components, were designed by ourselfes and can be found in the project git repository.\\
@@ -216,13 +218,16 @@ The finished board files were exported to the Gerber / Echelon file format and s
 \subsection{ISP programming}
 To upload the compiled code and to configure the microprocessors, we used the USBasp programmer in combination with the avrdude software.\\
 As we needed to access the fuse bytes of the arduino too, which was not possible with the arduino bootloader, we also use the ISP header on the Arduino board for programming. The arduino bootloader was removed. Hence it is not possible anymore, to programm the arduino with the arduino software suite, without reinstalling the bootloader.\\
-Note that the arduino ISP header is not compatible with the one, provided by the USBasp programmer. A mechanical adaptor or individual cabling is required. Figure \ref{XXX} shows the pin asignments of the different ISP headers.
+\textbf{Note} that the arduino ISP header is not compatible with the one, provided by the USBasp programmer. A mechanical adaptor or individual cabling is required. 
+%FIXME no forget
+Figure \ref{XXX} shows the pin asignments of the different ISP headers.
 \subsection{USART for debugging}
-For convenient debuging, we added a USART header on each board with a microcontroller. These pins are directly connected to the hardware USART unit of the
-microconteoller. Note, that the signal level on this header is TTL and is not compatible with the RS232 standard. Using either an external signal level converter from TTL to RS232, or a direct USB to USART TTL converter, it is possible to connect the boards to a PC.\\
+For convenient debuging, we added a USART header on each board with a microcontroller. 
+These pins are directly connected to the hardware USART unit of the microconteoller.\\ 
+\textbf{Note} that the signal level on this header is TTL and is not compatible with the RS232 standard. Using either an external signal level converter from TTL to RS232, or a direct USB to USART TTL converter, it is possible to connect the boards to a PC.\\
 In every software component, we set the \emph{stdout} file descriptor, to point to a USART file, implementing writing data to the USART line.
-Hence standard file handling functions like \emph{printf} or \emph{puts} can be used.\\
-To read and write data at the PC side, software like \emph{screen} or \emph{picocom} may be used. The default baudrate is 9600bps.
+Hence standard file handling functions like \emph{printf} or \emph{puts} can be used for printing debugging information.\\
+To read and write data at the PC side, software like \emph{screen} or \emph{picocom} may be used. The default baud rate is 9600bps.
 \subsection{Build process}
 To build and upload the code the following software and libraries are required:\\
 Tools:
@@ -240,6 +245,7 @@ Libraries:
 We use the make build environment. The Makefiles in each software directory contain instructions on how to build and upload the software to the microcontroller, using the following rules:
 \begin{description}
   \item[make clean] Clears the build directory.
+    %FIXME make makefile clever for use/create build folder
   \item[make] Compiles and links the source code to the elf and intel hex binary format. Also a eeprom image is generated in intel hex binary format. The output directory for binary files will be \emph{./build/}.
   \item[make fuse] Configures the controller, to use the right system clock source, burnout detection and eeprom persistency settings.
   \item[make eeprom] Uploads the eeprom image to the controller.
@@ -247,8 +253,9 @@ We use the make build environment. The Makefiles in each software directory cont
 \end{description}
 For a first time build and upload, the above order should be respected. After the initial upload, fuses and eeprom should not be touched everytime, the software changes.\\
 To be able to find the Arduino library root path, the \emph{ARDUINO\_PATH} environment variable should be set to the Arduino installation directory. This for example is the Path to the cloned Arduino git reporitory.\\
-Note, that the Makefiles in the current version, do not automatically search for file dependancies, hence a make clean should be executed, after every change in not explicitly specified files, namely every non .c or .cpp file.
-\section{Temperature board} \label{chap:tempbrd}
+\textbf{Note}, that the Makefiles in the current version, do not automatically search for file dependancies, hence a make clean should be executed, after every change in not explicitly specified files, namely every non .c or .cpp file.
+\section{Sensor board} \label{chap:sensorbrd}
+\subsection{Temperature board} \label{chap:tempbrd}
 The temperature board consists of the TSic506F sensor and
 complementary circuitry. The ZACwire signal is transformed to the
 RS485 electrical layer, using a ST485 integrated circuit. The board
@@ -256,19 +263,19 @@ provides a RJ45 socket,  over which the required supply voltage of 5V
 should be provided, and the two differential signal outputs can be
 received. The schematic diagram can be seen in figure
 \ref{fig:schem_temp}.\\
-Care was taken, when soldering the temperature sensor, to minimize
-heat transfer to the chip. We did this by soldering each pin for a
-maximum time of 2 seconds, We also tried to keep the total time spent
-for soldering all 3 pins less than 10 seconds. After soldering, we
-immediately blowed cold air to the pins and the chip itself.
-\begin{figure}
+\begin{figure}[Hh!]
 	\centering
 	\includegraphics[width=0.6\textwidth]{img/schem_temperature_board.pdf}
 	\caption{Temperature board schematic. The Impedance adjustor circuit, R4 and C4 is not required to be populated, as we only transmit data.}
 	\label{fig:schem_temp}
 \end{figure}
-\section{Humidity board}
-\subsection{Hardware}
+Care was taken, when soldering the temperature sensor, to minimize
+heat transfer to the chip. We did this by soldering each pin for a
+maximum time of 2 seconds, We also tried to keep the total time spent
+for soldering all 3 pins less than 10 seconds. After soldering, we
+immediately blowed cold air to the pins and the chip itself.
+\subsection{Humidity board}
+\subsubsection{Hardware}
 The hardware structure is similar to the temperature board, described in section \ref{chap:tempbrd}. However, as the HYT271 sensors use I2C for
 communication, we added a microcontroller to repediately poll the sensor for current measurement results and send the data out, using a software
 implementation of the ZAC wire protocol. Therefore we also placed an ISP socket, a debugging adapter, a reset switch and two LEDs onto the board, which makes it
@@ -279,12 +286,12 @@ slightly bigger than the temperature board. The schematic can be seen in figure 
 	\caption{Humidity board schematic}
 	\label{fig:schem_hum}
 \end{figure}
-\subsection{Software}
+\subsubsection{Software}
 \section{Collector board}
 The collector board decodes the ZAC protocol and provides an I2C interface for
 reading out temperature, as well as humidity values of connected sensors.
 Care was taken, to ensure a response time of $<1\,\mathrm{s}$.
-\subsection{Hardware}
+\subsubsection{Hardware}
 The schematic diagram can be seen in figure \ref{fig:schem_collect}. The hardware consists of the following main components:
 \begin{description}
   \item[Microprocessor:]\hspace{1cm}\\
