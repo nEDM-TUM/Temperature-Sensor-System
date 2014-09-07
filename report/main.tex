@@ -35,8 +35,8 @@ integrated circuit. At a relatively low price of about \EUR{7} per device, it
 is able to deliver very high accuracy (see table \ref{tab:tsic}).\\
 The temperature is converted to a digital value, which is sent out over a
 proprietary one wire protocol variant, called \emph{ZAC-Wire}. The Transmission structure can be seen in figure \ref{fig:tsic_transmission}. Details about the ZACwire protocol are described in section \ref{chap:zac}.\\
-The temperature $T_{cels}$ in celsius can be calculated from the received value $T_{dig}$ using
-$$T_{cels} = \frac{T_{dig}}{2047} \cdot 70\,^{\circ} - 10\,^{\circ}.$$
+The temperature $T$ in celsius can be calculated from the received value $T_{dig}$ using
+$$T\,[^{\circ} C] = \frac{T_{dig}}{2047} \cdot 70 - 10$$\\
 In order to minimize soldering heat, which would influence the calibration, we used the TO92 packaged sensor.\\
 For further information about the sensor, and data interpretation, please refer to \cite{tsic} and \cite{tsic2}.
 \begin{table}[Hh!]
@@ -50,6 +50,7 @@ For further information about the sensor, and data interpretation, please refer 
 		Resolution & $0.034\,\mathrm{K}$  \\
 		\hline
 	\end{tabular}
+%FIXME specs???
   \caption{TSIC 506F specs \cite{tsic2}}
 	\label{tab:tsic}
 \end{table}
@@ -65,9 +66,12 @@ For further information about the sensor, and data interpretation, please refer 
 	\label{fig:tsic_transmission}
 \end{figure}
 \subsection{HYT271}
-For humidity measurement, we use the HYT271 sensor. At a price of about \EUR{20} per device it is significantly more expensive than the temperature sensors, however it delivers precice, temperature compensated humidity readout. In addition, the temperature can also be read out. Table \ref{tab:hyt} lists the specified sensor characteristics.\\
-Communication with the sensor is done via I2C. Thereby measurements can be initialized via addressing the sensor and sending a write bit. The result of a measurement can be received by initializing an I2C read transfer, followed by reading the measurement data. Figure \ref{fig:hyt_transmission} shows the format of received measurement data.\\
-For further information about the sensor, and data interpretation, please refer to \cite{hyt}, \cite{hyt2} and \cite{hyt3}.
+For humidity measurement, we use the HYT271 sensor. At a price of about \EUR{20} per device it is significantly more expensive than the temperature sensors, however it delivers precice, temperature compensated humidity readout. 
+The hymidity value $rH$ in persent can be simply calculated from the received value $rH_{dig}$ using
+$$rH\,[\%] = \frac{100}{2^{14}} \cdot  rH_{dig}$$\\
+In addition, the temperature can also be read out and calculate using 
+$$T\,[^{\circ} C] = \frac{165}{2^{14}} \cdot  T_{dig} - 40$$\\
+Table \ref{tab:hyt} lists the specified sensor characteristics.
 \begin{table}[Hh!]
 	\centering
 	\begin{tabular}{| r | c | c |}
@@ -84,20 +88,22 @@ For further information about the sensor, and data interpretation, please refer 
 	\end{tabular}
   \caption{HYT271 specs \cite{hyt}}
 	\label{tab:hyt}
-\end{table}
+\end{table}\\
+Communication with the sensor is done via I2C. Thereby measurements can be initialized via addressing the sensor and sending a write bit. The result of a measurement can be received by initializing an I2C read transfer, followed by reading the measurement data. Figure \ref{fig:hyt_transmission} shows the format of received measurement data. According to the second status bit, the stale bit, sent at the beginning, it is to state, whether a new measured value is ready after the last readout. The reception of data may be aborted, by the I2C master after every byte, if not all data is needed.
 \begin{figure}[Hh!]
 	\centering
 	\definecolor{lightgray}{gray}{0.8}
 	\begin{bytefield}[endianness=big, bitwidth=2.1em]{8}
 		\bitheader{0-7}\\
-    \bitbox{2}{\color{lightgray}\rule{\width}{\height}} & \bitbox{6}{Humidity [13:8]}\\
+    \bitbox{2}{Status} & \bitbox{6}{Humidity [13:8]}\\
     \bitbox{8}{Humidity [7:0]}\\
-    \bitbox{8}{Temperature [15:8]}\\
+    \bitbox{2}{\color{lightgray}\rule{\width}{\height}} & \bitbox{6}{Temperature [13:8]}\\
     \bitbox{8}{Temperature  [7:0]}
 	\end{bytefield}
-  \caption{HYT271 transmission structure. The reception of data may be aborted, by the I2C master after every byte, if not all data is needed \cite{hyt2}.}
+  \caption{HYT271 transmission structure. The hymidity value and temperature value are each consists of 14 bits. The two bits, marked with gray color, before the temperature value are not used \cite{hyt2}.}
 	\label{fig:hyt_transmission}
-\end{figure}
+\end{figure}\\
+For further information about the sensor, and data interpretation, please refer to \cite{hyt}, \cite{hyt3} and \cite{hyt2}.
 \section{Logical design}
 Our network architecture is structured into 3 parts (see figure \ref{fig:topo}):
 \begin{description}
