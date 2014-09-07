@@ -564,7 +564,25 @@ busy waiting when trying to aquire a mutex will immediately lead to a deadlock, 
 of the event loop approach.
 \subsubsection{TCP/IP Interface}
 % W5100 driver extension, to support clear receive buffer
-\subsubsection{I2C interface}
+\subsubsection{Receiving of measurement results}
+\begin{enumerate}
+  \item In the main event loop the function \texttt{loop\_sample()} is called periodically. To trigger the sampling process in fixed time
+    intervals, an interrupt generating timer is used to count the time in millisecond resulution. This is already implemented in the Arduino core library
+    and initilized \texttt{init()} function at startup.
+    On each call of the \texttt{loop\_sample()} function in IDLE state, it is determined, if sampling should be started according to the
+    currend millisecond time.
+  \item As soon, as sampling should be started, the mutex for the TWI bus will be aquired. Then a TWI bus scan will be performed, to detect
+    all connected collector boards. The result of this scan is required later, when reading the measurement results from each board.
+  \item After that, the \emph{twi\_start\_measurement()} command is sent to the broadcast address $0x00$. This triggers all connected collector
+    boards to simultaneously sample all 8 connected sensors.
+  \item Now the ethernet board tries to receive data from each collector board in turn, by issuing a read request. However, the collector boards
+    need some time to finish sampling of all sensors and will hence do I2C clock extension. This is detected by the ethernet board
+    sampling function and the function will return and continue to try receiving data in the next event loop cycle.
+  \item Once data from one collector board is received completely, a checksum check is performed on all 8 packets and the data is
+    handed over to the networking layer, for distribution over ethernet.
+  \item When all collector boards have been processed, the mutex for the TWI bus is released again.
+\end{enumerate}
+
 \subsection{User interface}
 The ethernet board provides a terminal user interface over TCP/IP, which may be accessed via applications like telnet or netcat.
 This allows users to conveniently change or view system settings. The interface is command driven, every command should be terminated
