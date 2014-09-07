@@ -265,7 +265,7 @@ received. The schematic diagram can be seen in figure
 \ref{fig:schem_temp}.\\
 \begin{figure}[Hh!]
 	\centering
-	\includegraphics[width=0.6\textwidth]{img/schem_temperature_board.pdf}
+	\includegraphics[width=0.7\textwidth]{img/schem_temperature_board.pdf}
 	\caption{Temperature board schematic. The Impedance adjustor circuit, R4 and C4 is not required to be populated, as we only transmit data.}
 	\label{fig:schem_temp}
 \end{figure}
@@ -273,20 +273,34 @@ Care was taken, when soldering the temperature sensor, to minimize
 heat transfer to the chip. We did this by soldering each pin for a
 maximum time of 2 seconds, We also tried to keep the total time spent
 for soldering all 3 pins less than 10 seconds. After soldering, we
-immediately blowed cold air to the pins and the chip itself.
+immediately blowed cold air to the pins and the chip itself.\\
+%FIXME foto of the finish soldered board
+Figure \ref{fig:pcb_temp} shows the printed circuit board (PCB) schema and figure \ref{fig:soldered_temp} soldered temperature board. 
+In order to reduce the influence of the arised heat from the other electronic components, the temperature sensor is designed to put far away from the others and PCB tracks to the temperature sensor are thin within a narrow neck.
+\begin{figure}[Hh!]
+	\centering
+	%FIXME\includegraphics[width=0.7\textwidth]{img/schem_temperature_board.pdf}
+	\caption{Temperature printed circuit board schematic.}
+	\label{fig:pcb_temp}
+\end{figure}
+\begin{figure}[Hh!]
+	\centering
+	%FIXME\includegraphics[width=0.7\textwidth]{img/schem_temperature_board.pdf}
+	\caption{Temperature printed circuit board schematic.}
+	\label{fig:soldered_temp}
+\end{figure}
 \subsection{Humidity board}
-\subsubsection{Hardware}
 The hardware structure is similar to the temperature board, described in section \ref{chap:tempbrd}. However, as the HYT271 sensors use I2C for
 communication, we added a microcontroller to repediately poll the sensor for current measurement results and send the data out, using a software
 implementation of the ZAC wire protocol. Therefore we also placed an ISP socket, a debugging adapter, a reset switch and two LEDs onto the board, which makes it
 slightly bigger than the temperature board. The schematic can be seen in figure \ref{fig:schem_hum}.
 \begin{figure}
 	\centering
-	\includegraphics[width=0.8\textwidth]{img/schem_humidity_board.pdf}
+	\includegraphics[width=0.9\textwidth]{img/schem_humidity_board.pdf}
 	\caption{Humidity board schematic}
 	\label{fig:schem_hum}
 \end{figure}
-\subsubsection{Software}
+\subsubsection{Protocol Conversion}
 \section{Collector board}
 The collector board decodes the ZAC protocol and provides an I2C interface for
 reading out temperature, as well as humidity values of connected sensors.
