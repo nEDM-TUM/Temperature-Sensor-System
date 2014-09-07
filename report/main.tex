@@ -201,9 +201,11 @@ The encoder transforms a single bit line DI into two separate lines A and B.
 If DI is high, the output voltage at line A ($V_{OA}$) will bigger than at line B ($V_{OB}$).
 If the input voltage at DI is low, $V_{OB}>V_{OA}$ holds.\\
 A detailed description of the protocol and its implementation can be found in \cite{rs485}, \cite{st485} and \cite{st485appnote}.
-\begin{figure}[b]
+\null
+\vfill
+\begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.7\textwidth]{img/rs485.pdf}
+	\includegraphics[width=0.65\textwidth]{img/rs485.pdf}
   \caption{RS485 encoding/decoding - Logical structure. Source: \cite{rs485}.}
 	\label{fig:rs485}
 \end{figure}
@@ -291,21 +293,36 @@ In order to reduce the influence of the arised heat from the other electronic co
 \end{figure}
 \subsection{Humidity board}
 The hardware structure is similar to the temperature board, described in section \ref{chap:tempbrd}. However, as the HYT271 sensors use I2C for
-communication, we added a microcontroller to repediately poll the sensor for current measurement results and send the data out, using a software
+communication, we added a microcontroller to repediately poll the sensor for current measurement results and send the data out using a software
 implementation of the ZAC wire protocol. Therefore we also placed an ISP socket, a debugging adapter, a reset switch and two LEDs onto the board, which makes it
 slightly bigger than the temperature board. The schematic can be seen in figure \ref{fig:schem_hum}.
-\begin{figure}
+\begin{figure}[Hh!]
 	\centering
 	\includegraphics[width=0.9\textwidth]{img/schem_humidity_board.pdf}
 	\caption{Humidity board schematic}
 	\label{fig:schem_hum}
+\end{figure}
+\\
+The design of the pcb schema is also similar to the temperature board, see
+figure \ref{fig:pcb_hum} and figure \ref{fig:soldered_hum} of a soldered humidity board. 
+\begin{figure}[Hh!]
+	\centering
+	%FIXME\includegraphics[width=0.7\textwidth]{img/schem_temperature_board.pdf}
+	\caption{Humidity printed circuit board schematic.}
+	\label{fig:pcb_hum}
+\end{figure}
+\begin{figure}[Hh!]
+	\centering
+	%FIXME\includegraphics[width=0.7\textwidth]{img/schem_temperature_board.pdf}
+	\caption{Humidity printed circuit board schematic.}
+	\label{fig:soldered_hum}
 \end{figure}
 \subsubsection{Protocol Conversion}
 \section{Collector board}
 The collector board decodes the ZAC protocol and provides an I2C interface for
 reading out temperature, as well as humidity values of connected sensors.
 Care was taken, to ensure a response time of $<1\,\mathrm{s}$.
-\subsubsection{Hardware}
+\subsection{Hardware}
 The schematic diagram can be seen in figure \ref{fig:schem_collect}. The hardware consists of the following main components:
 \begin{description}
   \item[Microprocessor:]\hspace{1cm}\\
