@@ -12,6 +12,7 @@
 \usepackage{color}
 \usepackage{longtable}
 \usepackage{tabularx}
+\usepackage{url}
 \usepackage[bookmarks]{hyperref}
 \hypersetup{pdftex,colorlinks=true,allcolors=black}
 \usepackage{hypcap}
@@ -50,8 +51,7 @@ For further information about the sensor, and data interpretation, please refer 
 		Resolution & $0.034\,\mathrm{K}$  \\
 		\hline
 	\end{tabular}
-%FIXME specs???
-  \caption{TSIC 506F specs \cite{tsic2}}
+  \caption{TSIC 506F specification \cite{tsic2}}
 	\label{tab:tsic}
 \end{table}
 \begin{figure}[Hh!]
@@ -86,7 +86,7 @@ Table \ref{tab:hyt} lists the specified sensor characteristics.
     Resolution & $0.015\,\mathrm{K}$ & $\pm 0.03\, \mathrm {\%RH}$ \\
 		\hline
 	\end{tabular}
-  \caption{HYT271 specs \cite{hyt}}
+  \caption{HYT271 specification \cite{hyt}}
 	\label{tab:hyt}
 \end{table}\\
 Communication with the sensor is done via I2C. Thereby measurements can be initialized via addressing the sensor and sending a write bit. The result of a measurement can be received by initializing an I2C read transfer, followed by reading the measurement data. Figure \ref{fig:hyt_transmission} shows the format of received measurement data. According to the second status bit, the stale bit, sent at the beginning, it is to state, whether a new measured value is ready after the last readout. The reception of data may be aborted, by the I2C master after every byte, if not all data is needed.
@@ -106,7 +106,6 @@ Communication with the sensor is done via I2C. Thereby measurements can be initi
 For further information about the sensor, and data interpretation, please refer to \cite{hyt}, \cite{hyt3} and \cite{hyt2}.
 \section{Logical design}
 Our network architecture is structured into 3 parts (see figure \ref{fig:topo}):
-%FIXME the number 20, a meaning? It does not pass the number descript below
 \begin{figure}[Hh!]
 	\centering
 	\includegraphics[width=0.9\textwidth]{img/plan2.pdf}
@@ -131,8 +130,7 @@ Our network architecture is structured into 3 parts (see figure \ref{fig:topo}):
     network, multiple collector boards may be connected to the I2C
     bus, using the I2C chaining connectors. With this technique,
     the network theoretically may consist of up to
-    %FIXME really 128, I think there are 8 addresses already reserved
-    $128\cdot 8 = 1024$ sensors.
+    $120\cdot 8 = 1024$ sensors\footnote{Eight I2C addresses are reserved}.
   \item[Data forwarding]\hfill \\
     The forwarding part controls the data aquisition part of the
     network and provides an interface to IP networks. Data can be
@@ -153,8 +151,7 @@ transmission can be extracted.
 If the bus is 75\% high within the bit time $T_b$, bit `1' is transfered, otherwise bit `0'. 
 If the bus is high for a time $>T_b$
 the transmission ends, this is called a Stop bit. Figure \ref{fig:zac}
-% FIXME why may be here
-shows the four different wafeform types, of which a ZACwire signal may be
+shows the four different wafeform types, of which a ZACwire signal can be
 composed off. Figure \ref{fig:zacexample} shows an example
 transmission. For further information see \cite{zac}.
 \begin{figure}[Hh!]
@@ -221,8 +218,13 @@ The finished board files were exported to the Gerber / Echelon file format and s
 To upload the compiled code and to configure the microprocessors, we used the USBasp programmer in combination with the avrdude software.\\
 As we needed to access the fuse bytes of the arduino too, which was not possible with the arduino bootloader, we also use the ISP header on the Arduino board for programming. The arduino bootloader was removed. Hence it is not possible anymore, to programm the arduino with the arduino software suite, without reinstalling the bootloader.\\
 \textbf{Note} that the arduino ISP header is not compatible with the one, provided by the USBasp programmer. A mechanical adaptor or individual cabling is required. 
-%FIXME no forget
 Figure \ref{XXX} shows the pin asignments of the different ISP headers.
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.35\textwidth]{img/isp.png}
+  \caption{ISP connector pin asignments. Left: 10 pin version (used by USBasp, and on our boards), Right 6 pin version (as used on arduino boards). Source: \cite{micronet}.}
+	\label{fig:rs485}
+\end{figure}
 \subsection{USART for debugging}
 For convenient debuging, we added a USART header on each board with a microcontroller. 
 These pins are directly connected to the hardware USART unit of the microconteoller.\\ 
