@@ -9,17 +9,18 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="520"
-   height="72.080811"
+   width="484.41449"
+   height="107.32274"
    id="svg5378"
    version="1.1"
    inkscape:version="0.48.5 r10040"
-   sodipodi:docname="zac_encoding.svg">
+   sodipodi:docname="zac_encoding.pdf">
   <defs
      id="defs5380">
     <filter
        inkscape:collect="always"
-       id="filter4214">
+       id="filter4214"
+       color-interpolation-filters="sRGB">
       <feGaussianBlur
          inkscape:collect="always"
          stdDeviation="0.23214286"
@@ -34,10 +35,10 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.979899"
-     inkscape:cx="127.83954"
-     inkscape:cy="72.326559"
+     inkscape:cx="512.68305"
+     inkscape:cy="72.326555"
      inkscape:document-units="px"
-     inkscape:current-layer="layer3"
+     inkscape:current-layer="layer1"
      showgrid="false"
      fit-margin-top="0"
      fit-margin-left="0"
@@ -56,7 +57,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -64,13 +65,13 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-11.42857,-548)">
+     transform="translate(56.183384,-512.75807)">
     <path
-       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
-       d="m -11.78572,558.66328 47.808779,0 0,40 44.252749,0 0,-40 44.252752,0 0,40 22.12637,0 0,-40 66.37913,0 0,40 66.37912,0 0,-40 22.12637,0 0,0 88.5055,0 0,40 44.25275,0 0,-40 44.25275,0 0,40"
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m -11.78572,558.66328 47.808779,0 0,40 44.252749,0 0,-40 44.252752,0 0,40 22.12637,0 0,-40 66.37913,0 0,40 66.37912,0 0,-40 22.12637,0 0,0 88.5055,0 0,40 18.99894,0"
        id="path2989-3"
        inkscape:connector-curvature="0"
-       sodipodi:nodetypes="ccccccccccccccccccccc" />
+       sodipodi:nodetypes="cccccccccccccccccc" />
     <text
        xml:space="preserve"
        style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
@@ -118,24 +119,25 @@
     <text
        xml:space="preserve"
        style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
-       x="421.03403"
+       x="391.03403"
        y="618.00073"
        id="text5339"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5341"
-         x="421.03403"
-         y="618.00073">Start</tspan></text>
+         x="391.03403"
+         y="618.00073">Start ...</tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1, 2;stroke-dashoffset:0"
-       d="m 479.62857,598.15224 17.11268,0"
+       d="m 410.61842,598.65732 17.11268,0"
        id="path4543"
        inkscape:connector-curvature="0" />
   </g>
   <g
      inkscape:groupmode="layer"
      id="layer2"
-     inkscape:label="encoding">
+     inkscape:label="encoding"
+     transform="translate(67.611954,35.241932)">
     <text
        xml:space="preserve"
        style="font-size:28px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
@@ -323,7 +325,8 @@
   <g
      inkscape:groupmode="layer"
      id="layer3"
-     inkscape:label="interrupt">
+     inkscape:label="interrupt"
+     transform="translate(67.611954,35.241932)">
     <g
        id="g4661"
        transform="translate(0.0714279,0)">

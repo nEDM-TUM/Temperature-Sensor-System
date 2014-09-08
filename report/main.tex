@@ -322,19 +322,26 @@ figure \ref{fig:pcb_hum} and figure \ref{fig:soldered_hum} of a soldered humidit
 \subsubsection{ZAC encoding}
 The easiliest method to generate ZAC encoding is to set a pin high, then use busy-wait delay loop ($\_delay\_us()$) to wait a certain time interval. After that set the pin to low. 
 But the timing of this method is not very exact (more than 6 $\mu$s inaccuracy according to an experimentation). Hence we had decided to use a timer to achive a higher timing accuracy. \\
-set output pin high
-set output compare register Tb/2
-enable timer compare match interrupt
-enable toggle output pin on compare match
-% FIXME describe
-
+We have used the following timer features by compare match: 
+\begin{itemize}
+  \item Clear timer, while the timer counter matches the output compare register value. It is the socall ``CTC mode''.
+  \item Toggle an output pin if a compare match occurs. It will be also possible to explicitly set the pin high or low.
+  \item Excute interrupt is executed on compare match. It enables to change the value of the output compare register on demand.
+\end{itemize}
+Figure \ref{fig:zac_encoding} shows an example of the ZACwire signal encoding process.
 \begin{figure}[Hh!]
 	\centering
 	\includegraphics[width=\textwidth]{img/zac_encoding.pdf}
-	\caption{ZACwire signal encoding processing example}
-	\label{fig:soldered_hum}
+	\caption{ZACwire signal encoding processing example.}
+	\label{fig:zac_encoding}
 \end{figure}
-Timer0
+We keep the output pin high, when nothing to do.
+If a measured value is ready to sent, the timer will be configured to enable the above described features and the output campare register will be sent to the half of the defined bit time for sending a start bit.
+After that, the output compare register will be set to $\frac{T_{b}}{4}$ or $\frac{3}{4}T_{b}$ according to the sending bit.
+After the last bit is sent, the output pin will keep high, which indicates a stop bit. 
+Until a new measured value is ready again, the whole procudure will be excute again.
+\\
+For detail usage of the microprocessor timer, please read the corresponding datasheet. For the microprocessor ATmega88P, which we used, see \cite{atmega88}. 
 \subsubsection{Cyclic redundancy check (CRC)}
 In order to detect the bits error after a long distance transmission, 
 %FIXME describe crc
