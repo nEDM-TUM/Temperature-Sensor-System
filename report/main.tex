@@ -320,7 +320,18 @@ figure \ref{fig:pcb_hum} and figure \ref{fig:soldered_hum} of a soldered humidit
 \subsubsection{ZAC encoding}
 The easiliest method to generate ZAC encoding is to set a pin high, then use busy-wait delay loop ($\_delay\_us()$) to wait a certain time interval. After that set the pin to low. 
 But the timing of this method is not very exact (more than 6 $\mu$s inaccuracy according to an experimentation). Hence we had decided to use a timer to achive a higher timing accuracy. \\
+set output pin high
+set output compare register Tb/2
+enable timer compare match interrupt
+enable toggle output pin on compare match
 % FIXME describe
+
+\begin{figure}[Hh!]
+	\centering
+	\includegraphics[width=\textwidth]{img/zac_encoding.pdf}
+	\caption{ZACwire signal encoding processing example}
+	\label{fig:soldered_hum}
+\end{figure}
 Timer0
 \subsubsection{Cyclic redundancy check (CRC)}
 In order to detect the bits error after a long distance transmission, 
