@@ -218,12 +218,12 @@ The finished board files were exported to the Gerber / Echelon file format and s
 To upload the compiled code and to configure the microprocessors, we used the USBasp programmer in combination with the avrdude software.\\
 As we needed to access the fuse bytes of the arduino too, which was not possible with the arduino bootloader, we also use the ISP header on the Arduino board for programming. The arduino bootloader was removed. Hence it is not possible anymore, to programm the arduino with the arduino software suite, without reinstalling the bootloader.\\
 \textbf{Note} that the arduino ISP header is not compatible with the one, provided by the USBasp programmer. A mechanical adaptor or individual cabling is required. 
-Figure \ref{XXX} shows the pin asignments of the different ISP headers.
+Figure \ref{fig:isp} shows the pin asignments of the different ISP headers.
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.35\textwidth]{img/isp.png}
   \caption{ISP connector pin asignments. Left: 10 pin version (used by USBasp, and on our boards), Right 6 pin version (as used on arduino boards). Source: \cite{micronet}.}
-	\label{fig:rs485}
+	\label{fig:isp}
 \end{figure}
 \subsection{USART for debugging}
 For convenient debuging, we added a USART header on each board with a microcontroller. 
