@@ -805,6 +805,24 @@ The following commands are supported:
 \end{description}
 \chapter{Deployment}
 \section{Casings for the hardware}
+\begin{figure}
+	\centering
+	\includegraphics[width=\textwidth]{img/cases.jpg}
+  \caption{3D printed casings. Left: temperature board casing, middle: ethernet board casing, right: collector board casing. The casing for the humidity board is not shown, as it is similar to the one for the temperature sensor, but longer.}
+	\label{fig:casings}
+\end{figure}
+Casings for the electronic components were designed with 3D CAD software and then printed with the department's 3D printer. The 3D
+files of each case can be found in our GIT repository. Figure \ref{fig:casings} shows the completed cases with circuit boards inside.
+\paragraph{Casings for the sensors}\hspace{1cm}\\
+The casings for the sensor boards were designed to protect the sensors from being damaged, as well as to provide a convenient way of
+mounting them on ITEM compatible aluminium profiles. The casing walls have a mesh structure, to allow a maximum air exchange aound the
+sensor. To prevent damage of the sensor board caused by the ethernet cable, a strain-relief is also featured. The original design and
+idea for the sensor casings was done by Tobias Lins.
+\paragraph{Casings for the control units}\hspace{1cm}\\
+We also designed cases for the ethernet and collector boards, to be able to mount them in an easy and compact manner.\\
+Cases for the collector board were designed to be stackable. This works well with the I2C chaining feature, as to extend the sensor network,
+only a new collector board has to be placed on top of the stack. The I2C plug can then be connected to the socket of the topmost board, and provides
+communication and power to the new board.
 \section{Installation}
 42 temperature sensors, 2 hymidity sensors with 6 collection boards and 2 arduino as internet board. We have tried to distribute them evenly in the lab room.
 \begin{figure}
