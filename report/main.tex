@@ -18,6 +18,7 @@
 \hypersetup{pdftex,colorlinks=true,allcolors=black}
 \usepackage{hypcap}
 \usepackage{listings}
+\usepackage{color}
 % the following commands control the margins:
 %\topmargin=-1in    % Make letterhead start about 1 inch from top of page 
 %\textheight=8.5in    % text height can be bigger for a longer letter
@@ -223,7 +224,7 @@ In this capital, the used and needed tools for the development and mainteness wi
 \subsection{KiCad}
 To design schematic circuit diagrams, as well as printed multilayer circuit boards, we used the open source EDA suite KiCad\footnote{http://www.kicad-pcb.org}. Most of the schematic and footprint components, were designed by ourselfes and can be found in the project git repository.\\
 The finished board files were exported to the Gerber / Echelon file format and sent to Fischer Leiterplatten\footnote{http://www.fischer-leiterplatten.de} for production.
-\subsection{ISP programming}
+\subsection{ISP programming}\label{chap:isp}
 To upload the compiled code and to configure the microprocessors, we used the USBasp programmer in combination with the avrdude software.\\
 As we needed to access the fuse bytes of the arduino too, which was not possible with the arduino bootloader, we also use the ISP header on the Arduino board for programming. The arduino bootloader was removed. Hence it is not possible anymore, to programm the arduino with the arduino software suite, without reinstalling the bootloader.\\
 \textbf{Note} that the arduino ISP header is not compatible with the one, provided by the USBasp programmer. A mechanical adaptor or individual cabling is required. 
@@ -501,7 +502,11 @@ When sampling the start bit we get an error for our critical time $T_{crit}$:
 $$T_{min} := T_h - t_e < T_{crit} < T_h + t_e$$
 When using $T_{crit}$ to determine a bit value, we are again influenced by the possibly delayed preceeding falling edge. We get:
 $$T_{min} < T_{crit}' < T_h + 2 \cdot t_e =: T_{max}$$
-Our algorithm will only work correctly, if
+In other words, $T_{min}$ is the time, starting from a real falling edge,
+before which the controller will not sample the bit. $T_{max}$ is the time,
+starting from a real falling edge, after which the controller will not sample
+the bit anymore.\\
+In order to reliably detect 1s and 0s, our algorithm will only work correctly, if
 $$T_{min} > 0.5\cdot T_h + t_e$$
 or
 $$T_{max} < \frac{3}{2}\cdot T_h\text{.}$$
@@ -867,12 +872,6 @@ Figure \ref{fig:control_unit} shows an installed control station with connected 
 the individual sensors. In this case the powersupply is a 9V switching powersupply, connected
 to one of the collector boards. The integrated coltage regulator of this board then creates
 a 5V output, which drives all three collector boards via the I2C connection.
-\paragraph{Squid magnetic field measurement}\hspace{1cm}\\
-To detect possible magnetic interference of our sensor network with the nEDM experiment,
-we performed two measurements, where
-we placed 10 sensors and 6 collector boards inside the magnetically shielded room and performed
-magnetic field measurements using a squid magnetometer. However both our measurements were
-influenced by time dependant noise, which made the results not trustworthy.
 \begin{figure}
 	\centering
 	\includegraphics[width=\textwidth]{img/installPlan.pdf}
@@ -881,17 +880,148 @@ influenced by time dependant noise, which made the results not trustworthy.
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problems}
-Unsuccessful squid measurement\\
-Crash afer long runtime bug\\
-I2C connection only short ranged
+\subsection{Squid magnetic field measurement}
+To detect possible magnetic interference of our sensor network with the nEDM experiment,
+we performed two measurements, where
+we placed 10 sensors and 6 collector boards inside the magnetically shielded room and performed
+magnetic field measurements using a squid magnetometer. However both our measurements were
+influenced by time dependant noise, which made the results not trustworthy.
+\subsection{Crash after long uptime}
+\paragraph{The problem}\hspace{1cm}\\
+The software on the ethernet board currently contains a bug, which causes the board to
+crash at semi-random times. As a result the ethernet board becomes completely inoperable.
+The occurence of this problem is dependent on the configured sampling rate. At a sampling
+interval of $5\,s$ it occurs after about 8 hours, at $\approx0.6\,s$ it occurs already after about
+2 hours. Due to the random nature however, these time values represent mean values based on
+observations.\\
+After debugging, we found out, that the program is always crashing in the function
+\texttt{net\_sendResultToDB(struct dummy\_packet *packets, uint8\_t board\_addr)}. We also found out, that the first part of the function executes correctly:
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\lstdefinestyle{customc}{
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+  %frame=L,
+  %xleftmargin=\parindent,
+  language=C,
+  showstringspaces=false,
+  basicstyle=\footnotesize\ttfamily,
+  %keywordstyle=\bfseries\color{green!40!black},
+  %commentstyle=\itshape\color{purple!40!black},
+  keywordstyle=\bfseries\color{mygreen},
+  commentstyle=\itshape\color{blue},
+  identifierstyle=\color{black},
+  stringstyle=\color{red}
+}
+\lstset{style=customc}
+\begin{lstlisting}[language=C, framextopmargin=10pt, framexbottommargin=10pt]
+void net_sendResultToDB(struct dummy_packet *packets, uint8_t board_addr){
+  // Sends a set of 8 measurement results to the couchdb database
+  int8_t sensor_index;
+  int8_t comma_flag = 0;
+  int16_t value;
+  uint16_t len=0;
+  PORTB &= ~(1<<PB1);
+  PORTD &= ~(1<<PD5);
+  if( W5100.readSnSR(DB_CLIENT_SOCK) != SnSR::ESTABLISHED ){
+    if(!connect_db(cfg.port+1)){
+      return;
+    }
+  }
+  // CRASH OCCURS SOMEWHERE AFTER THIS LINE:
+  // Calculate length for the JSON header:
+  for (sensor_index=0; sensor_index<8; sensor_index++){
+    if(packets[sensor_index].header.error && packets[sensor_index].header.connected){
+      // We do not send data, which might have an error
+      continue;
+    }
+    if(packets[sensor_index].header.connected){
+      switch(packets[sensor_index].header.type){
+        case PACKET_TYPE_TSIC:
+...
+...
+\end{lstlisting}
+However we did not have enough time to exactly locate the problematic code.
+\paragraph{The workaround}\hspace{1cm}\\
+We implemented a workaround for this problem, using the integrated watchdog
+timer (WDT) of the atmega88. This is a independent timer of the
+controller, which can be reset via software. If a overflow of this thimer occurs,
+a complete system reset of the chip will be performed. In our configuration, we
+trigger a timer reset of the WDT on specific points during program execution.
+If however the mentioned bug occurs, the program will hang and after a timeout
+a system reset will occur. This can only be seen as a temporary solution, as
+the bug still exists and timing of the measurement interval will not be right
+for one measurement, as a crash might cause a blackout for up to 15 seconds.
+\paragraph{Further debuging ideas}\hspace{1cm}\\
+While debugging, we found out, that printing debug information over the USART
+interface will heavily extend the time until the bug appears, so this is not a
+good option for debugging the code. We had the most success, to locate the bug,
+by changing the state of LEDs or other GPIOs at differend code locations. After
+the system has crashed, we could just look at the LEDs or measure the voltage on
+GPIO pins to see which line was still executed.
+\subsection{Minor problems}
+\subsubsection{Range of I2C}
+In the design phase, we decided to use I2C for communication between
+the collectorboards. This decision was made, because I2C features clock
+extension and is flexible with regards to connecting new bus participants.\\
+The drawback of this protocol however is, that it is not suitable for long
+range communication, due to the pullup resistors, which allow dominant
+bits. It would be possible to transfer I2C signals over a CAN physical layer
+network, to increase range, however we did not implement this, due to
+cost and complexity savings.\\
+During deployment, we realized, that this is a weak point of our sensor
+network, as we were limited to star shaped network topologies. In the case
+for the nEDM experiment, this problem was not severe, as we only needed
+two control points to conveniently route cables to all sensors from there.
+So we used two ethernet boards, which was still more efficient in terms
+of total cost, than using a CAN network.\\
+However for bigger networks this would represent a drawback.
+\subsubsection{Plug and Play with I2C}
+Due to the many different bus states, and undefined behavior, when bus
+participants are connected / disconnected during bus transactions, it was
+very difficult to allow plug and play of collector boards on the I2C bus.\\
+The current implementation works versy stable, however we can not guarantee
+safe operation, when the device configuration changes during runtime, even though
+we did not observe a crash in our tests.\\
+This problem does not affect normal operation, as in the current setup in the
+nEDM experiment, no collector boards will be added or removed during runtime
+\footnote{Note that Plug and Play for the individual sensors works perfectly}.
+If collectorboards are changed, a power cycle might have to be performed, if
+the network freezes.
+\subsubsection{Low fault tolerance of I2C}
+Due to the nature of the bus, one failing I2C bus participant might be able to
+block the whole bus, rendering the whole network unusable\footnote{Note that this
+might happen, when the microcontroller is connected to a USBasp programmer, which
+is not connected to a computer.}.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Developing / Extending}
-EEPROM persistance enable\\
-LEDs need most of power\\
-Careful with multiple power sources\\
-Arduino fuses only accessable via ISP\\
-Makefile incomplete (.h dependencies)\\
-Link to git repo
+The following are tips for developers, which might me useful, when extending
+the sensor network:
+\begin{itemize}
+\item To prevent EEPROM from being corrupted on power cycles, the AVR
+  integrated brownout detection should be enabled.
+\item To allow EEPROM stroage to stay intact after reprogramming, set the
+  corresponding fuse bit.
+\item To not overload the voltage regulator, especially when driving multiple
+  boards one should consider, that a significant portion of power is used to
+  drive LEDs ($\approx20\,\mathrm{mA}$ per LED). So turning the LEDs off during
+  normal operation will prevent overheating.
+\item When debugging and programming devices of the sensor network, one has to
+  be very careful, to not provide different power sources, as this might cause
+  unexpected results, which can lead to damage of the sensor network, as well
+  ass connected computers. By default the USBasp programmer provides the system
+  with 5V power.
+\item As Arduino fuses are not possible to be programmed via the default Arduino
+  programmer (using the Arduino bootloader), we removed the bootloader and use
+  the ISP connector for programming (see section \ref{chap:isp}).
+\item Our makefiles currently do not support automatic detection of
+  file dependencies, and source files to be compiled. All source files have to
+  be specified explicitly and if changes to header files are made, a 'make clean'
+  should be performed before compiling the program.
+\item Be careful, when using the USART line or similar for generating debugging
+  output. Transmitting debugging information takes relatively long time and might
+  influence the system heavily, especially, when debugging timing critical code.
+  LEDs or GPIO pins with an oscilloscope provide a faster but more complex way for debugging.
+\end{itemize}
 %###############################################################
 \chapter{References}
 %\renewcommand\refname{\vskip -1cm}
