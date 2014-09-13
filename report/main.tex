@@ -117,40 +117,6 @@ Communication with the sensor is done via I2C. Thereby measurements can be initi
 \end{figure}\\
 For further information about the sensor, and data interpretation, please refer to \cite{hyt}, \cite{hyt3} and \cite{hyt2}.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Logical design}
-Our network architecture is structured into 3 parts (see figure \ref{fig:topo}):
-\begin{figure}[Hh!]
-	\centering
-	\includegraphics[width=0.9\textwidth]{img/plan2.pdf}
-	\caption{Network topology}
-	\label{fig:topo}
-\end{figure}
-\begin{description}
-  \item[Measuring]\hfill \\
-    Sensors do periodic measurements. The results are transmitted,
-    using an unified protocol. We used ZACwire, as the unified
-    protocol, as in our application we have more temperature sensors
-    than humidity sensors, which natively speak ZACwire. Hence no
-    protocol conversion will be required for the majority of the
-    sensor boards. 
-    Using RS485 as a physical layer protocol, the range of the transport of the ZACwire signal has been extended with a improved noise behavior.
-  \item[Data acquisition]\hfill \\
-    At this part of the network, the ZACwire signal from the sensors
-    is interpreted and buffered. The measurement data is then
-    provided over an I2C interface.\\
-    In our implementation, we support receiving of up to 8 Sensors
-    per collector board. To increase the numbers of sensors in the
-    network, multiple collector boards may be connected to the I2C
-    bus, using the I2C chaining connectors. With this technique,
-    the network theoretically may consist of up to
-    $120\cdot 8 = 1024$ sensors\footnote{Eight I2C addresses are reserved}.
-  \item[Data forwarding]\hfill \\
-    The forwarding part controls the data aquisition part of the
-    network and provides an interface to IP networks. Data can be
-    forwarded to a couchDB database on the internet. Furthermore, the network 
-    is configurable via an telnet/netcat terminal user interface.
-\end{description}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Protocols}
 In this section, the mainly used low level protocols for measuring and data forwarding will be introduced shortly. 
 \subsection{ZACwire}\label{chap:zac}
@@ -275,6 +241,40 @@ To be able to find the Arduino library root path, the \emph{ARDUINO\_PATH} envir
 According to the logical design, three types of hardware boards are developed for implementation of the features in each parts: sensor board for measuring, collector board for data acquistion and ethernet board for data forwarding.\\
 In this capital, 
 we will describe the logical design of the whole system and the hardware/sofware implementation details of the tree types of boards.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Logical design}
+Our network architecture is structured into 3 parts (see figure \ref{fig:topo}):
+\begin{figure}[Hh!]
+	\centering
+	\includegraphics[width=0.9\textwidth]{img/plan2.pdf}
+	\caption{Network topology}
+	\label{fig:topo}
+\end{figure}
+\begin{description}
+  \item[Measuring]\hfill \\
+    Sensors do periodic measurements. The results are transmitted,
+    using an unified protocol. We used ZACwire, as the unified
+    protocol, as in our application we have more temperature sensors
+    than humidity sensors, which natively speak ZACwire. Hence no
+    protocol conversion will be required for the majority of the
+    sensor boards. 
+    Using RS485 as a physical layer protocol, the range of the transport of the ZACwire signal has been extended with a improved noise behavior.
+  \item[Data acquisition]\hfill \\
+    At this part of the network, the ZACwire signal from the sensors
+    is interpreted and buffered. The measurement data is then
+    provided over an I2C interface.\\
+    In our implementation, we support receiving of up to 8 Sensors
+    per collector board. To increase the numbers of sensors in the
+    network, multiple collector boards may be connected to the I2C
+    bus, using the I2C chaining connectors. With this technique,
+    the network theoretically may consist of up to
+    $120\cdot 8 = 1024$ sensors\footnote{Eight I2C addresses are reserved}.
+  \item[Data forwarding]\hfill \\
+    The forwarding part controls the data aquisition part of the
+    network and provides an interface to IP networks. Data can be
+    forwarded to a couchDB database on the internet. Furthermore, the network 
+    is configurable via an telnet/netcat terminal user interface.
+\end{description}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Sensor boards} \label{chap:sensorbrd}
 \subsection{Temperature board} \label{chap:tempbrd}
@@ -652,17 +652,20 @@ figure \ref{fig:packetorder}.\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Ethernet board}
 \subsection{Hardware}
-For the ethernet board we use a pre built Arduino Ethernet board
-\footnote{http://arduino.cc/en/Main/ArduinoBoardEthernet}, equipped with a
-Power over Ethernet module. The board features an atmega328 microcontroller,
+For the ethernet board we use a pre built 
+Arduino Ethernet board\footnote{http://arduino.cc/en/Main/ArduinoBoardEthernet},
+equipped with a Power over Ethernet module.
+The board features an atmega328 microcontroller,
 which has 32KByte Flash and 2KByte RAM storage \cite{atmega328}. The atmega328
 controller is connected to a W5100 ethernet controller and PHY with integrated
 TCP/IP stack.\\
 As the I/O Pin headers of the Arduino board were not suitable to
 use for a reliable connection with the collector boards, we designed an adapter
 board, which provides sockets for I2C and power connections. The adapter also
-provides I2C pullup resistors and a LED for debugging. Hence, when using it
-the optional pullup resistors on the collector boards can be switched off.
+provides I2C pullup resistors and a LED for debugging.
+Hence, when using it,
+the optional pullup resistors on the collector boards can be switched off.\\
+The PCB schematic of the adaptor can be found in figure	\ref{fig:pcb_arduino}.
 \subsection{Software}
 \subsubsection{Running tasks in parallel}
 On the software side, the ethernet board has the following requirements:
@@ -1117,7 +1120,7 @@ the sensor network:
 	\centering
 	\includegraphics[width=0.4\textwidth]{img/boards/arduino_kicad.pdf}
 	\caption{Arduino adapter printed circuit board schematic. Ground planes are not displayed.}
-	\label{fig:pcb_arduino} %FIXME: add reference in text
+	\label{fig:pcb_arduino} 
 \end{figure}
 
 %###############################################################
