@@ -902,28 +902,49 @@ Link to git repo
 \chapter{Board PCB layout}
 \begin{figure}[Hh!]
 	\centering
-	%FIXME\includegraphics[width=0.7\textwidth]{img/schem_temperature_board.pdf}
-	\caption{Temperature printed circuit board schematic.}
+	\includegraphics[width=0.7\textwidth]{img/boards/temperature_kicad.pdf}
+	\caption{Temperature printed circuit board schematic. Ground planes are not displayed.}
 	\label{fig:pcb_temp}
 \end{figure}
 \begin{figure}[Hh!]
 	\centering
-	%FIXME\includegraphics[width=0.7\textwidth]{img/schem_temperature_board.pdf}
-	\caption{Temperature printed circuit board schematic.}
+	\includegraphics[width=0.7\textwidth]{img/boards/temperature_pcp.jpg}
+	\caption{Temperature printed circuit board. Components not completely soldered yet.}
 	\label{fig:soldered_temp}
 \end{figure}
-\end{appendices}
 \begin{figure}[Hh!]
 	\centering
-	%FIXME\includegraphics[width=0.7\textwidth]{img/schem_temperature_board.pdf}
-	\caption{Humidity printed circuit board schematic.}
+	\includegraphics[width=0.9\textwidth]{img/boards/humidity_kicad.pdf}
+	\caption{Humidity printed circuit board schematic. Ground planes are not displayed.}
 	\label{fig:pcb_hum}
 \end{figure}
 \begin{figure}[Hh!]
 	\centering
-	%FIXME\includegraphics[width=0.7\textwidth]{img/schem_temperature_board.pdf}
-	\caption{Humidity printed circuit board schematic.}
-	\label{fig:soldered_hum}
+	\includegraphics[width=\textwidth]{img/boards/collector_kicad.pdf}
+	\caption{Collector board printed circuit board schematic. Ground planes are not displayed.}
+	\label{fig:pcb_collector} %FIXME: add reference in text
 \end{figure}
+\begin{figure}[Hh!]
+	\centering
+	\includegraphics[width=0.4\textwidth]{img/boards/collector_complete.jpg}
+	\caption{Collector printed circuit board, completely soldered.}
+	\label{fig:soldered_col}
+\end{figure}
+\begin{figure}[Hh!]
+	\centering
+	\includegraphics[width=0.4\textwidth]{img/boards/arduino_kicad.pdf}
+	\caption{Arduino adapter printed circuit board schematic. Ground planes are not displayed.}
+	\label{fig:pcb_arduino} %FIXME: add reference in text
+\end{figure}
+
+%###############################################################
+\chapter{Deployment images}
+\begin{figure}[Hh!]
+	\centering
+	\includegraphics[width=0.94\textwidth]{img/control_unit.jpg}
+	\caption{One of the two installed control units, consisting of three stacked collector boards and one ethernet board. The lids of the casings are removed here. Every cable to a sensor is marked with an unique identifier.}
+	\label{fig:control_unit} %FIXME: add reference in text
+\end{figure}
+\end{appendices}
 
 \end{document}
