@@ -409,22 +409,23 @@ The schematic diagram can be seen in figure \ref{fig:schem_collect}. The hardwar
     placing the 0 Ohm resistor R34.
   \item[Developer interface:]\hspace{1cm}\\
     The microcontroller can be programmed with any AVR In System
-    Programmer, using the standard ISP header (P8).\\
+    Programmer, using the standard ISP header (P8 in figure \ref{fig:schem_collect}).\\
     For debugging code, we also added a USART pin header (P1 in figure \ref{fig:schem_collect}), which
-    allows serial communication with the microcontroller. Care
-    has to be taken, when connecting the chip to a PC, as the logic
+    allows serial communication with the microcontroller. 
+    \\
+    \textbf{Note}, when connecting the chip to a PC, as the logic
     levels of our board are 5V TLL and hence are not compatible
     with the RS-232 logic levels, used by most PCs. We suggest to use
     a USB to USART TLL converter or a logic level converter.
   \item[Power source:]\hspace{1cm}\\
     We provide multiple ways to supply power to the collector board.
     \begin{itemize}
-      \item Direct 5V input/output (P7 or P9)
+      \item Direct 5V input/output (P7 or P9 in figure \ref{fig:schem_collect})
       \item Use the 5V supply voltage, provided via the I2C bus
       \item Unregulated input (7V..25V). The onboard LM7805 linear
         regulator, will convert the voltage to 5V.
     \end{itemize}
-    Using the pin header K1, it is possible to select suitable
+    Using the pin header K1, which is marked in figure \ref{fig:schem_collect}, it is possible to select suitable
     power inputs.\\
     Example 1: If the board should get power over I2C, pins 1 and 2
     should be shorted.\\
@@ -437,9 +438,10 @@ AVR controllers do not have hardware support for decoding the ZAC one wire
 protocol (protocol definition is explained in chapter \ref{chap:zac}). Hence we
 implemented a software decoder. However our implementation
 does not follow the method suggested by \cite{zac} because of timing reasons.\\
-To decode one ZAC protocol sensor, we use one 8 bit timer, the corresponding timer
-overflow interrupt and the pin change interrupt (PCINT) of the pin, connected to the sensor.
+To decode one ZAC protocol sensor, we use the pin change interrupt (PCINT) of the pin, connected to the sensor, and
+one 8 bit timer, the corresponding timer overflow interrupt.
 \paragraph{Pin change Interrupt:} On every pin change interrupt, the following actions are executed:\\
+%FIXME redudancy of every time
 Every time:
 \begin{itemize}
 	\item The current current value is stored to a temporary variable $T_{timer}$, to be able to still access it later.
@@ -448,6 +450,7 @@ Every time:
 \end{itemize}
 On a falling edge:
 \begin{itemize}
+        % FIXME what is Tcrit, it is not cleared at the first usage, und the explain after that is also not that understandable!
 	\item If $\left|T_{low} - T_{timer}\right| < T_{thresh}$ with a constant $T_{thresh} << T_{crit}$, we
 		have observed a start bit.\\
 		We now update the critical sampling time\footnote{$T_{crit} = 0.5\cdot(T_{timer} + T_{low})$ would
@@ -458,16 +461,20 @@ On a rising edge:
 	\item The current timer value is stored as $T_{low}$. If we already observed a falling edge, this
 		represents the time, the signal was low.
 	\item If we already have seen a start bit, we now sample a data bit\footnote{Note, that a repeated
+            % FIXME how to avoid to read the second start bit into measured data
 		start bit would also be sampled as a data bit with an unpredictable value.}:\\
 	$\mathrm{bit} = \begin{cases} 1 & \text{if } T_{timer}<T_{crit} \\ 0 & \text{else}\end{cases}$
 \end{itemize}
 \paragraph{Timer overflow Interrupt:} The timer is configured in a way, that an overflow will occur after
 the timer is running without a reset for $T_{ovf}$, with $T_{bit} < T_{ovf} < 100\,\mathrm{ms}$. Hence
 the interrupt will occur, after a completed transmission and before the start of the next transmission.\\
+%FIXME how to check, what is the criteria
 After a overflow occurs, we check, if we received a whole transmission. If this is the case, we disable
 interrupts and stop the current measurement. Otherwise we reset the receive buffer and wait for the
 next transmission to begin.
-\paragraph{Starting a measurement:} To start the meassuring process, the following is executed:
+%\paragraph{Starting a measurement:} 
+\\[0.6cm]
+At the beginning of each meassuring process, the following is executed:
 \begin{itemize}
 	\item $T_{crit}$ is set to the maximum value.
 	\item $T_{low}$ is set to the minimum value. This will ensure, that we do not
@@ -480,23 +487,24 @@ Our algorithm is not able to see stop bits correctly, if $T_{ovf}$ is configured
 However in our case we deliberately configured $T_{ovf}$ to be bigger that the maximum
 high time in case of a stop bit.
 This allows us to only see the end of the complete transmission, as a TSIC sensor also
-sends a useless stop bit after the first 9 bits.\\
+sends an useless stop bit after the first 9 bits.\\
 %\paragraph{}
-As we have up to 8 sensors connected to the Atmega88, we have to do one measurement
-after another. as one sample of a measurement takes $>100\,\mathrm{ms}$ we would run
+As we have up to 8 sensors connected to the Atmega88, we have to do one measurement after another.
+As one sample of a measurement takes $>100\,\mathrm{ms}$ we would run
 into problems reaching the desired sampling rate of $>1\,\mathrm{Hz}$.
 Our approach is to sample two sensors at the
 same time, using a second 8 bit timer. Our interrupt handler for the ZAC protocol decoding are not interruptable.
 Hence, incomming interrupts are delayed for the runtime $t_e$ of currently executed interrupts.
 If we have interrupts active for two sensors at the same time, the controller might see a delayed signal.
-\begin{figure}[b]
+Figure \ref{fig:zactiming} illustrates this problem:
+\begin{figure}[Hh!]
 	\centering
 	\includegraphics[width=0.7\textwidth]{img/zac_timing.pdf}
 	\caption{ZAC protocol worst case timing. The grey shaded areas illustrate the potentially delayed vision
 	of a microcontroller due to interrupt latency.}
 	\label{fig:zactiming}
 \end{figure}
-Figure \ref{fig:zactiming} illustrates this problem:\\
+\\
 When sampling the start bit we get an error for our critical time $T_{crit}$:
 $$T_{min} := T_h - t_e < T_{crit} < T_h + t_e$$
 When using $T_{crit}$ to determine a bit value, we are again influenced by the possibly delayed preceeding falling edge. We get:
@@ -513,12 +521,12 @@ As the microcontroller runs at a clock speed of $20\,\mathrm{MHz}$, we have to c
 start the interrupt handler of the new interrupt and sample the current timer value within 332 clock cycles,
 to not harm the above limit on the error.\\
 We implemented a simple branch aware Worst Case Execution Time (WCET) analyzer for the AVR instruction set.
-It is able to calculate the maximum execution time of individual sections in the compiled code\footnote{Note that,
+It is able to calculate the maximum execution time of individual sections in the compiled code\footnote{\textbf{Note} that,
 whereas branches are considered, only branches to addresses in the future are handled correctly. Loops i.e.
 branches to already executed code cause undefined, possibly non terminating behaviour of the analyzer. As our code
 does not contain loops, this did not cause problems and loop handling was not implemented.}. Figure \ref{fig:wcet}
 shows the WCET analyzer output for the Pin change interrupt handler. The worst case execution time for the total
-handler is $100$ cycles. The timer interrupt takes less than $50$ cycles to complete. For a complete analysis one
+handler is $100$ cycles. The timer interrupt handler takes less than $50$ cycles to complete. For a complete analysis one
 additionally has to consider the time for jumping to the interrupt handler ($<20$ cycles) and the time we need to read out the
 timer value in the new interrupt handler ($<29$ cycles). This gives us a total latency of less than $199$ clock
 cycles, which is well within the allowed range.
@@ -538,7 +546,9 @@ This is especially used while a measurement is in progress: As soon as new data 
 it is buffered and the clock will be extended, signalling to the master, that no further data should be sent or received.\\
 If a write request (SLA+W) is sent, the following data is interpreted as a command. A list of implemented commands is given
 in table \ref{tab:i2c}. The collector board reacts to the general call address 0. This makes it possible to trigger a measurement
-on multiple boards, using only one I2C transmission. Also the own I2C address can be set to a new value without knowing the old one.\\
+on multiple boards, using only one I2C transmission.
+% FIXME really without knowing the old one?
+Also the own I2C address can be set to a new value without knowing the old one.\\
 If a read request (SLA+R) is sent, the packet array from the last completed measurement will be sent out, starting with sensor 0.
 For details about the packet format see chapter \ref{chap:packet}. Not all packets have to be received, as soon as a STOP bit is
 received, the transmission is aborted. A new read request will again trigger the transmission of data starting at sensor 0.
@@ -555,8 +565,10 @@ received, the transmission is aborted. A new read request will again trigger the
 		the slave is addressed again, the I2C clock will immediately be extended until the measurement is complete, blocking the whole I2C bus.\\
 		\hline
     SET\_ADDRESS & 0x02 & address & The own I2C address will be updated with the 1 byte value following the command. The address should
+        % FIXME 42????
 		be in the range from 8 to 112. The default address is 42\\
 		\hline
+        % FIXME parameter not just number!!!
     LED\_ON & 0x03 & number & The LED with the given number will be turned on.\\
 		\hline
     LED\_OFF & 0x04 & number & The LED with the given number will be turned off.\\
@@ -567,24 +579,8 @@ received, the transmission is aborted. A new read request will again trigger the
 \end{table}
 \subsection{Measurement packet format}\label{chap:packet}
 After data was received via the ZAC-Wire protocol, it is interpreted and converted to a convenient packet format, suitable for
-redirection via I2C. Each packet's integrity is protected by a CRC checksum and consists of the following fields:\\
-\begin{description}
-	\item[\textbf{type}] This field pecifies the type of the sensor, which supplied the data. Currently implemented values are 0
-		for TSIC and 1 for HYT. In case the type field reads 0, the \emph{Humidity} field will have no relevant value hence
-		represents a padding field.
-	\item[c] This bit is set to 1, if the measurement was completed without a timeout. This is usually the case, when a
-		sensor is connected. Hence this bit can be used to determine, whether a sensor is connected or not.
-	\item[error] This field reads 1, when an error during sampling has occured. Possible causes are: HYT Checksum missmatch,
-		TSIC Parity missmatch or TSIC Protocol format error.
-	\item[Temperature] $T_m \cdot 100$ with $T_m$ the measured temperature in Celsius.
-	\item[Humidity] $RH_m \cdot 100$ with $RH_m$ the measured relative humidity in \%.
-	\item[CRC-8] Checksum over the first 5 bytes of the packet\footnote{The Humidity field is always part of the checksum
-		calculation, even if the packet type is 0.}.
-\end{description}
-Figure \ref{fig:packet} shows the structure of a packet. Packets can be received via I2C in the order, shown in
-figure \ref{fig:packetorder}.\\
-
-\begin{figure}
+redirection via I2C. Figure \ref{fig:packet} shows the structure of a packet.
+\begin{figure}[Hh!]
 	\centering
 	\definecolor{lightgray}{gray}{0.8}
 	\begin{bytefield}[endianness=big, bitwidth=2.1em]{8}
@@ -601,7 +597,29 @@ figure \ref{fig:packetorder}.\\
   \caption{Packet format of a measurement. The whole packet is 6 bytes long}
 	\label{fig:packet}
 \end{figure}
-\begin{figure}
+Each packet's integrity is protected by a CRC checksum and consists of the following fields:\\
+\begin{description}
+	\item[\textbf{type}] \hfill\\
+        This field pecifies the type of the sensor, which supplied the data. Currently implemented values are 0
+		for TSIC and 1 for HYT. In case the type field reads 0, the \emph{Humidity} field will have no relevant value hence
+		represents a padding field.
+	\item[c] \hfill\\
+This bit is set to 1, if the measurement was completed without a timeout. This is usually the case, when a
+		sensor is connected. Hence this bit can be used to determine, whether a sensor is connected or not.
+	\item[error] \hfill\\
+This field reads 1, when an error during sampling has occured. Possible causes are: HYT Checksum missmatch,
+		TSIC Parity missmatch or TSIC Protocol format error.
+	\item[Temperature] \hfill\\
+$T_m \cdot 100$ with $T_m$ the measured temperature in Celsius.
+	\item[Humidity] \hfill\\
+$rH_m \cdot 100$ with $rH_m$ the measured relative humidity in \%.
+	\item[CRC-8] \hfill\\
+Checksum over the first 5 bytes of the packet\footnote{The Humidity field is always part of the checksum
+		calculation, even if the packet type is 0.}.
+\end{description}
+Packets can be received via I2C in the order, shown in
+figure \ref{fig:packetorder}.\\
+\begin{figure}[Hh!]
 	\centering
 	\definecolor{lightgray}{gray}{0.8}
 	\begin{bytefield}[endianness=little, bitwidth=0.7em]{48}
