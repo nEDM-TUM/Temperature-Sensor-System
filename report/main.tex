@@ -31,9 +31,9 @@ experiment setup}
 \maketitle
 \tableofcontents
 %###############################################################
-\chapter{Concept}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Features}
+\chapter{Technology}
+In this chapter, we will introduce shortly the mainly used technologies, like chosen sensors, data transmission protocols, as well as
+the used tools for the development, 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Sensors}
 \subsection{TSIC 506F}
@@ -214,11 +214,6 @@ A detailed description of the protocol and its implementation can be found in \c
   \caption{RS485 encoding/decoding - Logical structure. Source: \cite{rs485}.}
 	\label{fig:rs485}
 \end{figure}
-
-%###############################################################
-\chapter{Implementation}
-According to the logical design, three types of hardware boards are developed for implementation of the features in each parts: sensor board for measuring, collector board for data acquistion and ethernet board for data forwarding.\\
-In this capital, the used and needed tools for the development and mainteness will be described, as well as the hardware and sofware implementation details of the tree types of boards.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Toolchain}
 \subsection{KiCad}
@@ -268,6 +263,12 @@ We use the make build environment. The Makefiles in each software directory cont
 For a first time build and upload, the above order should be respected. After the initial upload, fuses and eeprom should not be touched everytime, the software changes.\\
 To be able to find the Arduino library root path, the \emph{ARDUINO\_PATH} environment variable should be set to the Arduino installation directory. This for example is the Path to the cloned Arduino git reporitory.\\
 \textbf{Note}, that the Makefiles in the current version, do not automatically search for file dependancies, hence a make clean should be executed, after every change in not explicitly specified files, namely every non .c or .cpp file.
+
+%###############################################################
+\chapter{Implementation}
+According to the logical design, three types of hardware boards are developed for implementation of the features in each parts: sensor board for measuring, collector board for data acquistion and ethernet board for data forwarding.\\
+In this capital, 
+we will describe the logical design of the whole system and the hardware/sofware implementation details of the tree types of boards.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Sensor boards} \label{chap:sensorbrd}
 \subsection{Temperature board} \label{chap:tempbrd}
