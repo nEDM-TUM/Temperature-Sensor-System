@@ -282,7 +282,6 @@ heat transfer to the chip. We did this by soldering each pin for a
 maximum time of 2 seconds, We also tried to keep the total time spent
 for soldering all 3 pins less than 10 seconds. After soldering, we
 immediately blowed cold air to the pins and the chip itself.\\
-%FIXME foto of the finish soldered board
 Figure \ref{fig:pcb_temp} shows the printed circuit board (PCB) schema and figure \ref{fig:soldered_temp} soldered temperature board. 
 In order to reduce the influence of the arised heat from the other electronic components, the temperature sensor is designed to put far away from the others and PCB tracks to the temperature sensor are thin within a narrow neck.
 \subsection{Humidity board}
@@ -291,7 +290,7 @@ communication, we added a microcontroller to repediately poll the sensor for cur
 implementation of the ZAC wire protocol. Therefore we also placed an ISP socket, a debugging adapter, a reset switch and two LEDs onto the board, which makes it
 slightly bigger than the temperature board. The schematic can be seen in figure \ref{fig:schem_hum}.\\
 The design of the pcb schema is also similar to the temperature board, see
-figure \ref{fig:pcb_hum} and figure \ref{fig:soldered_hum} of a soldered humidity board. 
+figure \ref{fig:pcb_hum} of a soldered humidity board. 
 \subsubsection{ZAC encoding}
 The easiliest method to generate ZAC encoding is to set a pin high, then use busy-wait delay loop ($\_delay\_us()$) to wait a certain time interval. After that set the pin to low. 
 But the timing of this method is not very exact (more than 6 $\mu$s inaccuracy according to an experimentation). Hence we had decided to use a timer to achive a higher timing accuracy. \\
@@ -370,8 +369,8 @@ May be the change of some bits leads to zero remainder accidentally. Fortunately
 The polynomial, which we use, is the standard CRC-8 for 1-wire bus: 100110001(0x131).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Collector board}
-The collector board decodes the ZAC protocol and provides an I2C interface for
-reading out temperature, as well as humidity values of connected sensors.
+The collector board decodes the ZAC protocol and provides an I2C interface
+for users, to read out temperature, as well as humidity values of connected sensors.
 Care was taken, to ensure a response time of $<1\,\mathrm{s}$.
 \subsection{Hardware}
 The schematic diagram can be seen in figure \ref{fig:schem_collect}. The hardware consists of the following main components:
@@ -381,37 +380,37 @@ The schematic diagram can be seen in figure \ref{fig:schem_collect}. The hardwar
     microcontroller, running at a clock speed of $20MHz$. The clock
     is generated, using an external crystal oscillator.\\
     The Atmega microconteoller provides a variety of useful features
-    like asynchronous timers, pin change interrupts on every GPIO
+    like asynchronous timers, pin change interrupts on every GPIO (General Purpose Input/Output)
     pin, hardware support for the I2C protocol and integrated EEPROM
     storage (Datasheet: \cite{atmega88}).\\
     We connected the sensors in two groups, so that we are able to
     receive two independent interrupts for two sensors in different
     groups.
   \item[I2C connection:]\hspace{1cm}\\
-    The board provides two 6 pin IDC pin headers (P3 and P4), which
+    The board provides two 6-pin I2C pin headers (P3 and P4 of the schematic diagram in figure \ref{fig:schem_collect}), which
     provide connection to the I2C bus, as well as an optional 5V
     power line (Vi2c). The two headers are connected in parallel,
     so they can be used for chaining multiple collector boards.\\
     The board also has integrated I2C pullups, which can be enabled
-    using the switch SW2, in case the I2C master does not provide
+    using the switch SW2 (see figure \ref{fig:schem_collect}), in case the I2C master does not provide
     pullups.
   \item[Sensor connection:]\hspace{1cm}\\
     The individual sensors are connected via an eight-port RJ45
     socket header. Shielding of the RJ45 sockets is connected to
-    board ground. The The signal of each sensor is first interpreted
+    board ground. The signal of each sensor is first interpreted
     by an RS485 transceiver and afterwards directly provided to a
     microcontroler GPIO pin. As this is the receiving side, we also
     had do add impedance matching circuitry. We chose to implement
-    a power saving AC-termination solution, as suggested in \ref{XXX}.
+    a power saving AC-termination solution, as suggested in \cite{st485appnote, rs485}.
     To bring the output level of each transceiver to a defined state,
     when no sensor is connected, we use pullup resistors on the
     input side. Optionally the board and shield ground can be wired to
-    the screw pad P2 for a connection with the casing. This is done by
+    the screw pad P2 (see figure \ref{fig:schem_collect}) for a connection with the casing. This is done by
     placing the 0 Ohm resistor R34.
   \item[Developer interface:]\hspace{1cm}\\
     The microcontroller can be programmed with any AVR In System
     Programmer, using the standard ISP header (P8).\\
-    For debugging code, we also added a USART pin header (P1), which
+    For debugging code, we also added a USART pin header (P1 in figure \ref{fig:schem_collect}), which
     allows serial communication with the microcontroller. Care
     has to be taken, when connecting the chip to a PC, as the logic
     levels of our board are 5V TLL and hence are not compatible
@@ -922,7 +921,7 @@ Link to git repo
 \end{figure}
 \begin{figure}[Hh!]
 	\centering
-	\includegraphics[width=\textwidth]{img/boards/collector_kicad.pdf}
+	\includegraphics[height=0.7\textwidth, angle=270]{img/boards/collector_kicad.pdf}
 	\caption{Collector board printed circuit board schematic. Ground planes are not displayed.}
 	\label{fig:pcb_collector} %FIXME: add reference in text
 \end{figure}
