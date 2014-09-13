@@ -323,7 +323,9 @@ In galois field of two elements, GF(2),
 an n-bit checksum is the remainder of the division between data, shifted n bit to the left, and a (n+1)-bit polynomial as the divisor.
 Because the polynomial division in GF(2) is equivalent to an iteration of the bitwise XOR, a checksum can be computed in the following way:
 The divisor is at first shifted to the leftmost side of the input data block and computed XOR with the frist (n+1) bits.
-Then the result attached the rest unchanged input bits becomes new input and do the same XOR calculation with the divisor again and again, until no rest bits any more to attach and the n bits remainder is the to computed CRC checksum.
+Then the result attached the rest unchanged input bits becomes new input and do the same XOR calculation with the divisor again.
+If the result is zero, the divisor will be shifted to the first bit `1' and XOR with the (n+1) bits, starting with the bit `1'. 
+The XOR calculation will be repeat until no rest bits any more to attach and the n bits remainder is the to computed CRC checksum.
 An example of the calculation of a 4-bits checksum to the polynomial divisor 10011 (0x13) using this algorithm will be shown below:
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
 
