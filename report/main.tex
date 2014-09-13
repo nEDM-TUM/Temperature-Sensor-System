@@ -795,15 +795,42 @@ only a new collector board has to be placed on top of the stack. The I2C plug ca
 communication and power to the new board.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Installation}
-42 temperature sensors, 2 hymidity sensors with 6 collection boards and 2 arduino as internet board. We have tried to distribute them evenly in the lab room.
+\paragraph{Sensor distribution}\hspace{1cm}\\
+In total we installed 42 temperature sensors and 2 humidity sensors inside the field
+cage of the nEDM experiment setup. For convenient cable routing, we used
+two control stations, each consisting out of three stacked collector boards and one
+ethernet board. One of the control station is placed on the ceiling of the
+topmost floor and the other one is placed near the ground in the lowest floor. We tried
+to distribute the sensors evenly in the field cace. However, most
+of the sensors were placed on the walls and ceilings of the individual floors. Figure
+\ref{fig:install} shows the approximate distribution of sensors and control starions.\\
+The two control stations feature sockets for 48 sensors, as we currently only use 44,
+the remaining four sockets can be used, to connect additional sensors on demand\footnote{Note, that
+the system is Plug and Play. This means the sensors may be connected and disconnected
+while the system is running}.\\
+\paragraph{Cable routing}\hspace{1cm}\\
+We attached two unique identifier tags to each cable, connecting a sensor to a collector
+board. This ID specifies, to which collector board and to which exact socket,
+the cable should be connected. For example, the ID 'B013S0' means, that the cable should
+be connected to collector board number 13 in the leftmost socket.\\
+The cables leading to sensors, were collected in cable channels where possible and otherwise
+fastened with cable straps to the cage skeleton.\\
+Figure \ref{fig:control_unit} shows an installed control station with connected cables to
+the individual sensors. In this case the powersupply is a 9V switching powersupply, connected
+to one of the collector boards. The integrated coltage regulator of this board then creates
+a 5V output, which drives all three collector boards via the I2C connection.
+\paragraph{Squid magnetic field measurement}\hspace{1cm}\\
+To detect possible magnetic interference of our sensor network with the nEDM experiment,
+we performed two measurements, where
+we placed 10 sensors and 6 collector boards inside the magnetically shielded room and performed
+magnetic field measurements using a squid magnetometer. However both our measurements were
+influenced by time dependant noise, which made the results not trustworthy.
 \begin{figure}
 	\centering
 	\includegraphics[width=\textwidth]{img/installPlan.pdf}
-  \caption{Installation plan}
+  \caption{Approximate sensor distribution in the field cage.}
 	\label{fig:install}
 \end{figure}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Maintenance}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problems}
 Unsuccessful squid measurement\\
