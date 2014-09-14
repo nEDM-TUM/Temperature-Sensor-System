@@ -62,12 +62,44 @@ on temperature changes in the environment. Also a temperature compensation of me
 based on environment temperature is possible.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Features}
+Our finished sensor network provides the following features:
+\begin{itemize}
+  \item Both temperature and humidity sensors can be connected at any
+    sensor socket. The sensor type will be automatically detected.
+  \item High temperature and humidity accuracy: Temperature sensors
+    are calibrated to $\pm 0.1\,\mathrm{K}$ and the humidity
+    sensors to $\pm 1.8\,\%\mathrm{RH}$.
+  \item A high number of connected sensors is supported.
+    Currently 44 sensors are in use, however the system is designed
+    to support at least 100 sensors and still be able to fulfill a
+    sampling rate of $1\,\mathrm{Hz}$. If the sampling rate is
+    allowed to be slower, up to 960 sensors are possible to share
+    one ethernet connection.
+  \item We achieved a relatively low cost per sensor. The cost per
+    sensor module is mostly
+    defined by the sensor chip alone, which is about \EUR{7} for a
+    precision temperature sensor and about \EUR{20} for a high quality
+    humidity sensor (also see section \ref{chap:sensors}). The cost for
+    the printed circuit board and required components is less than
+    \EUR{4} per board.
+  \item Measurement results can be forwarded via TCP/IP to a CouchDB
+    server, which is able to record the measurement data from all
+    connected sensors.
+  \item The system supports a fast sample rate of at least $1\,\mathrm{Hz}$.
+  \item Most of the system parameters like sampling rate or database IP addresses
+    and insert functions are configurable at runtime.
+  \item The sensor network provides a TCP / telnet user interface, for
+    controlling and viewing of network parameters. This allows easy configuring
+    and debugging of the system.
+  \item Plug and Play is supported for adding and removing sensors or even
+    control units during runtime.
+\end{itemize}
 %###############################################################
 \chapter{Technology}
 In this chapter, we will introduce shortly the mainly used technologies, like chosen sensors, data transmission protocols, as well as
 the used tools for the development, 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Sensors}
+\section{Sensors}\label{chap:sensors}
 \subsection{TSIC 506F}
 For temperature measurements, we use the TSIC 506F temperature sensor
 integrated circuit. At a relatively low price of about \EUR{7} per device, it
