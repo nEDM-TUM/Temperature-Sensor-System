@@ -338,7 +338,7 @@ An example of the calculation of a 4-bits checksum to the polynomial divisor 100
 
 \lstdefinestyle{mathstyle}{
     backgroundcolor=\color{backcolour},   
-    basicstyle=\scriptsize,
+    basicstyle=\scriptsize\ttfamily,
     breakatwhitespace=false,         
     breaklines=true,                 
     captionpos=b,                    
@@ -667,18 +667,17 @@ Hence, when using it,
 the optional pullup resistors on the collector boards can be switched off.\\
 The PCB schematic of the adaptor can be found in figure	\ref{fig:pcb_arduino}.
 \subsection{Software}
-\subsubsection{Running tasks in parallel}
 On the software side, the ethernet board has the following requirements:
 \begin{itemize}
   \item Periodically poll all connected collector boards for new measurement results.
   \item Forward measurement results over ethernet.
   \item Provide a user interface for easy configuration and debugging.
 \end{itemize}
-%% FIXME: what about synchronization between user interface W5100 and measurement w5100 access?
 We implemented these requirements in two abstract tasks: one for aquiring measurements and sending them
 over ethernet and an other one for handling the user interface.
-As these tasks should run in parallel, we implemented a modified event loop approach. We
-implemented two functions for each task, which allow us to execute the abstract tasks
+\subsubsection{Running tasks in parallel}
+As these tasks mentioned above should run in parallel, we implemented a modified event loop approach. We
+implemented a function for each task, which allow us to execute the abstract tasks
 in a semi parallel way:\\
 In the main program loop, the two functions are called in turn. Each function however has to guarantee to
 not block program execution for more time than is absolutely neccessary. Especially waiting for I/O
@@ -686,20 +685,22 @@ should not be done via busy waiting. Respecting this constraint, one function
 call is most of the time not sufficient to finish a task, but does only some progress on the
 current task. For example receiving of a measurement result needs multiple calls
 of the corresponding receive function. This is implemented using state machines and different
-return values for 'task finished' or 'task needs more time'.\\
+return values for `task finished' or `task needs more time'.\\
 However both the user interface task, as well as the measurement task may access shared ressources
 like the I2C bus. As semi parrallel access will lead to undefined behavior, shared ressources
-have a associated mutex, which has to be aquired before accessing the ressource. Note that implementing
+have a associated mutex, which has to be aquired before accessing the ressource.\\
+\textbf{Note} that implementing
 busy waiting when trying to aquire a mutex will immediately lead to a deadlock, due to the nature
 of the event loop approach.
 \subsubsection{Receiving of measurement results}
+The task for aquiring measurements is done in the following steps:
 \begin{enumerate}
   \item In the main event loop the function \texttt{loop\_sample()} is called periodically. To trigger the sampling process in fixed time
     intervals, an interrupt generating timer is used to count the time in millisecond resulution. This is already implemented in the Arduino core library
-    and initilized \texttt{init()} function at startup.
-    On each call of the \texttt{loop\_sample()} function in IDLE state, it is determined, if sampling should be started according to the
-    currend millisecond time.
-  \item As soon, as sampling should be started, the mutex for the TWI bus will be aquired. Then a TWI bus scan will be performed, to detect
+    and initialized using the \texttt{init()} function at startup.
+    On each call of the \texttt{loop\_sample()} function in IDLE state, it is determined according to the current millisecond time,
+    whether sampling should be started.
+  \item As soon as sampling should be started, the mutex for the TWI bus will be aquired. Then a TWI bus scan will be performed, to detect
     all connected collector boards. The result of this scan is required later, when reading the measurement results from each board.
   \item After that, the \texttt{twi\_start\_measurement()} function is called, to send a measurement request to the broadcast address $0x00$.
     This triggers all connected collector
@@ -707,9 +708,54 @@ of the event loop approach.
   \item Now the ethernet board tries to receive data from each collector board in turn, by issuing a read request. However, the collector boards
     need some time to finish sampling of all sensors and will hence do I2C clock extension. This is detected by the ethernet board
     sampling function and the function will return and continue to try receiving data in the next event loop cycle.
-  \item Once data from one collector board is received completely, a checksum check is performed on all 8 packets and the data is
+  \item Once data from one collector board is received completely, a checksum check is performed on all 8 packets and the corresponding error flag of these packets will be set, if the check failed. Then the data is
     handed over to the networking layer, for distribution over ethernet.
   \item When all collector boards have been processed, the mutex for the TWI bus is released again.
+\end{enumerate}
+\subsubsection{TCP/IP networking}
+% W5100 driver extension, to support clear receive buffer
+In order to implement the data sending task and user interface over ethernet, we built our TCP/IP networking code on top of the W5100 driver, provided by Arduino. We did not use the \texttt{EthernetServer} interface, as
+this did not provide enough flexibility for handling independent TCP connections. Our code works directly with sockets, provided by
+the arduino library \texttt{socket.h}. We also had to extend the W5100 driver, to allow fast clearing of the socket receive buffer,
+without reading all received data for performance reasons (\texttt{net\_clear\_rcv\_buf(SOCKET)}).\\
+To allow convenient reading and writing to sockets, using the C standard input output library (cstdio), we created an interface
+above the sockets, which provides a \texttt{FILE} object, representing a stream. However due to lack of memory, we only created one
+stream for all sockets. So multiplexing has to be done when writing/reading to/from different sockets, by telling the stream to switch
+to a different socket (\texttt{stream\_set\_socket(sock)}). As the stream utilizes buffers, a stream flush (\texttt{sock\_stream\_flush()})
+can be performend to force sending of the buffer contents over the network.\\
+The final networking layer provides two essential services:
+\begin{enumerate}
+  \item A handling function \texttt{net\_dataAvailable}, which is used to process measurement data from collector boards:\\
+    This function is called by the measurement sampling task, as soon as data was received from one collector board.
+    \begin{itemize}
+    \item If the feature of sending to data base is enabled,
+    the measured data will be packet in a HTTP packet and then sent to the data base
+    server, via a reserved TCP client socket.
+    As in the experiment a couchDB system\footnote{\url{http://couchdb.apache.org/}} is used as data base server,
+    which accepts data in JSON format, we use the JSON template showed in figure \ref{lst:json} for organising the whole measured data from the collector board. 
+\lstset{style=mathstyle}
+\begin{lstlisting}[language=c,xleftmargin=80pt, xrightmargin=80pt,framexleftmargin=10pt,framextopmargin=10pt, framexbottommargin=10pt, caption={The JSON template for sending data to the couchDB data base},label={lst:json}]
+{
+    "type":"data",
+    "value":{
+                "b%03ds%01dTEM":%03d.%02d,
+                "b%03ds%01dHUM":%03d.%02d
+            }
+}
+\end{lstlisting}
+    \item If data is requested via user interfaces, the whole measured data will be sent to these clients in plain text via corresponding sockets.
+\end{itemize}
+  \item An event loop function \texttt{net\_loop()}, which is responsible for the user interface (\texttt{serve()}) and incomming data from the database (\texttt{handle\_db\_response()}):
+      \begin{itemize}
+          \item \texttt{serve()} implements a TCP server, which is able to handle up to three simultaneous terminal user interface sessions.
+A parser will parse incomming data from TCP connections and call command handler functions, if the data is recognized as a valid command.
+All implemented commands will be introduced in section \ref{sec:uicmd}.
+New commands with respective callback functions can be registered in a command array \texttt{struct cmd cmds[]} and \textbf{note} to increase the command counter stored as preprocessor statement called \texttt{DEFINED\_CMD\_COUNT}.\\
+    \textbf{Care has to be taken}, when accessing shared resources like the I2C bus in a handler, as busy waiting for aquiring the mutex will lead to a deadlock.
+        \item \texttt{handle\_db\_response()} handles the received data base responses after transmission of each data packet, so that these in order for the w5100 receive buffer does not cause overflow.
+            If a client enables showing data base reponses, current responses will be redirected to the user interface using \texttt{net\_clear\_rcv\_buf(SOCKET)},
+otherwiese the receive queue will be emptyed in each loop cycle.
+    \end{itemize}
 \end{enumerate}
 \subsubsection{String handling}
 In C, strings are represented as char arrays. If such string arrays are initialized in C code, the data is placed
@@ -721,33 +767,11 @@ To access data from text section however, it has to be read directly from flash 
 can not be used. However the avr \texttt{cstdio} library provides alternative methods for string processing (e.g. \texttt{fputs\_P()}
 as a replacement for \texttt{fputs()}). Using these, strings are usually read char by char directly from flash memory and a minimum
 amount of RAM is used.
-\subsubsection{TCP/IP networking}
-% W5100 driver extension, to support clear receive buffer
-We built our networking code on top of the W5100 driver, provided by Arduino. We did not use the \texttt{EthernetServer} interface, as
-this did not provide enough flexibility for handling independent TCP connections. Our code works directly with sockets, provided by
-the arduino library \texttt{socket.h}. We also had to extend the W5100 driver, to allow fast clearing of the socket receive buffer,
-without reading all received data for performance reasons (\texttt{net\_clear\_rcv\_buf(SOCKET)}).\\
-To allow convenient reading and writing to sockets, using the C standard input output library (cstdio), we created an interface
-above the sockets, which provides a \texttt{FILE} object, representing a stream. However due to lack of memory, we only created one
-stream for all sockets. So multiplexing has to be done when writing/reading to/from different sockets, by telling the stream to switch
-to a different socket (\texttt{stream\_set\_socket(sock)}). As the stream utilizes buffers, a stream flush (\texttt{sock\_stream\_flush()})
-can be performend to force sending of the buffer contents over the network.\\
-The final networking layer provides two essential services:
-\begin{enumerate}
-  \item A handling function \texttt{net\_data\_available()}, which is used to process measurement data from a collector board:\\
-    This function is called by the measurement sampling task, as soon as data was received from one collector board. It will then
-    calculate the estimated length of a JSON document, containig the data and then sennd a valid JSON document to the data base
-    server, using a reserved TCP client socket.
-  \item An event loop function \texttt{net\_loop()}, which is responsible for the user interface and incomming data from the database:\\
-    This function implements a TCP server, which is able to handle up to three simultaneous terminal user interface sessions. A parser
-    will parse incomming data from TCP connections and call command handler functions, if the data is recognized as a valid command.
-    New commands with respective callback functions can be registered in a command array \texttt{struct cmd cmds[]}. Care has to be
-    taken, when accessing shared resources like the I2C bus in a handler, as busy waiting for aquiring the mutex will lead to a deadlock.
-\end{enumerate}
 \subsubsection{Configuration}
 To store the system configuration, we use the Atmega328 integrated EEPROM storage. We also implemented EEPROM wear leveling, to allow
 maximum lifetime, even for many configuration changes. Note that for reliable EEPROM persistency, the integrated burnout detection should be enabled, to keep the AVR controller in reset state at voltages below 4.5 V, as the EEPROM shows undefined behavior, if the controller is running at voltages below 4.5 V.
-\subsection{User interface}
+\subsection{User interface commands}
+\label{sec:uicmd}
 The ethernet board provides a terminal user interface over TCP/IP, which may be accessed via applications like telnet or netcat.
 This allows users to conveniently change or view system settings. The interface is command driven, every command should be terminated
 by a newline and/or carrier return character.\\
@@ -864,7 +888,7 @@ The following commands are supported:
 \end{figure}
 Casings for the electronic components were designed with 3D CAD software and then printed with the department's 3D printer. The 3D
 files of each case can be found in our GIT repository. Figure \ref{fig:casings} shows the completed cases with circuit boards inside.
-\paragraph{Casings for the sensors}\hspace{1cm}\\
+\paragraph{casings for the sensors}\hspace{1cm}\\
 The casings for the sensor boards were designed to protect the sensors from being damaged, as well as to provide a convenient way of
 mounting them on ITEM compatible aluminium profiles. The casing walls have a mesh structure, to allow a maximum air exchange aound the
 sensor. To prevent damage of the sensor board caused by the ethernet cable, a strain-relief is also featured. The original design and
