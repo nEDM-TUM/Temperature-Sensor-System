@@ -67,13 +67,14 @@ Our finished sensor network provides the following features:
     sensor socket. The sensor type will be automatically detected.
   \item High temperature and humidity accuracy: Temperature sensors
     are calibrated to $\pm 0.1\,\mathrm{K}$ and the humidity
-    sensors to $\pm 1.8\,\%\mathrm{RH}$.
+    sensors to $\pm 1.8\,\%\,\mathrm{rH}$.
   \item A high number of connected sensors is supported.
     Currently 44 sensors are in use, however the system is designed
     to support at least 100 sensors and still be able to fulfill a
     sampling rate of $1\,\mathrm{Hz}$. If the sampling rate is
     allowed to be slower, up to 960 sensors are possible to share
     one ethernet connection.
+  \item The system supports a fast sample rate of at least $1\,\mathrm{Hz}$.
   \item We achieved a relatively low cost per sensor. The cost per
     sensor module is mostly
     defined by the sensor chip alone, which is about \EUR{7} for a
@@ -84,12 +85,11 @@ Our finished sensor network provides the following features:
   \item Measurement results can be forwarded via TCP/IP to a CouchDB
     server, which is able to record the measurement data from all
     connected sensors.
-  \item The system supports a fast sample rate of at least $1\,\mathrm{Hz}$.
-  \item Most of the system parameters like sampling rate or database IP addresses
-    and insert functions are configurable at runtime.
   \item The sensor network provides a TCP/telnet user interface, for
     controlling and viewing of network parameters. This allows easy configuring
     and debugging of the system.
+  \item Most of the system parameters like sampling rate or database IP addresses
+    and insert functions are configurable at runtime.
   \item Plug and Play is supported for adding and removing sensors or even
     control units during runtime.
 \end{itemize}
@@ -146,11 +146,11 @@ Table \ref{tab:hyt} lists the specified sensor characteristics.
     &Temperature & Humidity\\
 		\hline
 		\hline
-    Range & $-40\,^{\circ}\mathrm{C}$ to $125\,^{\circ}\mathrm{C}$ & $0\, \mathrm {\%RH}$ to $100\, \mathrm {\%RH}$\\
+    Range & $-40\,^{\circ}\mathrm{C}$ to $125\,^{\circ}\mathrm{C}$ & $0\, \mathrm {\%rH}$ to $100\, \mathrm {\%rH}$\\
 		\hline
-    Calibrated accuracy & $\pm 0.2\,\mathrm{K}$ & $\pm 1.8\, \mathrm {\%RH}$   \\
+    Calibrated accuracy & $\pm 0.2\,\mathrm{K}$ & $\pm 1.8\, \mathrm {\%rH}$   \\
 		\hline
-    Resolution & $0.015\,\mathrm{K}$ & $\pm 0.03\, \mathrm {\%RH}$ \\
+    Resolution & $0.015\,\mathrm{K}$ & $\pm 0.03\, \mathrm {\%rH}$ \\
 		\hline
 	\end{tabular}
   \caption{HYT271 specification \cite{hyt}}
