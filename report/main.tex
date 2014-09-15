@@ -35,15 +35,15 @@ experiment setup}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Background}
 \subsection{The neutron electric dipole measurement}
-According to the standard model, it is assumed, that neutrons posess a electric dipole moment (EDM)
-in the order of $10^{-32}e\cdot cm$. However an extenstion of the standard model already predicts
-a dipolemoment in the order between $10^{-26}e\cdot cm$ and $10^{-28}e\cdot cm$. Until now, no
+According to the standard model, it is assumed, that neutrons possess a electric dipole moment (EDM)
+in the order of $10^{-32}e\cdot cm$. However an extension of the standard model already predicts
+a dipole moment in the order between $10^{-26}e\cdot cm$ and $10^{-28}e\cdot cm$. Until now, no
 experiment was able to do measurements more precise than $10^{-26}e\cdot cm$\cite{frmexp}.\\
 The Neutron EDM (nEDM) experiment at Technische Universitat München is trying to increase the precision
-of such a dipolemoment measurement\cite{frmexp}.\\
-The experiment uses spin polarized ultracold neutrons, which are guided into two chambers inside a
+of such a dipole moment measurement\cite{frmexp}.\\
+The experiment uses spin polarized ultra cold neutrons, which are guided into two chambers inside a
 highly controlled and magnetically shielded environment (see figure \ref{fig:exp}). There, a spin precession measurement according
-to Ramsey \cite{ramsey} is performed, which allows it, to get information about the dipole moment of the neutons.
+to Ramsey \cite{ramsey} is performed, which allows it, to get information about the dipole moment of the neutrons.
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.87\linewidth]{img/frm3d.jpg}
@@ -55,7 +55,7 @@ Besides an exactly defined magnetic environment inside the experiment setup, a w
 environment temperature and humidity is also important for the experiment. Therefore a
 air conditioning system is installed to regulate the temperature inside the field cage.
 Our temperature sensor network will provide data for the air conditioning system.\\
-As a precise homogenous temperature distribution inside the whole field cage is
+As a precise homogeneous temperature distribution inside the whole field cage is
 almost impossible to achieve, our sensor network will provide precise temperature and humidity data. These data can be used to determine if specific physical observations are dependant
 on temperature changes in the environment. Also a temperature compensation of measurements
 based on environment temperature is possible.
@@ -73,7 +73,7 @@ Our finished sensor network provides the following features:
     to support at least 100 sensors and still be able to fulfill a
     sampling rate of $1\,\mathrm{Hz}$. If the sampling rate is
     allowed to be slower, up to 960 sensors are possible to share
-    one ethernet connection.
+    one Ethernet connection.
   \item The system supports a fast sample rate of at least $1\,\mathrm{Hz}$.
   \item We achieved a relatively low cost per sensor. The cost per
     sensor module is mostly
@@ -103,7 +103,7 @@ integrated circuit chip. At a relatively low price of about \EUR{7} per device, 
 is able to deliver very high accuracy (see table \ref{tab:tsic}).\\
 The temperature is converted to a digital value, which is sent out over a
 proprietary one wire protocol variant, called \emph{ZAC-Wire}. The transmission structure can be seen in figure \ref{fig:tsic_transmission}. Details about the ZACwire protocol are described in section \ref{chap:zac}.\\
-The temperature $T$ in celsius can be calculated from the received value $T_{dig}$ using
+The temperature $T$ in Celsius can be calculated from the received value $T_{dig}$ using
 $$T\,[^{\circ} C] = \frac{T_{dig}}{2047} \cdot 70 - 10$$\\
 In order to minimize soldering heat, which would influence the calibration, we used the TO92 packaged sensor.\\
 For further information about the sensor, and data interpretation, please refer to \cite{tsic} and \cite{tsic2}.
@@ -133,7 +133,7 @@ For further information about the sensor, and data interpretation, please refer 
 	\label{fig:tsic_transmission}
 \end{figure}
 \subsection{HYT271}
-For humidity measurement, we use the HYT271 sensor. At a price of about \EUR{20} per device it is significantly more expensive than the temperature sensors, however it delivers precice and temperature compensated humidity measurements. 
+For humidity measurement, we use the HYT271 sensor. At a price of about \EUR{20} per device it is significantly more expensive than the temperature sensors, however it delivers precise and temperature compensated humidity measurements. 
 The humidity value rH in percent can simply be calculated from the received value $\mathrm{rH}_{dig}$ using
 $$\mathrm{rH}\,[\%] = \frac{100}{2^{14}} \cdot  \mathrm{rH}_{dig}$$\\
 In addition, the temperature can also be read out and calculate using 
@@ -175,7 +175,7 @@ For further information about the sensor, and data interpretation, please refer 
 \section{Protocols}
 In this section, the mainly used low level protocols for measuring and data forwarding will be introduced shortly. 
 \subsection{ZACwire}\label{chap:zac}
-ZACwire is a proprietary one wire comminucation protocol, developed
+ZACwire is a proprietary one wire communication protocol, developed
 by IST AG. ``One wire'' means that only one data line is needed.\\
 Each bit is represented by
 different duty cycles of the waveform within the bit time $T_b$.
@@ -186,7 +186,7 @@ transmission can be extracted.
 If the bus is 75\% high within the bit time $T_b$ the bit `1' is transfered, otherwise bit `0'. 
 If the bus is high for a time $>T_b$
 the transmission ends, this is called a Stop bit. Figure \ref{fig:zac}
-shows the four different wafeform types, of which a ZACwire signal can be
+shows the four different waveform types, of which a ZACwire signal can be
 composed. Figure \ref{fig:zacexample} shows an example
 transmission. For further information see \cite{zac}.
 \begin{figure}[Hh!]
@@ -204,7 +204,7 @@ transmission. For further information see \cite{zac}.
 \subsection{I2C}
 I2C is a bus protocol, which specifies the physical layer, as well as an arbitration and addressing layer. The protocol is a two wire protocol and allows communication between multiple bus participants.\\
 Transmissions are done over two transmission lines SCL and SDA, which
-are pulled to logical high voltage level by pullup resistors (see
+are pulled to logical high voltage level by pull up resistors (see
 figure \ref{fig:i2c}). Each transmission is controlled by a device
 in master mode, which provides a clock by controlling the SCL line.\\
 A transmission is surrounded by a START and a STOP bit, which are code violations.\\
@@ -216,7 +216,7 @@ clock cycle, the SDA line stays under control of the master. If the
 direction bit describes a read, the slave should take control over
 the SDA line and transmits bits at every clock cycle.\\
 The Slave is allowed to take control over the SCL line at any time
-by pulling it low. this is called clock extenstion, and signals the
+by pulling it low. This is called clock extension, and signals the
 master to not proceed transmitting or receiving data.
 The full I2C specification can be found in \cite{i2c}.
 \begin{figure}[Hh!]
@@ -244,22 +244,22 @@ A detailed description of the protocol and its implementation can be found in \c
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Toolchain}
 \subsection{KiCad}
-To design schematic circuit diagrams, as well as printed multilayer circuit boards, we used the open source EDA suite KiCad\footnote{http://www.kicad-pcb.org}. Most of the schematic and footprint components, were designed by ourselfes and can be found in the project git repository.\\
+To design schematic circuit diagrams, as well as printed multilayer circuit boards, we used the open source EDA suite KiCad\footnote{http://www.kicad-pcb.org}. Most of the schematic and footprint components, were designed by ourselves and can be found in the project git repository.\\
 The finished board files were exported to the Gerber / Echelon file format and sent to Fischer Leiterplatten\footnote{http://www.fischer-leiterplatten.de} for production.
 \subsection{ISP programming}\label{chap:isp}
 To upload the compiled code and to configure the microprocessors, we used the USBasp programmer in combination with the avrdude software.\\
-As we needed to access the fuse bytes of the arduino too, which was not possible with the arduino bootloader, we also use the ISP header on the Arduino board for programming. The arduino bootloader was removed. Hence it is not possible anymore, to programm the arduino with the arduino software suite, without reinstalling the bootloader.\\
-\textbf{Note} that the arduino ISP header is not compatible with the one, provided by the USBasp programmer. A mechanical adapter or individual cabling is required. 
-Figure \ref{fig:isp} shows the pin asignments of the different ISP headers.
+As we needed to access the fuse bytes of the Arduino too, which was not possible with the Arduino bootloader, we also use the ISP header on the Arduino board for programming. The Arduino boot loader was removed. Hence it is not possible anymore, to program the Arduino with the Arduino software suite, without reinstalling the boot loader.\\
+\textbf{Note} that the Arduino ISP header is not compatible with the one, provided by the USBasp programmer. A mechanical adapter or individual cabling is required. 
+Figure \ref{fig:isp} shows the pin assignments of the different ISP headers.
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.35\textwidth]{img/isp.png}
-  \caption{ISP connector pin asignments. Left: 10 pin version (used by USBasp, and on our boards), right: 6 pin version (as used on arduino boards). Source: \cite{micronet}.}
+  \caption{ISP connector pin assignments. Left: 10 pin version (used by USBasp, and on our boards), right: 6 pin version (as used on arduino boards). Source: \cite{micronet}.}
 	\label{fig:isp}
 \end{figure}
 \subsection{USART for debugging}
-For convenient debuging, we added a USART header on each board with a microcontroller. 
-These pins are directly connected to the hardware USART unit of the microconteoller.\\ 
+For convenient debugging, we added a USART header on each board with a micro controller. 
+These pins are directly connected to the hardware USART unit of the micro controller.\\ 
 \textbf{Note} that the signal level on this header is TTL and is not compatible with the RS232 standard. It is possible to connect the boards to a PC, using either an external signal level converter from TTL to RS232, or a direct USB to USART TTL converter.\\
 In every software component, we set the \emph{stdout} file descriptor, to point to a USART file, implementing writing data to the USART line.
 Hence standard file handling functions like \emph{printf} or \emph{puts} can be used for printing debugging information.\\
@@ -275,21 +275,21 @@ Tools:
 Libraries:
 \begin{itemize}
   \item avr-libc
-  \item Arduino ethernet library (only for ethernet board)
-  \item Arduino core library (only for ethernet board)
+  \item Arduino ethernet library (only for Ethernet board)
+  \item Arduino core library (only for Ethernet board)
 \end{itemize}
-We use the make build environment. The Makefiles in each software directory contain instructions on how to build and upload the software to the microcontroller, using the following rules:
+We use the make build environment. The Makefiles in each software directory contain instructions on how to build and upload the software to the micro controller, using the following rules:
 \begin{description}
   \item[make clean] Clears the build directory.
     %FIXME make makefile clever for use/create build folder
-  \item[make] Compiles and links the source code to the elf and intel hex binary format. Also a EEPROM image is generated in intel hex binary format. The output directory for binary files will be \emph{./build/}.
-  \item[make fuse] Configures the controller, to use the right system clock source, burnout detection and eeprom persistency settings.
+  \item[make] Compiles and links the source code to the elf and Intel hex binary format. Also a EEPROM image is generated in Intel hex binary format. The output directory for binary files will be \emph{./build/}.
+  \item[make fuse] Configures the controller, to use the right system clock source, burnout detection and EEPROM persistency settings.
   \item[make eeprom] Uploads the EEPROM image to the controller.
-  \item[make upload] Uploads the compiled software to the microcontroller, using avrdude. By default the usbasp programmer is selected.
+  \item[make upload] Uploads the compiled software to the micro controller, using avrdude. By default the usbasp programmer is selected.
 \end{description}
-For a first time build and upload, the above order should be respected. After the initial upload, fuses and eeprom should not be touched everytime, the software changes.\\
-To be able to find the Arduino library root path, the \emph{ARDUINO\_PATH} environment variable should be set to the Arduino installation directory. This for example is the path to the cloned Arduino git reporitory.\\
-\textbf{Note}, that the Makefiles in the current version, do not automatically search for file dependancies, hence a make clean should be executed, after every change in not explicitly specified files, namely every non .c or .cpp file.
+For a first time build and upload, the above order should be respected. After the initial upload, fuses and EEPROM should not be touched every time, the software changes.\\
+To be able to find the Arduino library root path, the \emph{ARDUINO\_PATH} environment variable should be set to the Arduino installation directory. This for example is the path to the cloned Arduino git repository.\\
+\textbf{Note}, that the Makefiles in the current version, do not automatically search for file dependencies, hence a make clean should be executed, after every change in not explicitly specified files, namely every non .c or .cpp file.
 
 %###############################################################
 \chapter{Implementation}
@@ -325,7 +325,7 @@ is described in the following:
     the network theoretically may consist of up to
     $120\cdot 8 = 960$ sensors\footnote{Eight I2C addresses are reserved}.
   \item[Data forwarding]\hfill \\
-    The forwarding part controls the data aquisition part of the
+    The forwarding part controls the data acquisition part of the
     network and provides an interface to IP networks. Data can be
     forwarded to a couchDB database on the internet. Furthermore, the network 
     is configurable via an telnet/netcat terminal user interface.
@@ -344,7 +344,7 @@ Care was taken, when soldering the temperature sensor, to minimize
 heat transfer to the chip. We did this by soldering each pin for a
 maximum time of 2 seconds, We also tried to keep the total time spent
 for soldering all 3 pins less than 10 seconds. After soldering, we
-immediately blowed cold air to the pins and the chip itself.\\
+immediately blew cold air to the pins and the chip itself.\\
 Figure \ref{fig:pcb_temp} shows the printed circuit board (PCB) schematic
 and figure \ref{fig:soldered_temp} the not completely soldered
 temperature board. 
@@ -354,18 +354,18 @@ and PCB the traces to the temperature sensor are thin and guided through
 a narrow neck.
 \subsection{Humidity board}
 The hardware structure is similar to the temperature board, described in section \ref{chap:tempbrd}. However, as the HYT271 sensors use I2C for
-communication, we added a microcontroller to repediately poll the sensor for current measurement results and send the data out using a software
+communication, we added a micro controller to repeatedly poll the sensor for current measurement results and send the data out using a software
 implementation of the ZAC wire protocol. Therefore we also placed an ISP socket, a debugging adapter, a reset switch and two LEDs onto the board, which makes it
 slightly bigger than the temperature board. The schematic can be seen in figure \ref{fig:schem_hum}.\\
-The design of the pcb (see figure \ref{fig:pcb_hum}) is also similar to the temperature board. 
+The design of the PCB (see figure \ref{fig:pcb_hum}) is also similar to the temperature board. 
 \subsubsection{ZAC encoding}
 The most easy method to generate a ZAC encoded signal is to set a pin high, then use busy-wait delay loop (\texttt{\_delay\_us()}) to wait a certain time interval. After that set the pin to low. 
-But the timing of this method is not very exact (more than 6 $\mu$s inaccuracy according to experience). Hence we decided to use a timer to achive a higher timing accuracy. \\
+But the timing of this method is not very exact (more than 6 $\mus$ inaccuracy according to experience). Hence we decided to use a timer to achieve a higher timing accuracy. \\
 We have used the following timer features, which are triggered on compare match: 
 \begin{itemize}
   \item Clear timer, when the timer counter matches the output compare register value. This is the so called ``CTC mode'' of the timer.
   \item Toggle an output pin if a compare match occurs. It will be also possible to explicitly set the pin high or low.
-  \item Excute an interrupt handler on compare match. This allows us to change the value of the output compare register on demand.
+  \item Execute an interrupt handler on compare match. This allows us to change the value of the output compare register on demand.
 \end{itemize}
 Figure \ref{fig:zac_encoding} shows an example of the ZACwire signal encoding process.\\
 \begin{figure}[Hh!]
@@ -375,17 +375,17 @@ Figure \ref{fig:zac_encoding} shows an example of the ZACwire signal encoding pr
 	\label{fig:zac_encoding}
 \end{figure}
 We keep the output pin high, when there is nothing to do.
-If a measured value is ready to be sent, the timer will be configured to enable the above described features and the output campare register will be set to half of the defined bit time for sending a start bit.
+If a measured value is ready to be sent, the timer will be configured to enable the above described features and the output compare register will be set to half of the defined bit time for sending a start bit.
 After that, the output compare register will be set to $\frac{T_{b}}{4}$ or $\frac{3}{4}T_{b}$ according to the sending bit.
 After the last bit is sent, the output pin will stay high, which indicates a stop bit. 
-When a newly measured value is ready again, the whole procudure will be excute again.
+When a newly measured value is ready again, the whole procedure will be executed again.
 \\
-For detailed usage description of the microprocessor timer, please read the corresponding datasheet. For the microprocessor ATmega88P, which we used, see \cite{atmega88}. 
+For detailed usage description of the microprocessor timer, please read the corresponding data sheet. For the microprocessor ATmega88P, which we used, see \cite{atmega88}. 
 \subsubsection{Cyclic redundancy check (CRC)}\label{chap:crc}
 In order to detect errors after a long distance transmission, 
 We attach an 8-bit CRC checksum for every block of measured values before sending the data out. \\
 CRC is a common method for error-detecting in digital networks and is based on the theory of polynomial division. 
-In the galois field of two elements, GF(2),
+In the Galois field of two elements, GF(2),
 an n-bit checksum is the remainder of the division between data, shifted n bit to the left, and a (n+1)-bit polynomial as the divisor.
 Because the polynomial division in GF(2) is equivalent to an iteration of the bitwise XOR, a checksum can be computed in the following way:
 The divisor is at first shifted to the leftmost side of the input data block and computed XOR with the first (n+1) bits.
@@ -412,7 +412,7 @@ An example of the calculation of a 4-bit checksum to the polynomial divisor 1001
 1101 1001 1010 0011 0000  <-- input data block, shifted 4 bits to left 
 1001 1                    <-- polynomial divisor
 ------------------------
- 100 0001 0100 0011 0000  <-- result of the frist XOR round
+ 100 0001 0100 0011 0000  <-- result of the first XOR round
  100 11
  -----------------------
      1101 0100 0011 0000
@@ -444,12 +444,12 @@ The schematic diagram can be seen in figure \ref{fig:schem_collect}. The hardwar
 \begin{description}
   \item[Microprocessor:]\hspace{1cm}\\
     To do all protocol conversion tasks, we used an Atmel Atmega88PA
-    microcontroller, running at a clock speed of $20MHz$. The clock
+    micro controller, running at a clock speed of $20MHz$. The clock
     is generated, using an external crystal oscillator.\\
-    The Atmega microcontroller provides a variety of useful features
+    The Atmega micro controller provides a variety of useful features
     like asynchronous timers, pin change interrupts on every GPIO (General Purpose Input/Output)
     pin, hardware support for the I2C protocol and integrated EEPROM
-    storage (Datasheet: \cite{atmega88}).\\
+    storage (Data sheet: \cite{atmega88}).\\
     We connected the sensors in two groups, so that we are able to
     receive two independent interrupts for two sensors in different
     groups.
@@ -458,27 +458,27 @@ The schematic diagram can be seen in figure \ref{fig:schem_collect}. The hardwar
     provide connection to the I2C bus, as well as an optional 5V
     power line (Vi2c). The two headers are connected in parallel,
     so they can be used for chaining multiple collector boards.\\
-    The board also has integrated I2C pullups, which can be enabled
+    The board also has integrated I2C pull ups, which can be enabled
     using the switch SW2 (see figure \ref{fig:schem_collect}), in case the I2C master does not provide
-    pullups.
+    pull ups.
   \item[Sensor connection:]\hspace{1cm}\\
     The individual sensors are connected via an eight-port RJ45
     socket header. Shielding of the RJ45 sockets is connected to
     board ground. The signal of each sensor is first interpreted
     by an RS485 transceiver and afterwards directly provided to a
-    microcontroler GPIO pin. As this is the receiving side, we also
+    micro controller GPIO pin. As this is the receiving side, we also
     had do add impedance matching circuitry. We chose to implement
     a power saving AC-termination solution, as suggested in \cite{st485appnote, rs485}.
     To bring the output level of each transceiver to a defined state,
-    when no sensor is connected, we use pullup resistors on the
+    when no sensor is connected, we use pull up resistors on the
     input side. Optionally the board and shield ground can be wired to
     the screw pad P2 (see figure \ref{fig:schem_collect}) for a connection with the casing. This is done by
     placing the 0 Ohm resistor R34.
   \item[Developer interface:]\hspace{1cm}\\
-    The microcontroller can be programmed with any AVR In System
+    The micro controller can be programmed with any AVR In System
     Programmer, using the standard ISP header (P8 in figure \ref{fig:schem_collect}).\\
     For debugging code, we also added a USART pin header (P1 in figure \ref{fig:schem_collect}), which
-    allows serial communication with the microcontroller. 
+    allows serial communication with the micro controller. 
     \\
     \textbf{Note}, when connecting the chip to a PC, as the logic
     levels of our board are 5V TLL and hence are not compatible
@@ -489,7 +489,7 @@ The schematic diagram can be seen in figure \ref{fig:schem_collect}. The hardwar
     \begin{itemize}
       \item Direct 5V input/output (P7 or P9 in figure \ref{fig:schem_collect})
       \item Use the 5V supply voltage, provided via the I2C bus
-      \item Unregulated input (7V..25V). The onboard LM7805 linear
+      \item Unregulated input (7V..25V). The on-board LM7805 linear
         regulator, will convert the voltage to 5V.
     \end{itemize}
     Using the pin header K1, which is marked in figure \ref{fig:schem_collect}, it is possible to select suitable
@@ -509,7 +509,7 @@ does not follow the method suggested by \cite{zac} because of timing reasons.\\
 To decode one ZAC protocol sensor, we use the pin change interrupt (PCINT) of the pin, connected to the sensor, and
 one 8 bit timer with the corresponding timer overflow interrupt.
 \paragraph{Pin change Interrupt:} On every pin change interrupt, the following actions are executed:\\
-%FIXME redudancy of every time
+%FIXME redundancy of every time
 Every time:
 \begin{itemize}
 	\item The current time value is stored to a temporary variable $T_{timer}$, to be able to still access it later.
@@ -518,7 +518,6 @@ Every time:
 \end{itemize}
 On a falling edge:
 \begin{itemize}
-        % FIXME what is Tcrit, it is not cleared at the first usage, und the explain after that is also not that understandable!
 	\item If $\left|T_{low} - T_{timer}\right| < T_{thresh}$ with a constant $T_{thresh} << T_{crit}$, we
 		have observed a start bit.\\
 		We now update the critical sampling time\footnote{$T_{crit} = 0.5\cdot(T_{timer} + T_{low})$ would
@@ -543,7 +542,7 @@ interrupts and stop the current measurement. Otherwise we reset the receive buff
 next transmission to begin.
 %\paragraph{Starting a measurement:} 
 \\[0.6cm]
-At the beginning of each meassuring process, the following is executed:
+At the beginning of each measuring process, the following is executed:
 \begin{itemize}
 	\item $T_{crit}$ is set to the maximum value.
 	\item $T_{low}$ is set to the minimum value. This will ensure, that we do not
@@ -562,21 +561,21 @@ As we have up to 8 sensors connected to the Atmega88, we have to do one measurem
 As one sample of a measurement takes $>100\,\mathrm{ms}$ we would run
 into problems reaching the desired sampling rate of $>1\,\mathrm{Hz}$.
 Our approach is to sample two sensors at the
-same time, using a second 8 bit timer. Our interrupt handler for the ZAC protocol decoding are not interruptable.
-Hence, incomming interrupts are delayed for the runtime $t_e$ of currently executed interrupts.
+same time, using a second 8 bit timer. Our interrupt handler for the ZAC protocol decoding are not interruptible.
+Hence, incoming interrupts are delayed for the runtime $t_e$ of currently executed interrupts.
 If we have interrupts active for two sensors at the same time, the controller might see a delayed signal.
 Figure \ref{fig:zactiming} illustrates this problem:
 \begin{figure}[Hh!]
 	\centering
 	\includegraphics[width=0.7\textwidth]{img/zac_timing.pdf}
 	\caption{ZAC protocol worst case timing. The grey shaded areas illustrate the potentially delayed vision
-	of a microcontroller due to interrupt latency.}
+	of a micro controller due to interrupt latency.}
 	\label{fig:zactiming}
 \end{figure}
 \\
 When sampling the start bit we get an error for our critical time $T_{crit}$:
 $$T_{min} := T_h - t_e < T_{crit} < T_h + t_e$$
-When using $T_{crit}$ to determine a bit value, we are again influenced by the possibly delayed preceeding falling edge. We get:
+When using $T_{crit}$ to determine a bit value, we are again influenced by the possibly delayed preceding falling edge. We get:
 $$T_{min} < T_{crit}' < T_h + 2 \cdot t_e =: T_{max}$$
 In other words, $T_{min}$ is the time, starting from a real falling edge,
 before which the controller will not sample the bit. $T_{max}$ is the time,
@@ -590,7 +589,7 @@ Both inequations simplify to
 $$t_e < \frac{1}{4}\cdot T_h\text{.}$$
 According to \cite{zac}, the nominal value for $T_h$ is $\frac{125}{2}\,\mu\mathrm{s}$. Hence our error due to
 interrupt latency has to be smaller than $15.625\,\mu\mathrm{s}$.\\
-As the microcontroller runs at a clock speed of $20\,\mathrm{MHz}$, we have to complete previous interrupts,
+As the micro controller runs at a clock speed of $20\,\mathrm{MHz}$, we have to complete previous interrupts,
 start the interrupt handler of the new interrupt and sample the current timer value within 332 clock cycles,
 to not harm the above limit on the error.\\
 We implemented a simple branch aware Worst Case Execution Time (WCET) analyzer for the AVR instruction set.
@@ -614,7 +613,7 @@ address to the instruction causing the branch.}
 \end{figure}
 \subsection{I2C interface}
 Communication with the collector board is done via I2C (Two Wire Interface). Thereby the board acts as an
-I2C slave, extending the clock, if it is currently not able to process incomming data.
+I2C slave, extending the clock, if it is currently not able to process incoming data.
 This is especially used while a measurement is in progress: As soon as new data byte arrives,
 it is buffered by hardware, without interrupting the measurement and the clock will be extended, signalling to the master, that no further data should be sent or received.\\
 If a write request (SLA+W) is sent, the data following the write request is interpreted as a command. A list of implemented commands is given
@@ -673,15 +672,15 @@ redirection via I2C. Figure \ref{fig:packet} shows the structure of a packet.
 Each packet's integrity is protected by a CRC checksum (algorithm description see section \ref{chap:crc}) and consists of the following fields:\\
 \begin{description}
 	\item[\textbf{type}] \hfill\\
-        This field pecifies the type of the sensor, which supplied the data. Currently implemented values are 0
+        This field specifies the type of the sensor, which supplied the data. Currently implemented values are 0
 		for TSIC and 1 for HYT. In case the type field reads 0, the \emph{Humidity} field will have no relevant value and hence
 		represents a padding field.
 	\item[c] \hfill\\
 This bit is set to 1, if the measurement was completed without a timeout. This is usually the case, when a
 		sensor is connected. Hence this bit can be used to determine, whether a sensor is connected or not.
 	\item[error] \hfill\\
-This field reads 1, when an error during sampling has occured. Possible causes are: HYT Checksum missmatch,
-		TSIC Parity missmatch or TSIC Protocol format error.
+This field reads 1, when an error during sampling has occurred. Possible causes are: HYT Checksum mismatch,
+		TSIC Parity mismatch or TSIC Protocol format error.
 	\item[Temperature] \hfill\\
 $T_m \cdot 100$ with $T_m$ the measured temperature in Celsius.
 	\item[Humidity] \hfill\\
@@ -713,77 +712,77 @@ figure \ref{fig:packetorder}.\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Ethernet board}
 \subsection{Hardware}
-For the ethernet board we use a pre built 
+For the Ethernet board we use a pre built 
 Arduino Ethernet board\footnote{http://arduino.cc/en/Main/ArduinoBoardEthernet},
 equipped with a Power over Ethernet module.
-The board features an atmega328 microcontroller,
+The board features an atmega328 micro controller,
 which has 32 KByte Flash and 2 KByte RAM storage \cite{atmega328}. The atmega328
-controller is connected to a W5100 ethernet controller and PHY with integrated
+controller is connected to a W5100 Ethernet controller and PHY with integrated
 TCP/IP stack.\\
 As the I/O Pin headers of the Arduino board were not suitable to
 use for a reliable connection with the collector boards, we designed an adapter
 board, which provides sockets for I2C and power connections. The adapter also
-provides I2C pullup resistors and a LED for debugging.
+provides I2C pull up resistors and a LED for debugging.
 Hence, when using it,
-the optional pullup resistors on the collector boards can be switched off.\\
+the optional pull up resistors on the collector boards can be switched off.\\
 The PCB schematic of the adapter can be found in figure	\ref{fig:pcb_arduino}.
 \subsection{Software}
-On the software side, the ethernet board has the following requirements:
+On the software side, the Ethernet board has the following requirements:
 \begin{itemize}
   \item Periodically poll all connected collector boards for new measurement results.
-  \item Forward measurement results over ethernet.
+  \item Forward measurement results over Ethernet.
   \item Provide a user interface for easy configuration and debugging.
 \end{itemize}
-We implemented these requirements in two abstract tasks: one for aquiring measurements and sending them
-over ethernet and an other one for handling the user interface.
+We implemented these requirements in two abstract tasks: one for acquiring measurements and sending them
+over Ethernet and an other one for handling the user interface.
 \subsubsection{Running tasks in parallel}
 As these tasks mentioned above should run in parallel, we implemented a modified event loop approach. We
 implemented a function for each task, which allow us to execute the abstract tasks
 in a semi parallel way:\\
 In the main program loop, the two functions are called in turn. Each function however has to guarantee to
-not block program execution for more time than is absolutely neccessary. Especially waiting for I/O
+not block program execution for more time than is absolutely necessary. Especially waiting for I/O
 should not be done via busy waiting. Respecting this constraint, one function
 call is most of the time not sufficient to finish a task, but only does some progress on the
 current task. For example receiving of a measurement result needs multiple calls
 of the corresponding receive function. This is implemented using state machines and different
 return values for `task finished' or `task needs more time'.\\
-However both the user interface task, as well as the measurement task may access shared ressources
-like the I2C bus. As semi parrallel access will lead to undefined behavior, shared ressources
-have an associated mutex, which has to be aquired before accessing the ressource.\\
+However both the user interface task, as well as the measurement task may access shared resources
+like the I2C bus. As semi parallel access will lead to undefined behavior, shared resources
+have an associated mutex, which has to be acquired before accessing the resource.\\
 \textbf{Note} that implementing
-busy waiting when trying to aquire a mutex will immediately lead to a deadlock, due to the nature
+busy waiting when trying to acquire a mutex will immediately lead to a deadlock, due to the nature
 of the event loop approach.
 \subsubsection{Receiving of measurement results}
-The task for aquiring measurements is done in the following steps:
+The task for acquiring measurements is done in the following steps:
 \begin{enumerate}
   \item In the main event loop the function \texttt{loop\_sample()} is called periodically. To trigger the sampling process in fixed time
-    intervals, an interrupt generating timer is used to count the time in millisecond resulution. This is already implemented in the Arduino core library
+    intervals, an interrupt generating timer is used to count the time in millisecond resolution. This is already implemented in the Arduino core library
     and initialized using the \texttt{init()} function at startup.
     On each call of the \texttt{loop\_sample()} function in IDLE state, it is determined according to the current millisecond time,
     whether sampling should be started.
-  \item As soon as sampling should be started, the mutex for the TWI bus will be aquired. Then a TWI bus scan will be performed, to detect
+  \item As soon as sampling should be started, the mutex for the TWI bus will be acquired. Then a TWI bus scan will be performed, to detect
     all connected collector boards. The result of this scan is required later, when reading the measurement results from each board.
   \item After that, the \texttt{twi\_start\_measurement()} function is called, to send a measurement request to the broadcast address $0x00$.
     This triggers all connected collector
     boards to simultaneously sample all 8 connected sensors.
-  \item Now the ethernet board tries to receive data from each collector board in turn, by issuing a read request. However, the collector boards
-    need some time to finish sampling of all sensors and will hence do I2C clock extension. This is detected by the ethernet board
+  \item Now the Ethernet board tries to receive data from each collector board in turn, by issuing a read request. However, the collector boards
+    need some time to finish sampling of all sensors and will hence do I2C clock extension. This is detected by the Ethernet board
     sampling function and the function will return and continue to try receiving data in the next event loop cycle.
   \item Once data from one collector board is received completely, a checksum check is performed on all 8 packets and the corresponding error flag of these packets will be set, if the check failed. Then the data is
-    handed over to the networking layer, for distribution over ethernet.
+    handed over to the networking layer, for distribution over Ethernet.
   \item When all collector boards have been processed, the mutex for the TWI bus is released again.
 \end{enumerate}
 \subsubsection{TCP/IP networking}
 % W5100 driver extension, to support clear receive buffer
-In order to implement the data sending task and user interface over ethernet, we built our TCP/IP networking code on top of the W5100 driver, provided by Arduino. We did not use the \texttt{EthernetServer} interface, as
+In order to implement the data sending task and user interface over Ethernet, we built our TCP/IP networking code on top of the W5100 driver, provided by Arduino. We did not use the \texttt{EthernetServer} interface, as
 this did not provide enough flexibility for handling independent TCP connections. Our code works directly with sockets, provided by
-the arduino library \texttt{socket.h}. We also had to extend the W5100 driver, to allow fast clearing of the socket receive buffer,
+the Arduino library \texttt{socket.h}. We also had to extend the W5100 driver, to allow fast clearing of the socket receive buffer,
 without reading all received data for performance reasons (\texttt{net\_clear\_rcv\_buf(SOCKET)}).\\
 To allow convenient reading and writing to sockets, using the C standard input output library (cstdio), we created an interface
 above the sockets, which provides a \texttt{FILE} object, representing a stream. However due to lack of memory, we only created one
 stream for all sockets. So multiplexing has to be done when writing/reading to/from different sockets, by telling the stream to switch
 to a different socket (\texttt{stream\_set\_socket(sock)}). As the stream utilizes buffers, a stream flush (\texttt{sock\_stream\_flush()})
-can be performend to force sending of the buffer contents over the network.\\
+can be performed to force sending of the buffer contents over the network.\\
 The final networking layer provides two essential services:
 \begin{enumerate}
   \item A handling function \texttt{net\_dataAvailable(...)}, which is used to process measurement data from collector boards:\\
@@ -806,16 +805,16 @@ The final networking layer provides two essential services:
 \end{lstlisting}
     \item If data is requested via user interfaces, the whole measured data will be sent to the corresponding clients in plain text over their associated sockets.
 \end{itemize}
-  \item An event loop function \texttt{net\_loop()}, which is responsible for the user interface (\texttt{serve()}) and incomming data from the database (\texttt{handle\_db\_response()}):
+  \item An event loop function \texttt{net\_loop()}, which is responsible for the user interface (\texttt{serve()}) and incoming data from the database (\texttt{handle\_db\_response()}):
       \begin{itemize}
           \item \texttt{serve()} implements a TCP server, which is able to handle multiple simultaneous terminal user interface sessions.
-A parser will parse incomming data from TCP connections and call matching command handler functions, if the data is recognized as a valid command.
+A parser will parse incoming data from TCP connections and call matching command handler functions, if the data is recognized as a valid command.
 All implemented commands will be introduced in section \ref{sec:uicmd}.
 New commands with respective callback functions can be registered in a command array \texttt{struct cmd cmds[]}. \textbf{Note} that, after adding a command, the command counter preprocessor variable \texttt{DEFINED\_CMD\_COUNT} has to be incremented.\\
-    \textbf{Care has to be taken}, when accessing shared resources like the I2C bus in a handler, as busy waiting for aquiring the mutex will lead to a deadlock.
+    \textbf{Care has to be taken}, when accessing shared resources like the I2C bus in a handler, as busy waiting for acquiring the mutex will lead to a deadlock.
         \item \texttt{handle\_db\_response()} handles the received database responses after transmission of each data packet. This is required, in order for the w5100 receive buffer not to overflow.
-            If a client enables showing data base reponses, incomming responses will be redirected to the user interface,
-otherwise the receive queue will be emptyed in each loop cycle using \texttt{net\_clear\_rcv\_buf(SOCKET)}.
+            If a client enables showing data base responses, incoming responses will be redirected to the user interface,
+otherwise the receive queue will be emptied in each loop cycle using \texttt{net\_clear\_rcv\_buf(SOCKET)}.
     \end{itemize}
 \end{enumerate}
 \subsubsection{String handling}
@@ -834,7 +833,7 @@ maximum lifetime, even for many configuration changes.\\
 \textbf{Note} that for reliable EEPROM persistency, the integrated burnout detection should be enabled, to keep the AVR controller in reset state at voltages below 4.5 V, as the EEPROM shows undefined behavior, if the controller is running at voltages below 4.5 V.
 \subsection{User interface commands}
 \label{sec:uicmd}
-The terminal user interface, which is provided by the ethernet board over TCP/IP, can be accessed via applications like telnet or netcat.
+The terminal user interface, which is provided by the Ethernet board over TCP/IP, can be accessed via applications like telnet or netcat.
 This allows users to conveniently change or view system settings. The interface is command driven, every command should be terminated
 by a newline and/or carrier return character.\\
 By default, the user interface is reachable at port 8888.
@@ -866,7 +865,7 @@ The following commands are supported:
     set to the given value.\\
     Example: p 23
   \item[mac] [mac1:mac2:mac3:mac4:mac5:mac6]\\
-    The ethernet MAC address of the device will be set to the given value.\\
+    The Ethernet MAC address of the device will be set to the given value.\\
     Example: mac 60:76:d3:c4:7a:70
   \item[gw] [gw1.gw2.gw3.gw4]\\
     The internet gateway address is set to the given value.\\
@@ -884,10 +883,10 @@ The following commands are supported:
     Sets the IP address, under which the couchDB database is reachable.\\
     Example: d.ip 10.0.1.9
   \item[d.p] [port]\\
-    Sets the TCP port, under wich the couchDB database HTTP interface is reachable.\\
+    Sets the TCP port, under which the couchDB database HTTP interface is reachable.\\
     Example: d.p 5984
   \item[d.ck] [cookie]\\
-    Configures the cookie, used for authentification with the couchDB database.\\
+    Configures the cookie, used for authentication with the couchDB database.\\
     \textbf{Note} that the length of the argument is limited. To get the maximum allowed
     length for this command, use the \emph{help} command.\\
     Example: d.ck YXJkdWlub190ZW1wZXJhdHVyZV93cml0ZXI6
@@ -910,7 +909,7 @@ The following commands are supported:
     This toggles forwarding of the database HTTP response to the current terminal.
     This is useful for debugging database configuration problems.\\
     \textbf{Note} that forwarding has a huge impact on the system performance and should be
-    disbaled during normal operation.
+    disabled during normal operation.
   \item[d.re]\hspace{1cm}\\
     This command stores configuration changes to EEPROM and resets all network
     connections to the database.
@@ -923,7 +922,7 @@ The following commands are supported:
   \item[v] \hspace{1cm}\\
     This toggles forwarding of measurement results to the current terminal.\\
     \textbf{Note} that forwarding has a huge impact on the system performance and should be
-    disbaled during normal operation.
+    disabled during normal operation.
   \item[i] [interval]\\
     Configures the sampling interval in seconds. No floating point values are allowed.
     A value of 0 causes the system to sample at maximum rate, which is typically
@@ -946,16 +945,16 @@ files of each case can be found in our GIT repository. Figure \ref{fig:casings} 
 \begin{figure}[Hh!]
 	\centering
 	\includegraphics[width=\textwidth]{img/cases.jpg}
-  \caption{3D printed casings. Left: temperature board casing, middle: ethernet board casing, right: collector board casing. The casing for the humidity board is not shown, as it is similar to the one for the temperature sensor, but longer.}
+  \caption{3D printed casings. Left: temperature board casing, middle: Ethernet board casing, right: collector board casing. The casing for the humidity board is not shown, as it is similar to the one for the temperature sensor, but longer.}
 	\label{fig:casings}
 \end{figure}
 \paragraph{Casings for the sensors}\hspace{1cm}\\
 The casings for the sensor boards were designed to protect the sensors from being damaged, as well as to provide a convenient way of
-mounting them on ITEM compatible aluminium profiles. The casing walls have a mesh structure, to allow maximum air exchange aound the
-sensor. To prevent damage of the sensor board, caused by the ethernet cable, a strain-relief is also featured. The original design and
+mounting them on ITEM compatible aluminium profiles. The casing walls have a mesh structure, to allow maximum air exchange around the
+sensor. To prevent damage of the sensor board, caused by the Ethernet cable, a strain-relief is also featured. The original design and
 idea for the sensor casings was done by Tobias Lins.
 \paragraph{Casings for the control units}\hspace{1cm}\\
-We also designed cases for the ethernet and collector boards, to be able to mount them in an easy and compact manner.\\
+We also designed cases for the Ethernet and collector boards, to be able to mount them in an easy and compact manner.\\
 Cases for the collector board were designed to be stackable. This works well with the I2C chaining feature, as to extend the sensor network,
 only a new collector board has to be placed on top of the stack. The I2C plug can then be connected to the socket of the topmost board, and provides
 communication and power to the new board.
@@ -965,9 +964,9 @@ communication and power to the new board.
 In total we installed 42 temperature sensors and 2 humidity sensors inside the field
 cage of the nEDM experiment setup. For convenient cable routing, we used
 two control stations, each consisting out of three stacked collector boards and one
-ethernet board. One of the control stations is placed on the ceiling of the
+Ethernet board. One of the control stations is placed on the ceiling of the
 topmost floor and the other one is placed near the ground in the lowest floor. We tried
-to distribute the sensors evenly in the field cace. However, most
+to distribute the sensors evenly in the field cage. However, most
 of the sensors were placed on the walls and ceilings of the individual floors. 
 \begin{figure}
 	\centering
@@ -976,7 +975,7 @@ of the sensors were placed on the walls and ceilings of the individual floors.
 	\label{fig:install}
 \end{figure}
 Figure
-\ref{fig:install} shows the approximate distribution of sensors and control starions.\\
+\ref{fig:install} shows the approximate distribution of sensors and control stations.\\
 The two control stations feature sockets for 48 sensors, as we currently only use 44,
 the remaining four sockets can be used, to connect additional sensors on demand\footnote{\textbf{Note}, that
 the system is Plug and Play. This means the sensors may be connected and disconnected
@@ -986,11 +985,11 @@ As cables to connect the sensors we used shielded CAT.5e cables, with lengths be
 We attached two unique identifier tags to each cable, connecting a sensor to a collector
 board. This ID specifies, to which collector board and to which exact socket,
 the cable should be connected. For example, the ID 'B013S0' means, that the cable should
-be connected to collector board number 13 in the leftmost socket. The board number by default is indentical to the I2C address of the collector board.\\
+be connected to collector board number 13 in the leftmost socket. The board number by default is identical to the I2C address of the collector board.\\
 The cables leading to sensors, were collected in cable channels where possible and otherwise
 fastened with cable straps to the cage skeleton.\\
 Figure \ref{fig:control_unit} shows an installed control station with connected cables to
-the individual sensors. In this case the powersupply is a 9V switching powersupply, connected
+the individual sensors. In this case the power supply is a 9V switching power supply, connected
 to one of the collector boards. The integrated Voltage regulator of this board then creates
 a 5V output, which drives all three collector boards via the I2C connection.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1003,9 +1002,9 @@ magnetic field measurements using a squid magnetometer. However both our measure
 influenced by time dependant noise, which made the results not trustworthy.
 \subsection{Crash after long uptime}
 \paragraph{The problem}\hspace{1cm}\\
-The software on the ethernet board currently contains a bug, which causes the board to
-crash at semi-random times. As a result the ethernet board becomes completely inoperable.
-The occurence of this problem is dependent on the configured sampling rate. At a sampling
+The software on the Ethernet board currently contains a bug, which causes the board to
+crash at semi-random times. As a result the Ethernet board becomes completely inoperable.
+The occurrence of this problem is dependent on the configured sampling rate. At a sampling
 interval of $5\,s$ it occurs after about 8 hours, at $\approx0.6\,s$ it occurs already after about
 2 hours. Due to the random nature however, these time values represent mean values based on
 observations.\\
@@ -1065,22 +1064,22 @@ trigger a timer reset of the WDT on specific points during program execution.
 If however the mentioned bug occurs, the program will hang and after a timeout
 a system reset will occur. 
 This approach may also handle further bugs, which cause the system to hang.
-On one hand, it makes the system more robust by allowing it to reciver by itsself,
+On one hand, it makes the system more robust by allowing it to receiver by itself,
 but on another hand, this will make hidden problems difficult to find. 
 Therefore, it can only be seen as a temporary solution, especially as after a crash,
 timing of the measurement interval will not be right
 for one measurement, as a crash might cause a blackout for up to 15 seconds.
-\paragraph{Further debuging ideas}\hspace{1cm}\\
+\paragraph{Further debugging ideas}\hspace{1cm}\\
 While debugging, we found out, that printing debug information over the USART
 interface will heavily extend the time until the bug appears, so this is not a
 good option for debugging the code. We had most success, to locate the bug,
-by changing the state of LEDs or other GPIOs at differend code locations. After
+by changing the state of LEDs or other GPIOs at different code locations. After
 the system has crashed, we could just look at the LEDs or measured the voltage on
 GPIO pins to see which line was still executed.
 \subsection{Minor problems}
 \subsubsection{Range of I2C}
 In the design phase, we decided to use I2C for communication between
-the collectorboards. This decision was made, because I2C features clock
+the collector boards. This decision was made, because I2C features clock
 extension and is flexible with regards to connecting new bus participants.\\
 The drawback of this protocol however is, that it is not suitable for long
 range communication, due to the pullup resistors, which allow dominant
@@ -1103,14 +1102,14 @@ safe operation, when the device configuration changes during runtime, even thoug
 we did not observe a crash in our tests.\\
 This problem does not affect normal operation, as in the current setup in the
 nEDM experiment, no collector boards will be added or removed during runtime.
-If collectorboards are changed and then the network freezes, a power cycle for the collectorboards might have to be performed or a restart the system.
+If collector boards are changed and then the network freezes, a power cycle for the collector boards might have to be performed or a restart the system.
 \\
 However, Plug and Play for the individual sensors works perfectly.
 \subsubsection{Low fault tolerance of I2C}
 Due to the nature of the bus, one failing I2C bus participant might be able to
 block the whole bus, rendering the whole network unusable.
 \textbf{Note} that this
-might happen, when the microcontroller is connected to a USBasp programmer,
+might happen, when the micro controller is connected to a USBasp programmer,
 which is not connected to a computer.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Developing / Extending}
@@ -1147,10 +1146,10 @@ the sensor network:
 \begin{itemize}
 \item To prevent EEPROM from being corrupted on power cycles, the AVR
   integrated brownout detection should be enabled.
-\item To allow EEPROM stroage to stay intact after reprogramming, set the
+\item To allow EEPROM storage to stay intact after reprogramming, set the
   corresponding fuse bit.
 \item As Arduino fuses are not possible to be programmed via the default Arduino
-  programmer (using the Arduino bootloader), we removed the bootloader and use
+  programmer (using the Arduino boot loader), we removed the boot loader and use
   the ISP connector for programming (see section \ref{chap:isp}).
 \item To not overload the voltage regulator, especially when driving multiple
   boards one should consider, that a significant portion of power is used to
@@ -1189,7 +1188,7 @@ the sensor network:
 \begin{figure}[Hh!]
 	\centering
 	\includegraphics[width=0.7\textwidth]{img/schem_temperature_board.pdf}
-	\caption{Temperature board schematic. The Impedance adjustor circuit, R4 and C4 is not required to be populated, as we only transmit data.}
+	\caption{Temperature board schematic. The Impedance adjuster circuit, R4 and C4 is not required to be populated, as we only transmit data.}
 	\label{fig:schem_temp}
 \end{figure}
 \begin{figure}[Hh!]
@@ -1250,7 +1249,7 @@ the sensor network:
 \begin{figure}[Hh!]
 	\centering
 	\includegraphics[width=0.94\textwidth]{img/control_unit.jpg}
-	\caption{One of the two installed control units, consisting of three stacked collector boards and one ethernet board. The lids of the casings are removed here. Every cable to a sensor is marked with an unique identifier.}
+	\caption{One of the two installed control units, consisting of three stacked collector boards and one Ethernet board. The lids of the casings are removed here. Every cable to a sensor is marked with an unique identifier.}
 	\label{fig:control_unit} 
 \end{figure}
 \end{appendices}
