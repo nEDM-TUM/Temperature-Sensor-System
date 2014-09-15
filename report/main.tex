@@ -949,10 +949,10 @@ files of each case can be found in our GIT repository. Figure \ref{fig:casings} 
   \caption{3D printed casings. Left: temperature board casing, middle: ethernet board casing, right: collector board casing. The casing for the humidity board is not shown, as it is similar to the one for the temperature sensor, but longer.}
 	\label{fig:casings}
 \end{figure}
-\paragraph{casings for the sensors}\hspace{1cm}\\
+\paragraph{Casings for the sensors}\hspace{1cm}\\
 The casings for the sensor boards were designed to protect the sensors from being damaged, as well as to provide a convenient way of
-mounting them on ITEM compatible aluminium profiles. The casing walls have a mesh structure, to allow a maximum air exchange aound the
-sensor. To prevent damage of the sensor board caused by the ethernet cable, a strain-relief is also featured. The original design and
+mounting them on ITEM compatible aluminium profiles. The casing walls have a mesh structure, to allow maximum air exchange aound the
+sensor. To prevent damage of the sensor board, caused by the ethernet cable, a strain-relief is also featured. The original design and
 idea for the sensor casings was done by Tobias Lins.
 \paragraph{Casings for the control units}\hspace{1cm}\\
 We also designed cases for the ethernet and collector boards, to be able to mount them in an easy and compact manner.\\
@@ -965,7 +965,7 @@ communication and power to the new board.
 In total we installed 42 temperature sensors and 2 humidity sensors inside the field
 cage of the nEDM experiment setup. For convenient cable routing, we used
 two control stations, each consisting out of three stacked collector boards and one
-ethernet board. One of the control station is placed on the ceiling of the
+ethernet board. One of the control stations is placed on the ceiling of the
 topmost floor and the other one is placed near the ground in the lowest floor. We tried
 to distribute the sensors evenly in the field cace. However, most
 of the sensors were placed on the walls and ceilings of the individual floors. 
@@ -980,17 +980,18 @@ Figure
 The two control stations feature sockets for 48 sensors, as we currently only use 44,
 the remaining four sockets can be used, to connect additional sensors on demand\footnote{\textbf{Note}, that
 the system is Plug and Play. This means the sensors may be connected and disconnected
-while the system is running}.\\
+while the system is running.}.\\
 \paragraph{Cable routing}\hspace{1cm}\\
+As cables to connect the sensors we used shielded CAT.5e cables, with lengths between 3 and 15 meters.
 We attached two unique identifier tags to each cable, connecting a sensor to a collector
 board. This ID specifies, to which collector board and to which exact socket,
 the cable should be connected. For example, the ID 'B013S0' means, that the cable should
-be connected to collector board number 13 in the leftmost socket. The board number is default indentical with the I2C address of the collector board.\\
+be connected to collector board number 13 in the leftmost socket. The board number by default is indentical to the I2C address of the collector board.\\
 The cables leading to sensors, were collected in cable channels where possible and otherwise
 fastened with cable straps to the cage skeleton.\\
 Figure \ref{fig:control_unit} shows an installed control station with connected cables to
 the individual sensors. In this case the powersupply is a 9V switching powersupply, connected
-to one of the collector boards. The integrated coltage regulator of this board then creates
+to one of the collector boards. The integrated Voltage regulator of this board then creates
 a 5V output, which drives all three collector boards via the I2C connection.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problems}
@@ -1058,22 +1059,23 @@ However we did not have enough time to exactly locate the problematic code.
 \paragraph{The workaround}\hspace{1cm}\\
 We implemented a workaround for this problem, using the integrated watchdog
 timer (WDT) of the atmega88. This is a independent timer of the
-controller, which can be reset via software. If a overflow of this thimer occurs,
+controller, which can be reset via software. If a overflow of this timer occurs,
 a complete system reset of the chip will be performed. In our configuration, we
 trigger a timer reset of the WDT on specific points during program execution.
 If however the mentioned bug occurs, the program will hang and after a timeout
 a system reset will occur. 
 This approach may also handle further bugs, which cause the system to hang.
-On one hand, it makes the system more robust by recovery by itsself,
-but on another hand, this will make hidden problems difficult to find out. 
-Therefore, it can only be seen as a temporary solution and timing of the measurement interval will not be right
+On one hand, it makes the system more robust by allowing it to reciver by itsself,
+but on another hand, this will make hidden problems difficult to find. 
+Therefore, it can only be seen as a temporary solution, especially as after a crash,
+timing of the measurement interval will not be right
 for one measurement, as a crash might cause a blackout for up to 15 seconds.
 \paragraph{Further debuging ideas}\hspace{1cm}\\
 While debugging, we found out, that printing debug information over the USART
 interface will heavily extend the time until the bug appears, so this is not a
-good option for debugging the code. We had the most success, to locate the bug,
+good option for debugging the code. We had most success, to locate the bug,
 by changing the state of LEDs or other GPIOs at differend code locations. After
-the system has crashed, we could just look at the LEDs or measure the voltage on
+the system has crashed, we could just look at the LEDs or measured the voltage on
 GPIO pins to see which line was still executed.
 \subsection{Minor problems}
 \subsubsection{Range of I2C}
@@ -1096,12 +1098,12 @@ However for bigger networks this would represent a drawback.
 Due to the many different bus states and undefined behavior, when bus
 participants are connected / disconnected during bus transactions, it was
 very difficult to allow plug and play of collector boards on the I2C bus.\\
-The current implementation works versy stable, however we can not guarantee
+The current implementation works very stable, however we can not guarantee
 safe operation, when the device configuration changes during runtime, even though
 we did not observe a crash in our tests.\\
 This problem does not affect normal operation, as in the current setup in the
 nEDM experiment, no collector boards will be added or removed during runtime.
-If collectorboards are changed and then the network freezes, a power cycle for the collectorboards might have to be performed or restart the system.
+If collectorboards are changed and then the network freezes, a power cycle for the collectorboards might have to be performed or a restart the system.
 \\
 However, Plug and Play for the individual sensors works perfectly.
 \subsubsection{Low fault tolerance of I2C}
@@ -1157,7 +1159,7 @@ the sensor network:
 \item When debugging and programming devices of the sensor network, one has to
   be very careful, to not provide different power sources, as this might cause
   unexpected results, which can lead to damage of the sensor network, as well
-  ass connected computers. By default the USBasp programmer provides the system
+  as connected computers. By default the USBasp programmer provides the system
   with 5V power.
 \item Our makefiles currently do not support automatic detection of
   file dependencies, and source files to be compiled. All source files have to
