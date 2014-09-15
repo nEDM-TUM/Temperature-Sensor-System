@@ -38,26 +38,25 @@ experiment setup}
 According to the standard model, it is assumed, that neutrons posess a electric dipole moment (EDM)
 in the order of $10^{-32}e\cdot cm$. However an extenstion of the standard model already predicts
 a dipolemoment in the order between $10^{-26}e\cdot cm$ and $10^{-28}e\cdot cm$. Until now, no
-experiment was able to do measurement more precise than $10^{-26}e\cdot cm$\cite{frmexp}.\\
+experiment was able to do measurements more precise than $10^{-26}e\cdot cm$\cite{frmexp}.\\
 The Neutron EDM (nEDM) experiment at Technische Universitat München is trying to increase the precision
 of such a dipolemoment measurement\cite{frmexp}.\\
 The experiment uses spin polarized ultracold neutrons, which are guided into two chambers inside a
-highly controlled and magnetically shielded environment (see figure \ref{fig:exp}). There, a Spin precession measurement according
-to Ramsey \cite{ramsey} is performed, which allows it to get information about the dipole moment of the neutons.
+highly controlled and magnetically shielded environment (see figure \ref{fig:exp}). There, a spin precession measurement according
+to Ramsey \cite{ramsey} is performed, which allows it, to get information about the dipole moment of the neutons.
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.87\linewidth]{img/frm3d.jpg}
-\caption{Experiment environment. 1: Field cage for magnetic field compensation, 2: Outer magnetic shield, 3: Inner magnetic shield, 4: Air conditioning system}
+\caption{Experiment environment. 1: Field cage for magnetic field compensation, 2: Outer magnetic shield, 3: Inner magnetic shield, 4: Air conditioning system.}
 \label{fig:exp}
 \end{figure}
 \subsection{Temperature measurement}
-Besides an exact defined magnetic environment inside the experiment setup, a well defined
+Besides an exactly defined magnetic environment inside the experiment setup, a well defined
 environment temperature and humidity is also important for the experiment. Therefore a
 air conditioning system is installed to regulate the temperature inside the field cage.
 Our temperature sensor network will provide data for the air conditioning system.\\
-As a precise homogenous temperature distribution inside the whole field cage however is
-almost impossible to achieve. Therefore our sensor network will provide useful data
-with sufficient precision to analyze, if specific physical observations are dependant
+As a precise homogenous temperature distribution inside the whole field cage is
+almost impossible to achieve, our sensor network will provide precise temperature and humidity data. These data can be used to determine if specific physical observations are dependant
 on temperature changes in the environment. Also a temperature compensation of measurements
 based on environment temperature is possible.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -88,7 +87,7 @@ Our finished sensor network provides the following features:
   \item The system supports a fast sample rate of at least $1\,\mathrm{Hz}$.
   \item Most of the system parameters like sampling rate or database IP addresses
     and insert functions are configurable at runtime.
-  \item The sensor network provides a TCP / telnet user interface, for
+  \item The sensor network provides a TCP/telnet user interface, for
     controlling and viewing of network parameters. This allows easy configuring
     and debugging of the system.
   \item Plug and Play is supported for adding and removing sensors or even
@@ -96,16 +95,14 @@ Our finished sensor network provides the following features:
 \end{itemize}
 %###############################################################
 \chapter{Technology}
-In this chapter, we will introduce shortly the mainly used technologies, like chosen sensors, data transmission protocols, as well as
-the used tools for the development, 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Sensors}\label{chap:sensors}
 \subsection{TSIC 506F}
 For temperature measurements, we use the TSIC 506F temperature sensor
-integrated circuit. At a relatively low price of about \EUR{7} per device, it
+integrated circuit chip. At a relatively low price of about \EUR{7} per device, it
 is able to deliver very high accuracy (see table \ref{tab:tsic}).\\
 The temperature is converted to a digital value, which is sent out over a
-proprietary one wire protocol variant, called \emph{ZAC-Wire}. The Transmission structure can be seen in figure \ref{fig:tsic_transmission}. Details about the ZACwire protocol are described in section \ref{chap:zac}.\\
+proprietary one wire protocol variant, called \emph{ZAC-Wire}. The transmission structure can be seen in figure \ref{fig:tsic_transmission}. Details about the ZACwire protocol are described in section \ref{chap:zac}.\\
 The temperature $T$ in celsius can be calculated from the received value $T_{dig}$ using
 $$T\,[^{\circ} C] = \frac{T_{dig}}{2047} \cdot 70 - 10$$\\
 In order to minimize soldering heat, which would influence the calibration, we used the TO92 packaged sensor.\\
@@ -136,9 +133,9 @@ For further information about the sensor, and data interpretation, please refer 
 	\label{fig:tsic_transmission}
 \end{figure}
 \subsection{HYT271}
-For humidity measurement, we use the HYT271 sensor. At a price of about \EUR{20} per device it is significantly more expensive than the temperature sensors, however it delivers precice, temperature compensated humidity readout. 
-The hymidity value $rH$ in persent can be simply calculated from the received value $rH_{dig}$ using
-$$rH\,[\%] = \frac{100}{2^{14}} \cdot  rH_{dig}$$\\
+For humidity measurement, we use the HYT271 sensor. At a price of about \EUR{20} per device it is significantly more expensive than the temperature sensors, however it delivers precice and temperature compensated humidity measurements. 
+The humidity value rH in percent can simply be calculated from the received value $\mathrm{rH}_{dig}$ using
+$$\mathrm{rH}\,[\%] = \frac{100}{2^{14}} \cdot  \mathrm{rH}_{dig}$$\\
 In addition, the temperature can also be read out and calculate using 
 $$T\,[^{\circ} C] = \frac{165}{2^{14}} \cdot  T_{dig} - 40$$\\
 Table \ref{tab:hyt} lists the specified sensor characteristics.
@@ -159,7 +156,7 @@ Table \ref{tab:hyt} lists the specified sensor characteristics.
   \caption{HYT271 specification \cite{hyt}}
 	\label{tab:hyt}
 \end{table}\\
-Communication with the sensor is done via I2C. Thereby measurements can be initialized via addressing the sensor and sending a write bit. The result of a measurement can be received by initializing an I2C read transfer, followed by reading the measurement data. Figure \ref{fig:hyt_transmission} shows the format of received measurement data. According to the second status bit, the stale bit, sent at the beginning, it is to state, whether a new measured value is ready after the last readout. The reception of data may be aborted, by the I2C master after every byte, if not all data is needed.
+Communication with the sensor is done via I2C. Thereby measurements can be initialized via addressing the sensor and sending a write bit. The result of a measurement can be received by initializing an I2C read transfer, followed by reading the measurement data. Figure \ref{fig:hyt_transmission} shows the format of received measurement data. The second status bit, the stale bit, sent at the beginning, gives information, whether a new measured value is ready after the last readout. The reception of data may be aborted, by the I2C master after every byte, if not all data is needed.
 \begin{figure}[Hh!]
 	\centering
 	\definecolor{lightgray}{gray}{0.8}
@@ -170,7 +167,7 @@ Communication with the sensor is done via I2C. Thereby measurements can be initi
     \bitbox{2}{\color{lightgray}\rule{\width}{\height}} & \bitbox{6}{Temperature [13:8]}\\
     \bitbox{8}{Temperature  [7:0]}
 	\end{bytefield}
-  \caption{HYT271 transmission structure. The hymidity value and temperature value are each consists of 14 bits. The two bits, marked with gray color, before the temperature value are not used \cite{hyt2}.}
+  \caption{HYT271 transmission structure. The humidity value and temperature value each consist of 14 bits. The two bits, marked with gray color, before the temperature value are not used \cite{hyt2}.}
 	\label{fig:hyt_transmission}
 \end{figure}\\
 For further information about the sensor, and data interpretation, please refer to \cite{hyt}, \cite{hyt3} and \cite{hyt2}.
@@ -179,18 +176,18 @@ For further information about the sensor, and data interpretation, please refer 
 In this section, the mainly used low level protocols for measuring and data forwarding will be introduced shortly. 
 \subsection{ZACwire}\label{chap:zac}
 ZACwire is a proprietary one wire comminucation protocol, developed
-by IST AG. ``One wire'' means, only one data line is needed.\\
+by IST AG. ``One wire'' means that only one data line is needed.\\
 Each bit is represented by
 different duty cycles of the waveform within the bit time $T_b$.
-Every normal bit starts and ends with a falling edge. At the beginning
+Every normal bit starts with a falling edge. At the beginning
 of each transmission, a start bit with a duty cycle of 50\% is
 transmitted. From this start bit, the bit time $T_b$ for the
 transmission can be extracted. 
-If the bus is 75\% high within the bit time $T_b$, bit `1' is transfered, otherwise bit `0'. 
+If the bus is 75\% high within the bit time $T_b$ the bit `1' is transfered, otherwise bit `0'. 
 If the bus is high for a time $>T_b$
 the transmission ends, this is called a Stop bit. Figure \ref{fig:zac}
 shows the four different wafeform types, of which a ZACwire signal can be
-composed off. Figure \ref{fig:zacexample} shows an example
+composed. Figure \ref{fig:zacexample} shows an example
 transmission. For further information see \cite{zac}.
 \begin{figure}[Hh!]
 	\centering
@@ -205,8 +202,8 @@ transmission. For further information see \cite{zac}.
 	\label{fig:zacexample}
 \end{figure}
 \subsection{I2C}
-I2C is a bus protocol, which specifies the physical layer, as well as an arbitration and addressing layer. The protocol allows communication between multiple bus participants.\\
-It is a two wire protocol. Transmissions are done over two transmission lines SCL and SDA, which
+I2C is a bus protocol, which specifies the physical layer, as well as an arbitration and addressing layer. The protocol is a two wire protocol and allows communication between multiple bus participants.\\
+Transmissions are done over two transmission lines SCL and SDA, which
 are pulled to logical high voltage level by pullup resistors (see
 figure \ref{fig:i2c}). Each transmission is controlled by a device
 in master mode, which provides a clock by controlling the SCL line.\\
@@ -215,7 +212,7 @@ At the beginning of a transmission, the master first transmits an
 address to the bus, addressing one or all connected devices which
 are in slave mode. After that a data direction bit is sent to the
 bus, which defines the slave behavior: read or write. If the direction bit specifies a write, all addressed slave devices read bits from the bus at every 
-lock cycle, the SDA line stats under control of the master. If the
+clock cycle, the SDA line stays under control of the master. If the
 direction bit describes a read, the slave should take control over
 the SDA line and transmits bits at every clock cycle.\\
 The Slave is allowed to take control over the SCL line at any time
@@ -233,7 +230,7 @@ RS485 is a transmission line standard, which specifies differential line communi
 It allows very long distance communication of up to 1 kilometer with high noise immunity and reduced noise emission.\\
 Figure \ref{fig:rs485} illustrates the working principle of the protocol.
 The encoder transforms a single bit line DI into two separate lines A and B.
-If DI is high, the output voltage at line A ($V_{OA}$) will bigger than at line B ($V_{OB}$).
+If DI is high, the output voltage at line A ($V_{OA}$) will be bigger than at line B ($V_{OB}$).
 If the input voltage at DI is low, $V_{OB}>V_{OA}$ holds.\\
 A detailed description of the protocol and its implementation can be found in \cite{rs485}, \cite{st485} and \cite{st485appnote}.
 \null
@@ -252,18 +249,18 @@ The finished board files were exported to the Gerber / Echelon file format and s
 \subsection{ISP programming}\label{chap:isp}
 To upload the compiled code and to configure the microprocessors, we used the USBasp programmer in combination with the avrdude software.\\
 As we needed to access the fuse bytes of the arduino too, which was not possible with the arduino bootloader, we also use the ISP header on the Arduino board for programming. The arduino bootloader was removed. Hence it is not possible anymore, to programm the arduino with the arduino software suite, without reinstalling the bootloader.\\
-\textbf{Note} that the arduino ISP header is not compatible with the one, provided by the USBasp programmer. A mechanical adaptor or individual cabling is required. 
+\textbf{Note} that the arduino ISP header is not compatible with the one, provided by the USBasp programmer. A mechanical adapter or individual cabling is required. 
 Figure \ref{fig:isp} shows the pin asignments of the different ISP headers.
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.35\textwidth]{img/isp.png}
-  \caption{ISP connector pin asignments. Left: 10 pin version (used by USBasp, and on our boards), Right 6 pin version (as used on arduino boards). Source: \cite{micronet}.}
+  \caption{ISP connector pin asignments. Left: 10 pin version (used by USBasp, and on our boards), right: 6 pin version (as used on arduino boards). Source: \cite{micronet}.}
 	\label{fig:isp}
 \end{figure}
 \subsection{USART for debugging}
 For convenient debuging, we added a USART header on each board with a microcontroller. 
 These pins are directly connected to the hardware USART unit of the microconteoller.\\ 
-\textbf{Note} that the signal level on this header is TTL and is not compatible with the RS232 standard. Using either an external signal level converter from TTL to RS232, or a direct USB to USART TTL converter, it is possible to connect the boards to a PC.\\
+\textbf{Note} that the signal level on this header is TTL and is not compatible with the RS232 standard. It is possible to connect the boards to a PC, using either an external signal level converter from TTL to RS232, or a direct USB to USART TTL converter.\\
 In every software component, we set the \emph{stdout} file descriptor, to point to a USART file, implementing writing data to the USART line.
 Hence standard file handling functions like \emph{printf} or \emph{puts} can be used for printing debugging information.\\
 To read and write data at the PC side, software like \emph{screen} or \emph{picocom} may be used. The default baud rate is 9600bps.
@@ -285,48 +282,48 @@ We use the make build environment. The Makefiles in each software directory cont
 \begin{description}
   \item[make clean] Clears the build directory.
     %FIXME make makefile clever for use/create build folder
-  \item[make] Compiles and links the source code to the elf and intel hex binary format. Also a eeprom image is generated in intel hex binary format. The output directory for binary files will be \emph{./build/}.
+  \item[make] Compiles and links the source code to the elf and intel hex binary format. Also a EEPROM image is generated in intel hex binary format. The output directory for binary files will be \emph{./build/}.
   \item[make fuse] Configures the controller, to use the right system clock source, burnout detection and eeprom persistency settings.
-  \item[make eeprom] Uploads the eeprom image to the controller.
+  \item[make eeprom] Uploads the EEPROM image to the controller.
   \item[make upload] Uploads the compiled software to the microcontroller, using avrdude. By default the usbasp programmer is selected.
 \end{description}
 For a first time build and upload, the above order should be respected. After the initial upload, fuses and eeprom should not be touched everytime, the software changes.\\
-To be able to find the Arduino library root path, the \emph{ARDUINO\_PATH} environment variable should be set to the Arduino installation directory. This for example is the Path to the cloned Arduino git reporitory.\\
+To be able to find the Arduino library root path, the \emph{ARDUINO\_PATH} environment variable should be set to the Arduino installation directory. This for example is the path to the cloned Arduino git reporitory.\\
 \textbf{Note}, that the Makefiles in the current version, do not automatically search for file dependancies, hence a make clean should be executed, after every change in not explicitly specified files, namely every non .c or .cpp file.
 
 %###############################################################
 \chapter{Implementation}
-According to the logical design, three types of hardware boards are developed for implementation of the features in each parts: sensor board for measuring, collector board for data acquistion and ethernet board for data forwarding.\\
-In this capital, 
-we will describe the logical design of the whole system and the hardware/sofware implementation details of the tree types of boards.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Logical design}
-Our network architecture is structured into 3 parts (see figure \ref{fig:topo}):
+Our network architecture is structured into 3 parts (see figure \ref{fig:topo}).
+For each part, we developed a different kind of device. The job of each part
+is described in the following:
 \begin{figure}[Hh!]
 	\centering
 	\includegraphics[width=0.9\textwidth]{img/plan2.pdf}
-	\caption{Network topology}
+	\caption{Network topology, showing the different devices in the network.}
 	\label{fig:topo}
 \end{figure}
 \begin{description}
   \item[Measuring]\hfill \\
     Sensors do periodic measurements. The results are transmitted,
     using an unified protocol. We used ZACwire, as the unified
-    protocol, as in our application we have more temperature sensors
-    than humidity sensors, which natively speak ZACwire. Hence no
+    protocol, as in our application we have more temperature sensors,
+    which natively speak ZACwire, than humidity sensors. Hence no
     protocol conversion will be required for the majority of the
     sensor boards. 
-    Using RS485 as a physical layer protocol, the range of the transport of the ZACwire signal has been extended with a improved noise behavior.
+    Using RS485 as a physical layer protocol, the range of the
+    ZACwire signal has been extended with a improved noise behavior.
   \item[Data acquisition]\hfill \\
     At this part of the network, the ZACwire signal from the sensors
     is interpreted and buffered. The measurement data is then
     provided over an I2C interface.\\
-    In our implementation, we support receiving of up to 8 Sensors
+    In our implementation, we support sampling of up to 8 Sensors
     per collector board. To increase the numbers of sensors in the
     network, multiple collector boards may be connected to the I2C
     bus, using the I2C chaining connectors. With this technique,
     the network theoretically may consist of up to
-    $120\cdot 8 = 1024$ sensors\footnote{Eight I2C addresses are reserved}.
+    $120\cdot 8 = 960$ sensors\footnote{Eight I2C addresses are reserved}.
   \item[Data forwarding]\hfill \\
     The forwarding part controls the data aquisition part of the
     network and provides an interface to IP networks. Data can be
@@ -348,50 +345,54 @@ heat transfer to the chip. We did this by soldering each pin for a
 maximum time of 2 seconds, We also tried to keep the total time spent
 for soldering all 3 pins less than 10 seconds. After soldering, we
 immediately blowed cold air to the pins and the chip itself.\\
-Figure \ref{fig:pcb_temp} shows the printed circuit board (PCB) schema and figure \ref{fig:soldered_temp} soldered temperature board. 
-In order to reduce the influence of the arised heat from the other electronic components, the temperature sensor is designed to put far away from the others and PCB tracks to the temperature sensor are thin within a narrow neck.
+Figure \ref{fig:pcb_temp} shows the printed circuit board (PCB) schematic
+and figure \ref{fig:soldered_temp} the not completely soldered
+temperature board. 
+In order to reduce the influence of heat from the other electronic
+components, the temperature sensor is placed far away from the others
+and PCB the traces to the temperature sensor are thin and guided through
+a narrow neck.
 \subsection{Humidity board}
 The hardware structure is similar to the temperature board, described in section \ref{chap:tempbrd}. However, as the HYT271 sensors use I2C for
 communication, we added a microcontroller to repediately poll the sensor for current measurement results and send the data out using a software
 implementation of the ZAC wire protocol. Therefore we also placed an ISP socket, a debugging adapter, a reset switch and two LEDs onto the board, which makes it
 slightly bigger than the temperature board. The schematic can be seen in figure \ref{fig:schem_hum}.\\
-The design of the pcb schema is also similar to the temperature board, see
-figure \ref{fig:pcb_hum} of a soldered humidity board. 
+The design of the pcb (see figure \ref{fig:pcb_hum}) is also similar to the temperature board. 
 \subsubsection{ZAC encoding}
-The easiliest method to generate ZAC encoding is to set a pin high, then use busy-wait delay loop ($\_delay\_us()$) to wait a certain time interval. After that set the pin to low. 
-But the timing of this method is not very exact (more than 6 $\mu$s inaccuracy according to an experimentation). Hence we had decided to use a timer to achive a higher timing accuracy. \\
-We have used the following timer features by compare match: 
+The most easy method to generate a ZAC encoded signal is to set a pin high, then use busy-wait delay loop (\texttt{\_delay\_us()}) to wait a certain time interval. After that set the pin to low. 
+But the timing of this method is not very exact (more than 6 $\mu$s inaccuracy according to experience). Hence we decided to use a timer to achive a higher timing accuracy. \\
+We have used the following timer features, which are triggered on compare match: 
 \begin{itemize}
-  \item Clear timer, while the timer counter matches the output compare register value. It is the socall ``CTC mode''.
+  \item Clear timer, when the timer counter matches the output compare register value. This is the so called ``CTC mode'' of the timer.
   \item Toggle an output pin if a compare match occurs. It will be also possible to explicitly set the pin high or low.
-  \item Excute interrupt is executed on compare match. It enables to change the value of the output compare register on demand.
+  \item Excute an interrupt handler on compare match. This allows us to change the value of the output compare register on demand.
 \end{itemize}
-Figure \ref{fig:zac_encoding} shows an example of the ZACwire signal encoding process.
+Figure \ref{fig:zac_encoding} shows an example of the ZACwire signal encoding process.\\
 \begin{figure}[Hh!]
 	\centering
 	\includegraphics[width=\textwidth]{img/zac_encoding.pdf}
 	\caption{ZACwire signal encoding processing example.}
 	\label{fig:zac_encoding}
 \end{figure}
-We keep the output pin high, when nothing to do.
-If a measured value is ready to sent, the timer will be configured to enable the above described features and the output campare register will be sent to the half of the defined bit time for sending a start bit.
+We keep the output pin high, when there is nothing to do.
+If a measured value is ready to be sent, the timer will be configured to enable the above described features and the output campare register will be set to half of the defined bit time for sending a start bit.
 After that, the output compare register will be set to $\frac{T_{b}}{4}$ or $\frac{3}{4}T_{b}$ according to the sending bit.
-After the last bit is sent, the output pin will keep high, which indicates a stop bit. 
-Until a new measured value is ready again, the whole procudure will be excute again.
+After the last bit is sent, the output pin will stay high, which indicates a stop bit. 
+When a newly measured value is ready again, the whole procudure will be excute again.
 \\
-For detail usage of the microprocessor timer, please read the corresponding datasheet. For the microprocessor ATmega88P, which we used, see \cite{atmega88}. 
+For detailed usage description of the microprocessor timer, please read the corresponding datasheet. For the microprocessor ATmega88P, which we used, see \cite{atmega88}. 
 \subsubsection{Cyclic redundancy check (CRC)}
-In order to detect the bits error after a long distance transmission, 
-We attach an 8-bit CRC checksum for every block of measured values and then sent them out. \\
-CRC is a common method for error-detecting in digital networks and based on the theory of a polynomial division. 
-In galois field of two elements, GF(2),
+In order to detect errors after a long distance transmission, 
+We attach an 8-bit CRC checksum for every block of measured values before sending the data out. \\
+CRC is a common method for error-detecting in digital networks and is based on the theory of polynomial division. 
+In the galois field of two elements, GF(2),
 an n-bit checksum is the remainder of the division between data, shifted n bit to the left, and a (n+1)-bit polynomial as the divisor.
 Because the polynomial division in GF(2) is equivalent to an iteration of the bitwise XOR, a checksum can be computed in the following way:
-The divisor is at first shifted to the leftmost side of the input data block and computed XOR with the frist (n+1) bits.
-Then the result attached the rest unchanged input bits becomes new input and do the same XOR calculation with the divisor again.
-If the result is zero, the divisor will be shifted to the first bit `1' and XOR with the (n+1) bits, starting with the bit `1'. 
-The XOR calculation will be repeat until no rest bits any more to attach and the n bits remainder is the to computed CRC checksum.
-An example of the calculation of a 4-bits checksum to the polynomial divisor 10011 (0x13) using this algorithm will be shown below:
+The divisor is at first shifted to the leftmost side of the input data block and computed XOR with the first (n+1) bits.
+Then the rest of the unchanged input is appended to the result and becomes the new input to do the same XOR calculation with the divisor again.
+If the result is zero, the divisor will be shifted to the first bit `1' and XORed with the (n+1) bits, starting with the bit `1'. 
+The XOR calculation will be repeated until no rest bits exist to attach and the n bits remainder then is the wanted CRC checksum.
+An example of the calculation of a 4-bit checksum to the polynomial divisor 10011 (0x13) using this algorithm will be shown below:
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
 
 \lstdefinestyle{mathstyle}{
@@ -428,11 +429,11 @@ An example of the calculation of a 4-bits checksum to the polynomial divisor 100
                   ------
                      101 <---remainder, the checksum
 \end{lstlisting}
-By correctness checking of received data, the division of received data and the same polynomial is repeat.
+For checking the correctness of received data, the division of received data and the same polynomial is repeated.
 If the remainder is not equal zero, some error of the transfered data is detected, otherwise no error is found.
 But that does not mean, no error exists.
-May be the change of some bits leads to zero remainder accidentally. Fortunately, the probability of such detectable error is very low.\\
-The polynomial, which we use, is the standard CRC-8 for 1-wire bus: 100110001(0x131).
+It might happen, that the change of some bits accidentally leads to a zero remainder. However, the probability of such detectable error is very low.\\
+The polynomial, which we use, is the standard CRC-8 for 1-wire bus systems: 100110001(0x131).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Collector board}
 The collector board decodes the ZAC protocol and provides an I2C interface
