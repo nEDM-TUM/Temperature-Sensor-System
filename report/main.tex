@@ -499,6 +499,7 @@ The schematic diagram can be seen in figure \ref{fig:schem_collect}. The hardwar
     regulator, and also provide power to the I2C bus, all three pins
     should be shorted.
 \end{description}
+Figure \ref{fig:pcb_collector} shows the printed circuit board (PCB) schema and figure \ref{fig:soldered_col} a soldered collector board.
 \subsection{ZAC decoding}
 AVR controllers do not have hardware support for decoding the ZAC one wire
 protocol (protocol definition is explained in chapter \ref{chap:zac}). Hence we
@@ -1059,8 +1060,11 @@ controller, which can be reset via software. If a overflow of this thimer occurs
 a complete system reset of the chip will be performed. In our configuration, we
 trigger a timer reset of the WDT on specific points during program execution.
 If however the mentioned bug occurs, the program will hang and after a timeout
-a system reset will occur. This approach may also handle can only be seen as a temporary solution, as
-the bug still exists and timing of the measurement interval will not be right
+a system reset will occur. 
+This approach may also handle further bugs, which cause the system to hang.
+On one hand, it makes the system more robust by recovery by itsself,
+but on another hand, this will make hidden problems difficult to find out. 
+Therefore, it can only be seen as a temporary solution and timing of the measurement interval will not be right
 for one measurement, as a crash might cause a blackout for up to 15 seconds.
 \paragraph{Further debuging ideas}\hspace{1cm}\\
 While debugging, we found out, that printing debug information over the USART
@@ -1087,31 +1091,35 @@ So we used two ethernet boards, which was still more efficient in terms
 of total cost, than using a CAN network.\\
 However for bigger networks this would represent a drawback.
 \subsubsection{Plug and Play with I2C}
-Due to the many different bus states, and undefined behavior, when bus
+Due to the many different bus states and undefined behavior, when bus
 participants are connected / disconnected during bus transactions, it was
 very difficult to allow plug and play of collector boards on the I2C bus.\\
 The current implementation works versy stable, however we can not guarantee
 safe operation, when the device configuration changes during runtime, even though
 we did not observe a crash in our tests.\\
 This problem does not affect normal operation, as in the current setup in the
-nEDM experiment, no collector boards will be added or removed during runtime
-\footnote{Note that Plug and Play for the individual sensors works perfectly}.
-If collectorboards are changed, a power cycle might have to be performed, if
-the network freezes.
+nEDM experiment, no collector boards will be added or removed during runtime.
+If collectorboards are changed and then the network freezes, a power cycle for the collectorboards might have to be performed or restart the system.
+\\
+However, Plug and Play for the individual sensors works perfectly.
 \subsubsection{Low fault tolerance of I2C}
 Due to the nature of the bus, one failing I2C bus participant might be able to
-block the whole bus, rendering the whole network unusable\footnote{Note that this
-might happen, when the microcontroller is connected to a USBasp programmer, which
-is not connected to a computer.}.
+block the whole bus, rendering the whole network unusable.
+\textbf{Note} that this
+might happen, when the microcontroller is connected to a USBasp programmer,
+which is not connected to a computer.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Developing / Extending}
-The following are tips for developers, which might me useful, when extending
+The following are tips for developers, which might be useful, when extending
 the sensor network:
 \begin{itemize}
 \item To prevent EEPROM from being corrupted on power cycles, the AVR
   integrated brownout detection should be enabled.
 \item To allow EEPROM stroage to stay intact after reprogramming, set the
   corresponding fuse bit.
+\item As Arduino fuses are not possible to be programmed via the default Arduino
+  programmer (using the Arduino bootloader), we removed the bootloader and use
+  the ISP connector for programming (see section \ref{chap:isp}).
 \item To not overload the voltage regulator, especially when driving multiple
   boards one should consider, that a significant portion of power is used to
   drive LEDs ($\approx20\,\mathrm{mA}$ per LED). So turning the LEDs off during
@@ -1121,9 +1129,6 @@ the sensor network:
   unexpected results, which can lead to damage of the sensor network, as well
   ass connected computers. By default the USBasp programmer provides the system
   with 5V power.
-\item As Arduino fuses are not possible to be programmed via the default Arduino
-  programmer (using the Arduino bootloader), we removed the bootloader and use
-  the ISP connector for programming (see section \ref{chap:isp}).
 \item Our makefiles currently do not support automatic detection of
   file dependencies, and source files to be compiled. All source files have to
   be specified explicitly and if changes to header files are made, a 'make clean'
@@ -1158,12 +1163,14 @@ the sensor network:
 \begin{figure}[Hh!]
 	\centering
 	\includegraphics[width=0.9\textwidth]{img/schem_humidity_board.pdf}
+    %FIXME which elements are not required to be populated
 	\caption{Humidity board schematic}
 	\label{fig:schem_hum}
 \end{figure}
 \begin{figure}
 	\centering
 	\includegraphics[width=1\textwidth]{img/schem_collector_board.pdf}
+    %FIXME which elements are not required to be populated
 	\caption{Collector board schematic}
 	\label{fig:schem_collect}
 \end{figure}
@@ -1189,13 +1196,13 @@ the sensor network:
 \end{figure}
 \begin{figure}[Hh!]
 	\centering
-	\includegraphics[height=0.7\textwidth, angle=270]{img/boards/collector_kicad.pdf}
+	\includegraphics[height=0.6\textwidth, angle=270]{img/boards/collector_kicad.pdf}
 	\caption{Collector board printed circuit board schematic. Ground planes are not displayed.}
-	\label{fig:pcb_collector} %FIXME: add reference in text
+	\label{fig:pcb_collector} 
 \end{figure}
 \begin{figure}[Hh!]
 	\centering
-	\includegraphics[width=0.4\textwidth]{img/boards/collector_complete.jpg}
+	\includegraphics[width=0.5\textwidth]{img/boards/collector_complete.jpg}
 	\caption{Collector printed circuit board, completely soldered.}
 	\label{fig:soldered_col}
 \end{figure}
@@ -1212,7 +1219,7 @@ the sensor network:
 	\centering
 	\includegraphics[width=0.94\textwidth]{img/control_unit.jpg}
 	\caption{One of the two installed control units, consisting of three stacked collector boards and one ethernet board. The lids of the casings are removed here. Every cable to a sensor is marked with an unique identifier.}
-	\label{fig:control_unit} %FIXME: add reference in text
+	\label{fig:control_unit} 
 \end{figure}
 \end{appendices}
 
