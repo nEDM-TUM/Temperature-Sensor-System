@@ -1,7 +1,7 @@
 Temperature-Sensor-System
 ==============
 
-Sensor network system built for nEDM experiment.
+Sensor network system built for the nEDM experiment.
 
 Features
 ------------------
@@ -67,11 +67,11 @@ Tips for developers
 --------------------
 - To prevent EEPROM from being corrupted on power cycles, the AVR integrated brownout detection should be enabled.
 - To allow EEPROM storage to stay intact after reprogramming, set the corresponding fuse bit.
-- As Arduino fuses are not possible to be programmed via the default Arduino programmer (using the Arduino boot loader), we removed the boot loader and use the ISP connector for programming (see section 2.3.2).
+- As Arduino fuses are not possible to be programmed via the default Arduino programmer (using the Arduino boot loader), we removed the boot loader and use the ISP connector for programming.
 - To not overload the voltage regulator, especially when driving multiple boards one should consider, that a significant portion of power is used to drive LEDs. So turning the LEDs off during normal operation will prevent overheating.
 - When debugging and programming devices of the sensor network, one has to be very careful, to not provide different power sources, as this might cause unexpected results, which can lead to damage of the sensor network, as well as connected computers. By default the USBasp programmer provides the system with 5V power.
 - Our makefiles currently do not support automatic detection of file dependencies, and source files to be compiled. All source files have to be specified explicitly and if changes to header files are made, a ’make clean’ should be performed before compiling the program.
 - Be careful, when using the USART line or similar for generating debugging output. Transmitting debugging information takes relatively long time and might influence the system heavily, especially, when debugging timing critical code. LEDs or GPIO pins with an oscilloscope provide a faster but more complex way for debugging.
 
 ###For more details about our project, please read the report document. ###
-Its tex file and needed images can be found in folder _report_.
+Its tex file and needed images can be found in the folder _report_.
