@@ -1113,10 +1113,31 @@ which is not connected to a computer.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Developing / Extending}
 \subsection{Project git repository}
-Our whole project can be found in github of the nEDM experiment under the name ``Temperature-Sensor-System''. Figure \ref{lst:git} show the folder structure  in the repository.
+Our whole project can be found in github of the nEDM experiment under the name ``Temperature-Sensor-System''. Figure \ref{lst:git} show the directory structure  in the repository.
 \lstset{style=mathstyle}
-\begin{lstlisting}[xleftmargin=25pt, xrightmargin=25pt,framexleftmargin=10pt,framextopmargin=10pt, framexbottommargin=10pt, caption={Folder structure in the project git repository}, label={lst:git}]
-Temperature-Sensor-System
+\begin{lstlisting}[xleftmargin=25pt, xrightmargin=25pt,framexleftmargin=10pt,framextopmargin=10pt, framexbottommargin=10pt, caption={Directory structure in the project git repository}, label={lst:git}]
+.
++-- casings
+    +-- adapter
+    +-- arduino
+    +-- cable_clamp
+    +-- collector
+    +-- humidity
+    +-- temperature
++-- circuit_boards
++-- datasheets
++-- diary??
++-- presentation
++-- registration
++-- report
++-- shop_orders
++-- sofware
+    +-- avr_wcet_analyzer
+    +-- collector_board
+    +-- ethernet_board
+    +-- humidity_board
+    +-- util
++-- squid_analysis
 \end{lstlisting}
 \subsection{Tips}
 The following are tips for developers, which might be useful, when extending
