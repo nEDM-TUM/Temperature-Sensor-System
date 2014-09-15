@@ -792,7 +792,7 @@ The final networking layer provides two essential services:
     As in the experiment a couchDB system\footnote{\url{http://couchdb.apache.org/}} is used as data base server,
     which accepts data in JSON format, we use the JSON template showed in figure \ref{lst:json} for organising the whole measured data from the collector board. 
 \lstset{style=mathstyle}
-\begin{lstlisting}[language=c,xleftmargin=80pt, xrightmargin=80pt,framexleftmargin=10pt,framextopmargin=10pt, framexbottommargin=10pt, caption={The JSON template for sending data to the couchDB data base},label={lst:json}]
+\begin{lstlisting}[language=c,xleftmargin=70pt, xrightmargin=70pt,framexleftmargin=10pt,framextopmargin=10pt, framexbottommargin=10pt, caption={The JSON template for sending data to the couchDB data base},label={lst:json}]
 {
     "type":"data",
     "value":{
@@ -805,7 +805,7 @@ The final networking layer provides two essential services:
 \end{itemize}
   \item An event loop function \texttt{net\_loop()}, which is responsible for the user interface (\texttt{serve()}) and incomming data from the database (\texttt{handle\_db\_response()}):
       \begin{itemize}
-          \item \texttt{serve()} implements a TCP server, which is able to handle up to three simultaneous terminal user interface sessions.
+          \item \texttt{serve()} implements a TCP server, which is able to handle up to multiple simultaneous terminal user interface sessions.
 A parser will parse incomming data from TCP connections and call command handler functions, if the data is recognized as a valid command.
 All implemented commands will be introduced in section \ref{sec:uicmd}.
 New commands with respective callback functions can be registered in a command array \texttt{struct cmd cmds[]} and \textbf{note} to increase the command counter stored as preprocessor statement called \texttt{DEFINED\_CMD\_COUNT}.\\
@@ -827,43 +827,24 @@ as a replacement for \texttt{fputs()}). Using these, strings are usually read ch
 amount of RAM is used.
 \subsubsection{Configuration}
 To store the system configuration, we use the Atmega328 integrated EEPROM storage. We also implemented EEPROM wear leveling, to allow
-maximum lifetime, even for many configuration changes. Note that for reliable EEPROM persistency, the integrated burnout detection should be enabled, to keep the AVR controller in reset state at voltages below 4.5 V, as the EEPROM shows undefined behavior, if the controller is running at voltages below 4.5 V.
+maximum lifetime, even for many configuration changes.\\
+\textbf{Note} that for reliable EEPROM persistency, the integrated burnout detection should be enabled, to keep the AVR controller in reset state at voltages below 4.5 V, as the EEPROM shows undefined behavior, if the controller is running at voltages below 4.5 V.
 \subsection{User interface commands}
 \label{sec:uicmd}
-The ethernet board provides a terminal user interface over TCP/IP, which may be accessed via applications like telnet or netcat.
+The terminal user interface, which is provided by the ethernet board over TCP/IP, can be accessed via applications like telnet or netcat.
 This allows users to conveniently change or view system settings. The interface is command driven, every command should be terminated
 by a newline and/or carrier return character.\\
 By default, the user interface is reachable at port 8888.
 It is possible to open up to three simultaneous connections to the user interface.\\
-All commands to change the configuration may also be executed, without providing
+The most commands to change the configuration can also be executed, without providing
 arguments. The command will then return the current configuration value.\\
 The following commands are supported:
-\subsubsection{System and network configuration}
+\subsubsection{System configuration}
 \begin{description}
-  \item[ip] [ip1.ip2.ip3.ip4/subnet]\\
-    The internet address and subnet will be set to the supplied
-    values.\\
-    Note, that changes to network settings only get effective, after the system
-    is reset, or the \emph{res} command is executed.\\
-    Example: ip 10.0.1.42/24
-  \item[p] [port]\\
-    The TCP port, under which the user interface is reachable will be
-    set to the given value.\\
-    Note, that changes to network settings only get effective, after the system
-    is reset, or the \emph{res} command is executed.\\
-    Example: p 23
-  \item[mac] [mac1:mac2:mac3:mac4:mac5:mac6]\\
-    The ethernet MAC address if the device will be set to the given value.\\
-    Note, that changes to network settings only get effective, after the system
-    is reset, or the \emph{res} command is executed.\\
-    Example: mac 60:76:d3:c4:7a:70
-  \item[gw] [gw1.gw2.gw3.gw4]\\
-    The internet gateway address is set to the given value.
-    Note, that changes to network settings only get effective, after the system
-    is reset, or the \emph{res} command is executed.\\
-    Example: gw 10.0.1.1
+  \item[help]\hspace{1cm}\\
+    All supported commands, needed arguments and their usage will be listed.
   \item[res]\hspace{1cm}\\
-    This command stores configuration changes to EEPROM and restarts all network
+    This command stores configuration changes to EEPROM, terminate all current connections and restarts all network
     services.
   \item[sto]\hspace{1cm}\\
     All configuration changes will be stored to EEPROM and hence will be available
@@ -871,6 +852,24 @@ The following commands are supported:
   \item[c]\hspace{1cm}\\
     This will close the terminal user interface session.
 \end{description}
+\subsubsection{Network configuration}
+\begin{description}
+  \item[ip] [ip1.ip2.ip3.ip4/subnet]\\
+    The internet address and subnet will be set to the supplied
+    values.\\
+    Example: ip 10.0.1.42/24
+  \item[p] [port]\\
+    The TCP port, under which the user interface is reachable will be
+    set to the given value.\\
+    Example: p 23
+  \item[mac] [mac1:mac2:mac3:mac4:mac5:mac6]\\
+    The ethernet MAC address of the device will be set to the given value.\\
+    Example: mac 60:76:d3:c4:7a:70
+  \item[gw] [gw1.gw2.gw3.gw4]\\
+    The internet gateway address is set to the given value.\\
+    Example: gw 10.0.1.1
+\end{description}
+    \textbf{Note}, that changes to network settings only get effective, after the \emph{res} command is executed, or to store the new settings at first using the \emph{sto} command and reset the system.
 \subsubsection{Database configuration}
 \begin{description}
   \item[d.s] [ 1 $|$ 0 ]\\
@@ -886,28 +885,28 @@ The following commands are supported:
     Example: d.p 5984
   \item[d.ck] [cookie]\\
     Configures the cookie, used for authentification with the couchDB database.\\
-    Note that the length of the argument is limited. To get the maximum allowed
+    \textbf{Note} that the length of the argument is limited. To get the maximum allowed
     length for this command, use the \emph{help} command.\\
-    Example: d.c YXJkdWlub190ZW1wZXJhdHVyZV93cml0ZXI6
+    Example: d.ck YXJkdWlub190ZW1wZXJhdHVyZV93cml0ZXI6
   \item[d.n] [db\_name]\\
     Configures the couchDB database name, to which sensor values will be stored.\\
-    Note that the length of the argument is limited. To get the maximum allowed
+    \textbf{Note} that the length of the argument is limited. To get the maximum allowed
     length for this command, use the \emph{help} command.\\
     Example: d.n nedm/temperature\_environment
   \item[d.d] [document\_name]\\
-    Specifies the name of the JSON document, to write the sensor values to.
-    Note that the length of the argument is limited. To get the maximum allowed
+    Specifies the name of the JSON document, to write the measurement values to.\\
+    \textbf{Note} that the length of the argument is limited. To get the maximum allowed
     length for this command, use the \emph{help} command.\\
     Example: d.d nedm\_default
   \item[d.f] [filename]\\
-    Specifies the name of the function used, to insert data into the database.
-    Note that the length of the argument is limited. To get the maximum allowed
+    Specifies the name of the function used, to insert data into the database.\\
+    \textbf{Note} that the length of the argument is limited. To get the maximum allowed
     length for this command, use the \emph{help} command.\\
     Example: d.f insert\_with\_timestamp
   \item[d.v]\hspace{1cm}\\
     This toggles forwarding of the database HTTP response to the current terminal.
     This is useful for debugging database configuration problems.\\
-    Note that forwarding has a huge impact on the system performance and should be
+    \textbf{Note} that forwarding has a huge impact on the system performance and should be
     disbaled during normal operation.
   \item[d.re]\hspace{1cm}\\
     This command stores configuration changes to EEPROM and resets all network
@@ -920,17 +919,18 @@ The following commands are supported:
     8 to 120. After the scan, a list of connected I2C devices will be printed out.
   \item[v] \hspace{1cm}\\
     This toggles forwarding of measurement results to the current terminal.\\
-    Note that forwarding has a huge impact on the system performance and should be
+    \textbf{Note} that forwarding has a huge impact on the system performance and should be
     disbaled during normal operation.
   \item[i] [interval]\\
     Configures the sampling interval in seconds. No floating point values are allowed.
     A value of 0 causes the system to sample at maximum rate, which is typically
     between 1 Hz and 2 Hz, depending on the amount of connected collector boards.\\
     Example: i 5
-  \item[ba] [old\_address new\_address]\\
+  \item[ba] old\_address new\_address\\
     Changes the address of a connected collector board.\\
     Example: ba 13 22
-  \item[led] board\_addr led\_number ( 1 $|$ 0 )\\
+  \item[led] board\_addr led\_number (1 $|$ 0)\\
+    %FIXME introduce LED number?!
     Controls the leds of connected collector boards. It is currently not possible, to read the state of the LEDs.\\
     Example: led 13 2 1
 \end{description}
@@ -938,14 +938,14 @@ The following commands are supported:
 \chapter{Deployment}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Casings for the hardware}
-\begin{figure}
+Casings for the electronic components were designed with 3D CAD software and then printed with the department's 3D printer. The 3D
+files of each case can be found in our GIT repository. Figure \ref{fig:casings} shows the completed cases with circuit boards inside.
+\begin{figure}[Hh!]
 	\centering
 	\includegraphics[width=\textwidth]{img/cases.jpg}
   \caption{3D printed casings. Left: temperature board casing, middle: ethernet board casing, right: collector board casing. The casing for the humidity board is not shown, as it is similar to the one for the temperature sensor, but longer.}
 	\label{fig:casings}
 \end{figure}
-Casings for the electronic components were designed with 3D CAD software and then printed with the department's 3D printer. The 3D
-files of each case can be found in our GIT repository. Figure \ref{fig:casings} shows the completed cases with circuit boards inside.
 \paragraph{casings for the sensors}\hspace{1cm}\\
 The casings for the sensor boards were designed to protect the sensors from being damaged, as well as to provide a convenient way of
 mounting them on ITEM compatible aluminium profiles. The casing walls have a mesh structure, to allow a maximum air exchange aound the
@@ -965,29 +965,30 @@ two control stations, each consisting out of three stacked collector boards and 
 ethernet board. One of the control station is placed on the ceiling of the
 topmost floor and the other one is placed near the ground in the lowest floor. We tried
 to distribute the sensors evenly in the field cace. However, most
-of the sensors were placed on the walls and ceilings of the individual floors. Figure
-\ref{fig:install} shows the approximate distribution of sensors and control starions.\\
-The two control stations feature sockets for 48 sensors, as we currently only use 44,
-the remaining four sockets can be used, to connect additional sensors on demand\footnote{Note, that
-the system is Plug and Play. This means the sensors may be connected and disconnected
-while the system is running}.\\
-\paragraph{Cable routing}\hspace{1cm}\\
-We attached two unique identifier tags to each cable, connecting a sensor to a collector
-board. This ID specifies, to which collector board and to which exact socket,
-the cable should be connected. For example, the ID 'B013S0' means, that the cable should
-be connected to collector board number 13 in the leftmost socket.\\
-The cables leading to sensors, were collected in cable channels where possible and otherwise
-fastened with cable straps to the cage skeleton.\\
-Figure \ref{fig:control_unit} shows an installed control station with connected cables to
-the individual sensors. In this case the powersupply is a 9V switching powersupply, connected
-to one of the collector boards. The integrated coltage regulator of this board then creates
-a 5V output, which drives all three collector boards via the I2C connection.
+of the sensors were placed on the walls and ceilings of the individual floors. 
 \begin{figure}
 	\centering
 	\includegraphics[width=\textwidth]{img/installPlan.pdf}
   \caption{Approximate sensor distribution in the field cage.}
 	\label{fig:install}
 \end{figure}
+Figure
+\ref{fig:install} shows the approximate distribution of sensors and control starions.\\
+The two control stations feature sockets for 48 sensors, as we currently only use 44,
+the remaining four sockets can be used, to connect additional sensors on demand\footnote{\textbf{Note}, that
+the system is Plug and Play. This means the sensors may be connected and disconnected
+while the system is running}.\\
+\paragraph{Cable routing}\hspace{1cm}\\
+We attached two unique identifier tags to each cable, connecting a sensor to a collector
+board. This ID specifies, to which collector board and to which exact socket,
+the cable should be connected. For example, the ID 'B013S0' means, that the cable should
+be connected to collector board number 13 in the leftmost socket. The board number is default indentical with the I2C address of the collector board.\\
+The cables leading to sensors, were collected in cable channels where possible and otherwise
+fastened with cable straps to the cage skeleton.\\
+Figure \ref{fig:control_unit} shows an installed control station with connected cables to
+the individual sensors. In this case the powersupply is a 9V switching powersupply, connected
+to one of the collector boards. The integrated coltage regulator of this board then creates
+a 5V output, which drives all three collector boards via the I2C connection.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problems}
 \subsection{Squid magnetic field measurement}
@@ -1058,7 +1059,7 @@ controller, which can be reset via software. If a overflow of this thimer occurs
 a complete system reset of the chip will be performed. In our configuration, we
 trigger a timer reset of the WDT on specific points during program execution.
 If however the mentioned bug occurs, the program will hang and after a timeout
-a system reset will occur. This can only be seen as a temporary solution, as
+a system reset will occur. This approach may also handle can only be seen as a temporary solution, as
 the bug still exists and timing of the measurement interval will not be right
 for one measurement, as a crash might cause a blackout for up to 15 seconds.
 \paragraph{Further debuging ideas}\hspace{1cm}\\
