@@ -1116,6 +1116,7 @@ which is not connected to a computer.
 \section{Developing / Extending}
 \subsection{Project git repository}
 Our whole project can be found in github of the nEDM experiment under the name ``Temperature-Sensor-System''. Figure \ref{lst:git} show the directory structure  in the repository.
+% FIXME let me compete
 \lstset{style=mathstyle}
 \begin{lstlisting}[language=c,xleftmargin=25pt, xrightmargin=25pt,framexleftmargin=10pt,framextopmargin=10pt, framexbottommargin=10pt, caption={Directory structure in the project git repository}, label={lst:git}]
 .
@@ -1139,8 +1140,9 @@ Our whole project can be found in github of the nEDM experiment under the name `
 |   +-- temperature_board
 +-- datasheets      // Datasheets for sensors, micro processor, etc.
 +-- presentation    // Slides (tex files) for a project presentation
-+-- registration    // Project description (tex files) 
-|                   // used for registration
++-- registration    
+|   +-- description     // Project description (tex files) 
+|                       // used for registration
 +-- report      // Tex file of the project document (tex files)
 +-- shop_orders // Documentation for hardware orders
 +-- sofware
