@@ -360,7 +360,7 @@ slightly bigger than the temperature board. The schematic can be seen in figure 
 The design of the PCB (see figure \ref{fig:pcb_hum}) is also similar to the temperature board. 
 \subsubsection{ZAC encoding}
 The most easy method to generate a ZAC encoded signal is to set a pin high, then use busy-wait delay loop (\texttt{\_delay\_us()}) to wait a certain time interval. After that set the pin to low. 
-But the timing of this method is not very exact (more than 6 $\mus$ inaccuracy according to experience). Hence we decided to use a timer to achieve a higher timing accuracy. \\
+But the timing of this method is not very exact (more than 6 $\mu s$ inaccuracy according to experience). Hence we decided to use a timer to achieve a higher timing accuracy. \\
 We have used the following timer features, which are triggered on compare match: 
 \begin{itemize}
   \item Clear timer, when the timer counter matches the output compare register value. This is the so called ``CTC mode'' of the timer.
