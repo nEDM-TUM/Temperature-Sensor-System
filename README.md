@@ -5,7 +5,7 @@ Sensor network system built for nEDM experiment.
 
 Features
 ------------------
-Both temperature and humidity sensors can be connected at any sensor socket.
+- Both temperature and humidity sensors can be connected at any sensor socket.
 The sensor type will be automatically detected.
 - High temperature and humidity accuracy: Temperature sensors are calibrated to ±0.1K and the humidity sensors to ±1.8%rH.
 - A high number of connected sensors is supported. Currently 44 sensors are in use, however the system is designed to support at least 100 sensors and still be able to fulfill a sampling rate of 1Hz. If the sampling rate is allowed to be slower, up to 960 sensors are possible to share one Ethernet connection.
@@ -18,7 +18,7 @@ The sensor type will be automatically detected.
 
 Directory structure
 --------------------
-'''
+```
 .
 +-- casings     // 3D CAD files for 3D printer
 |   +-- adapter
@@ -61,7 +61,7 @@ Directory structure
 |   +-- data            // Squid magnetic field measurement protocol.
 |                       // For squid data please write a mail to us.
 |   +-- evaluation      // Evaluation script of squid analysis data
-'''
+```
 
 Tips for developers
 --------------------
@@ -73,4 +73,5 @@ Tips for developers
 - Our makefiles currently do not support automatic detection of file dependencies, and source files to be compiled. All source files have to be specified explicitly and if changes to header files are made, a ’make clean’ should be performed before compiling the program.
 - Be careful, when using the USART line or similar for generating debugging output. Transmitting debugging information takes relatively long time and might influence the system heavily, especially, when debugging timing critical code. LEDs or GPIO pins with an oscilloscope provide a faster but more complex way for debugging.
 
-###For more details about our project, please read the report document. Its tex file and needed images can be found in folder _report_###
+###For more details about our project, please read the report document. ###
+Its tex file and needed images can be found in folder _report_.
