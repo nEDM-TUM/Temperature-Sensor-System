@@ -509,7 +509,6 @@ does not follow the method suggested by \cite{zac} because of timing reasons.\\
 To decode one ZAC protocol sensor, we use the pin change interrupt (PCINT) of the pin, connected to the sensor, and
 one 8 bit timer with the corresponding timer overflow interrupt.
 \paragraph{Pin change Interrupt:} On every pin change interrupt, the following actions are executed:\\
-%FIXME redundancy of every time
 Every time:
 \begin{itemize}
 	\item The current time value is stored to a temporary variable $T_{timer}$, to be able to still access it later.
@@ -529,7 +528,6 @@ On a rising edge:
 	\item The current timer value is stored as $T_{low}$. If we already observed a falling edge, this
 		represents the time, the signal was low.
 	\item If we already have seen a start bit, we now sample a data bit\footnote{Note, that a repeated
-            % FIXME how to avoid to read the second start bit into measured data
 		start bit would also be sampled as a data bit with an unpredictable value.}:\\
 	$\mathrm{bit} = \begin{cases} 1 & \text{if } T_{timer}<T_{crit} \\ 0 & \text{else}\end{cases}$
 \end{itemize}
@@ -619,8 +617,8 @@ it is buffered by hardware, without interrupting the measurement and the clock w
 If a write request (SLA+W) is sent, the data following the write request is interpreted as a command. A list of implemented commands is given
 in table \ref{tab:i2c}. The collector boards react to the general call address 0. This makes it possible to trigger a measurement
 on multiple boards, using only one I2C transmission.
-% FIXME really without knowing the old one?
-Also the own I2C address can be set to a new value without knowing the old one.\\
+Also the I2C address of a collector board can be set to a new value without knowing the old one, when only this board is connected
+to the bus and the address 0 is specified as the old address when issuing the address change command.\\
 If a read request (SLA+R) is sent, the packet array from the last completed measurement will be sent out, starting with sensor 0.
 For details about the packet format see chapter \ref{chap:packet}. Not all packets have to be received, as soon as a STOP bit is
 received, the transmission is aborted. A new read request will again trigger the transmission of data starting at sensor 0.
@@ -637,10 +635,8 @@ received, the transmission is aborted. A new read request will again trigger the
 		the slave is addressed again, the I2C clock will immediately be extended until the measurement is complete, blocking the whole I2C bus.\\
 		\hline
     SET\_ADDRESS & 0x02 & address & The own I2C address will be updated with the 1 byte value following the command. The address should
-        % FIXME 42????
 		be in the range from 8 to 120. The default address is 42\\
 		\hline
-        % FIXME parameter not just number!!!
     LED\_ON & 0x03 & number & The LED with the given number will be turned on.\\
 		\hline
     LED\_OFF & 0x04 & number & The LED with the given number will be turned off.\\
@@ -932,8 +928,8 @@ The following commands are supported:
     Changes the address of a connected collector board.\\
     Example: ba 13 22
   \item[led] board\_addr led\_number (1 $|$ 0)\\
-    %FIXME introduce LED number?!
-    Controls the leds of connected collector boards. It is currently not possible, to read the state of the LEDs.\\
+    Controls the LEDs of connected collector boards. The LED with the corresponding number
+    will be turned on (1) or off (0). It is currently not possible, to read the state of the LEDs.\\
     Example: led 13 2 1
 \end{description}
 %###############################################################
@@ -1115,7 +1111,6 @@ which is not connected to a computer.
 \section{Developing / Extending}
 \subsection{Project git repository}
 Our whole project can be found at GitHub under nEDM-TUM. The repository name is ``Temperature-Sensor-System''. The repository URL is \url{https://github.com/nEDM-TUM/Temperature-Sensor-System}. Figure \ref{lst:git} show the directory structure of the repository.
-% FIXME let me compete
 \lstset{style=mathstyle}
 \begin{lstlisting}[language=c,xleftmargin=25pt, xrightmargin=25pt,framexleftmargin=10pt,framextopmargin=10pt, framexbottommargin=10pt, caption={Directory structure in the project git repository}, label={lst:git}]
 .
@@ -1215,14 +1210,12 @@ the sensor network:
 \begin{figure}[Hh!]
 	\centering
 	\includegraphics[width=0.9\textwidth]{img/schem_humidity_board.pdf}
-    %FIXME which elements are not required to be populated
-	\caption{Humidity board schematic}
+	\caption{Humidity board schematic.The Impedance adjuster circuit, R6 and C5 is not required to be populated, as we only transmit data.}
 	\label{fig:schem_hum}
 \end{figure}
 \begin{figure}
 	\centering
 	\includegraphics[width=1\textwidth]{img/schem_collector_board.pdf}
-    %FIXME which elements are not required to be populated
 	\caption{Collector board schematic}
 	\label{fig:schem_collect}
 \end{figure}
