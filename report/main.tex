@@ -1115,29 +1115,42 @@ which is not connected to a computer.
 \subsection{Project git repository}
 Our whole project can be found in github of the nEDM experiment under the name ``Temperature-Sensor-System''. Figure \ref{lst:git} show the directory structure  in the repository.
 \lstset{style=mathstyle}
-\begin{lstlisting}[xleftmargin=25pt, xrightmargin=25pt,framexleftmargin=10pt,framextopmargin=10pt, framexbottommargin=10pt, caption={Directory structure in the project git repository}, label={lst:git}]
+\begin{lstlisting}[language=c,xleftmargin=25pt, xrightmargin=25pt,framexleftmargin=10pt,framextopmargin=10pt, framexbottommargin=10pt, caption={Directory structure in the project git repository}, label={lst:git}]
 .
-+-- casings
++-- casings     // 3D CAD and solid works files for 3D printer
 |   +-- adapter
 |   +-- arduino
 |   +-- cable_clamp
 |   +-- collector
 |   +-- humidity
 |   +-- temperature
-+-- circuit_boards
-+-- datasheets
-+-- diary??
-+-- presentation
-+-- registration
-+-- report
-+-- shop_orders
++-- circuit_boards      // Circuit schematic diagram and 
+|   |                   // PCB schematic files created using kicad
+|   +-- 3x127_254_adapter       //
+|   +-- 4x127_254_adapter       //
+|   +-- arduino_adapter
+|   +-- humidity
+|   +-- kicad_library       //
+|   +-- order       // 
+|   +-- sensor_board
+|   +-- so8_breakout        //
+|   +-- temperature_board
++-- datasheets      // Datasheets for sensors, micro processor, etc.
++-- presentation    // Slides (tex files) for a project presentation
++-- registration    // Project description (tex files) 
+|                   // used for registration
++-- report      // Tex file of the project document (tex files)
++-- shop_orders // Documentation for hardware orders
 +-- sofware
-|   +-- avr_wcet_analyzer
-|   +-- collector_board
-|   +-- ethernet_board
-|   +-- humidity_board
-|   +-- util
-+-- squid_analysis
+|   +-- avr_wcet_analyzer   // code for WCET analyzer
+|   |                       // for the AVR instruction set
+|   +-- collector_board     // 
+|   +-- ethernet_board      //  
+|   +-- humidity_board      //
+|   +-- util                // Common used utilities code
++-- squid_analysis      
+|   +--data             //  Squid magnetic field measurement protocol
+|   +-- evaluation      // Evaluation script of squid analysis data
 \end{lstlisting}
 \subsection{Tips}
 The following are tips for developers, which might be useful, when extending
