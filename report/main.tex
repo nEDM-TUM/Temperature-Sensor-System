@@ -1114,12 +1114,12 @@ which is not connected to a computer.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Developing / Extending}
 \subsection{Project git repository}
-Our whole project can be found in github of the nEDM experiment under the name ``Temperature-Sensor-System''. Figure \ref{lst:git} show the directory structure  in the repository.
+Our whole project can be found at GitHub under nEDM-TUM. The repository name is ``Temperature-Sensor-System''. The repository URL is \url{https://github.com/nEDM-TUM/Temperature-Sensor-System}. Figure \ref{lst:git} show the directory structure of the repository.
 % FIXME let me compete
 \lstset{style=mathstyle}
 \begin{lstlisting}[language=c,xleftmargin=25pt, xrightmargin=25pt,framexleftmargin=10pt,framextopmargin=10pt, framexbottommargin=10pt, caption={Directory structure in the project git repository}, label={lst:git}]
 .
-+-- casings     // 3D CAD and solid works files for 3D printer
++-- casings     // 3D CAD files for 3D printer
 |   +-- adapter
 |   +-- arduino
 |   +-- cable_clamp
@@ -1127,32 +1127,34 @@ Our whole project can be found in github of the nEDM experiment under the name `
 |   +-- humidity
 |   +-- temperature
 +-- circuit_boards      // Circuit schematic diagram and 
-|   |                   // PCB schematic files created using kicad
-|   +-- 3x127_254_adapter       //
-|   +-- 4x127_254_adapter       //
+|   |                   // PCB schematic files created using KiCad
+|   +-- 3x127_254_adapter       // A PCB chip adapter, used for breadboard debugging
+|   +-- 4x127_254_adapter       // A PCB chip adapter, used for breadboard debugging
 |   +-- arduino_adapter
 |   +-- humidity
-|   +-- kicad_library       //
-|   +-- order       // 
+|   +-- kicad_library           // Footprint and Component library files for KiCad
+|   +-- order           // PCB assembly, which was sent to Fischer Leiterplatten
+|                       // for production
 |   +-- sensor_board
-|   +-- so8_breakout        //
+|   +-- so8_breakout        // A PCB chip adapter, used for breadboard debugging
 |   +-- temperature_board
 +-- datasheets      // Datasheets for sensors, micro processor, etc.
 +-- presentation    // Slides (tex files) for a project presentation
 +-- registration    
 |   +-- description     // Project description (tex files) 
 |                       // used for registration
-+-- report      // Tex file of the project document (tex files)
-+-- shop_orders // Documentation for hardware orders
++-- report      // Main project documentation (tex files)
++-- shop_orders // Receipts of orders from hardware shops
 +-- sofware
-|   +-- avr_wcet_analyzer   // code for WCET analyzer
+|   +-- avr_wcet_analyzer   // code of a WCET analyzer
 |   |                       // for the AVR instruction set
-|   +-- collector_board     // 
-|   +-- ethernet_board      //  
-|   +-- humidity_board      //
-|   +-- util                // Common used utilities code
+|   +-- collector_board      
+|   +-- ethernet_board        
+|   +-- humidity_board      
+|   +-- util                // Commonly used utility code
 +-- squid_analysis      
-|   +--data             //  Squid magnetic field measurement protocol
+|   +-- data            // Squid magnetic field measurement protocol.
+|                       // For squid data please write a mail to us.
 |   +-- evaluation      // Evaluation script of squid analysis data
 \end{lstlisting}
 \subsection{Tips}
