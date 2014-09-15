@@ -1,6 +1,0 @@
-- Simple microprocessor with I2C support
-
-- Cable and plug for connection between sensor board and adapt board
-  - Cable should be twisted paar
-
-
