@@ -717,7 +717,7 @@ For the ethernet board we use a pre built
 Arduino Ethernet board\footnote{http://arduino.cc/en/Main/ArduinoBoardEthernet},
 equipped with a Power over Ethernet module.
 The board features an atmega328 microcontroller,
-which has 32KByte Flash and 2KByte RAM storage \cite{atmega328}. The atmega328
+which has 32 KByte Flash and 2 KByte RAM storage \cite{atmega328}. The atmega328
 controller is connected to a W5100 ethernet controller and PHY with integrated
 TCP/IP stack.\\
 As the I/O Pin headers of the Arduino board were not suitable to
@@ -743,13 +743,13 @@ in a semi parallel way:\\
 In the main program loop, the two functions are called in turn. Each function however has to guarantee to
 not block program execution for more time than is absolutely neccessary. Especially waiting for I/O
 should not be done via busy waiting. Respecting this constraint, one function
-call is most of the time not sufficient to finish a task, but does only some progress on the
+call is most of the time not sufficient to finish a task, but only does some progress on the
 current task. For example receiving of a measurement result needs multiple calls
 of the corresponding receive function. This is implemented using state machines and different
 return values for `task finished' or `task needs more time'.\\
 However both the user interface task, as well as the measurement task may access shared ressources
 like the I2C bus. As semi parrallel access will lead to undefined behavior, shared ressources
-have a associated mutex, which has to be aquired before accessing the ressource.\\
+have an associated mutex, which has to be aquired before accessing the ressource.\\
 \textbf{Note} that implementing
 busy waiting when trying to aquire a mutex will immediately lead to a deadlock, due to the nature
 of the event loop approach.
@@ -786,16 +786,16 @@ to a different socket (\texttt{stream\_set\_socket(sock)}). As the stream utiliz
 can be performend to force sending of the buffer contents over the network.\\
 The final networking layer provides two essential services:
 \begin{enumerate}
-  \item A handling function \texttt{net\_dataAvailable}, which is used to process measurement data from collector boards:\\
+  \item A handling function \texttt{net\_dataAvailable(...)}, which is used to process measurement data from collector boards:\\
     This function is called by the measurement sampling task, as soon as data was received from one collector board.
     \begin{itemize}
-    \item If the feature of sending to data base is enabled,
-    the measured data will be packet in a HTTP packet and then sent to the data base
+    \item If sending data to the database is enabled,
+    the measured data will be packed into a HTTP packet and then sent to the database
     server, via a reserved TCP client socket.
-    As in the experiment a couchDB system\footnote{\url{http://couchdb.apache.org/}} is used as data base server,
+    As in the experiment a couchDB system\footnote{\url{http://couchdb.apache.org/}} is used as database server,
     which accepts data in JSON format, we use the JSON template showed in figure \ref{lst:json} for organising the whole measured data from the collector board. 
 \lstset{style=mathstyle}
-\begin{lstlisting}[language=c,xleftmargin=70pt, xrightmargin=70pt,framexleftmargin=10pt,framextopmargin=10pt, framexbottommargin=10pt, caption={The JSON template for sending data to the couchDB data base},label={lst:json}]
+\begin{lstlisting}[language=c,xleftmargin=70pt, xrightmargin=70pt,framexleftmargin=10pt,framextopmargin=10pt, framexbottommargin=10pt, caption={JSON template for sending data to the couchDB data base},label={lst:json}]
 {
     "type":"data",
     "value":{
@@ -804,23 +804,23 @@ The final networking layer provides two essential services:
             }
 }
 \end{lstlisting}
-    \item If data is requested via user interfaces, the whole measured data will be sent to these clients in plain text via corresponding sockets.
+    \item If data is requested via user interfaces, the whole measured data will be sent to the corresponding clients in plain text over their associated sockets.
 \end{itemize}
   \item An event loop function \texttt{net\_loop()}, which is responsible for the user interface (\texttt{serve()}) and incomming data from the database (\texttt{handle\_db\_response()}):
       \begin{itemize}
-          \item \texttt{serve()} implements a TCP server, which is able to handle up to multiple simultaneous terminal user interface sessions.
-A parser will parse incomming data from TCP connections and call command handler functions, if the data is recognized as a valid command.
+          \item \texttt{serve()} implements a TCP server, which is able to handle multiple simultaneous terminal user interface sessions.
+A parser will parse incomming data from TCP connections and call matching command handler functions, if the data is recognized as a valid command.
 All implemented commands will be introduced in section \ref{sec:uicmd}.
-New commands with respective callback functions can be registered in a command array \texttt{struct cmd cmds[]} and \textbf{note} to increase the command counter stored as preprocessor statement called \texttt{DEFINED\_CMD\_COUNT}.\\
+New commands with respective callback functions can be registered in a command array \texttt{struct cmd cmds[]}. \textbf{Note} that, after adding a command, the command counter preprocessor variable \texttt{DEFINED\_CMD\_COUNT} has to be incremented.\\
     \textbf{Care has to be taken}, when accessing shared resources like the I2C bus in a handler, as busy waiting for aquiring the mutex will lead to a deadlock.
-        \item \texttt{handle\_db\_response()} handles the received data base responses after transmission of each data packet, so that these in order for the w5100 receive buffer does not cause overflow.
-            If a client enables showing data base reponses, current responses will be redirected to the user interface using \texttt{net\_clear\_rcv\_buf(SOCKET)},
-otherwiese the receive queue will be emptyed in each loop cycle.
+        \item \texttt{handle\_db\_response()} handles the received database responses after transmission of each data packet. This is required, in order for the w5100 receive buffer not to overflow.
+            If a client enables showing data base reponses, incomming responses will be redirected to the user interface,
+otherwise the receive queue will be emptyed in each loop cycle using \texttt{net\_clear\_rcv\_buf(SOCKET)}.
     \end{itemize}
 \end{enumerate}
 \subsubsection{String handling}
-In C, strings are represented as char arrays. If such string arrays are initialized in C code, the data is placed
-into the \texttt{.bss} or \texttt{.data} section of the compiled program. During program execution the whole data
+In C, strings are represented as char arrays. If such arrays are initialized in C code, the data is placed
+into the \texttt{.bss} or \texttt{.data} section of the compiled program. During program execution, the whole data
 will then be initialized inside the AVR RAM. As our application uses a huge amount of string constants for the user interface and
 generation of JSON documents, this approach would use up way more memory in RAM, than we have available on the Atmega328 (2Kbyte).\\
 Because of that we use the \texttt{PROGMEM} compiler attribute, which causes the string data to be linked to the \texttt{.text} section.
@@ -839,7 +839,7 @@ This allows users to conveniently change or view system settings. The interface 
 by a newline and/or carrier return character.\\
 By default, the user interface is reachable at port 8888.
 It is possible to open up to three simultaneous connections to the user interface.\\
-The most commands to change the configuration can also be executed, without providing
+Most commands to change the configuration can also be executed, without providing
 arguments. The command will then return the current configuration value.\\
 The following commands are supported:
 \subsubsection{System configuration}
@@ -847,7 +847,7 @@ The following commands are supported:
   \item[help]\hspace{1cm}\\
     All supported commands, needed arguments and their usage will be listed.
   \item[res]\hspace{1cm}\\
-    This command stores configuration changes to EEPROM, terminate all current connections and restarts all network
+    This command stores configuration changes to EEPROM, terminates all current connections and restarts all network
     services.
   \item[sto]\hspace{1cm}\\
     All configuration changes will be stored to EEPROM and hence will be available
@@ -872,7 +872,7 @@ The following commands are supported:
     The internet gateway address is set to the given value.\\
     Example: gw 10.0.1.1
 \end{description}
-    \textbf{Note}, that changes to network settings only get effective, after the \emph{res} command is executed, or to store the new settings at first using the \emph{sto} command and reset the system.
+    \textbf{Note}, that changes to network settings only get effective, after the \emph{res} command is executed, or after storing the new settings first using the \emph{sto} command and then resetting the system.
 \subsubsection{Database configuration}
 \begin{description}
   \item[d.s] [ 1 $|$ 0 ]\\
