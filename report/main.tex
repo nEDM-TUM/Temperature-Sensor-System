@@ -381,7 +381,7 @@ After the last bit is sent, the output pin will stay high, which indicates a sto
 When a newly measured value is ready again, the whole procudure will be excute again.
 \\
 For detailed usage description of the microprocessor timer, please read the corresponding datasheet. For the microprocessor ATmega88P, which we used, see \cite{atmega88}. 
-\subsubsection{Cyclic redundancy check (CRC)}
+\subsubsection{Cyclic redundancy check (CRC)}\label{chap:crc}
 In order to detect errors after a long distance transmission, 
 We attach an 8-bit CRC checksum for every block of measured values before sending the data out. \\
 CRC is a common method for error-detecting in digital networks and is based on the theory of polynomial division. 
@@ -446,7 +446,7 @@ The schematic diagram can be seen in figure \ref{fig:schem_collect}. The hardwar
     To do all protocol conversion tasks, we used an Atmel Atmega88PA
     microcontroller, running at a clock speed of $20MHz$. The clock
     is generated, using an external crystal oscillator.\\
-    The Atmega microconteoller provides a variety of useful features
+    The Atmega microcontroller provides a variety of useful features
     like asynchronous timers, pin change interrupts on every GPIO (General Purpose Input/Output)
     pin, hardware support for the I2C protocol and integrated EEPROM
     storage (Datasheet: \cite{atmega88}).\\
@@ -507,12 +507,12 @@ protocol (protocol definition is explained in chapter \ref{chap:zac}). Hence we
 implemented a software decoder. However our implementation
 does not follow the method suggested by \cite{zac} because of timing reasons.\\
 To decode one ZAC protocol sensor, we use the pin change interrupt (PCINT) of the pin, connected to the sensor, and
-one 8 bit timer, the corresponding timer overflow interrupt.
+one 8 bit timer with the corresponding timer overflow interrupt.
 \paragraph{Pin change Interrupt:} On every pin change interrupt, the following actions are executed:\\
 %FIXME redudancy of every time
 Every time:
 \begin{itemize}
-	\item The current current value is stored to a temporary variable $T_{timer}$, to be able to still access it later.
+	\item The current time value is stored to a temporary variable $T_{timer}$, to be able to still access it later.
 	\item The timer is reset.
 	\item If the timer is not jet running, it is started now.
 \end{itemize}
@@ -523,6 +523,7 @@ On a falling edge:
 		have observed a start bit.\\
 		We now update the critical sampling time\footnote{$T_{crit} = 0.5\cdot(T_{timer} + T_{low})$ would
 		be more accurate, but would consume more time to calculate.}: $T_{crit} = T_{timer}$.
+    The critical sampling time, is the time, we will wait in the future, after seeing a falling edge, to determine the bit value.
 \end{itemize}
 On a rising edge:
 \begin{itemize}
@@ -615,9 +616,9 @@ address to the instruction causing the branch.}
 Communication with the collector board is done via I2C (Two Wire Interface). Thereby the board acts as an
 I2C slave, extending the clock, if it is currently not able to process incomming data.
 This is especially used while a measurement is in progress: As soon as new data byte arrives,
-it is buffered and the clock will be extended, signalling to the master, that no further data should be sent or received.\\
-If a write request (SLA+W) is sent, the following data is interpreted as a command. A list of implemented commands is given
-in table \ref{tab:i2c}. The collector board reacts to the general call address 0. This makes it possible to trigger a measurement
+it is buffered by hardware, without interrupting the measurement and the clock will be extended, signalling to the master, that no further data should be sent or received.\\
+If a write request (SLA+W) is sent, the data following the write request is interpreted as a command. A list of implemented commands is given
+in table \ref{tab:i2c}. The collector boards react to the general call address 0. This makes it possible to trigger a measurement
 on multiple boards, using only one I2C transmission.
 % FIXME really without knowing the old one?
 Also the own I2C address can be set to a new value without knowing the old one.\\
@@ -638,7 +639,7 @@ received, the transmission is aborted. A new read request will again trigger the
 		\hline
     SET\_ADDRESS & 0x02 & address & The own I2C address will be updated with the 1 byte value following the command. The address should
         % FIXME 42????
-		be in the range from 8 to 112. The default address is 42\\
+		be in the range from 8 to 120. The default address is 42\\
 		\hline
         % FIXME parameter not just number!!!
     LED\_ON & 0x03 & number & The LED with the given number will be turned on.\\
@@ -669,11 +670,11 @@ redirection via I2C. Figure \ref{fig:packet} shows the structure of a packet.
   \caption{Packet format of a measurement. The whole packet is 6 bytes long}
 	\label{fig:packet}
 \end{figure}
-Each packet's integrity is protected by a CRC checksum and consists of the following fields:\\
+Each packet's integrity is protected by a CRC checksum (algorithm description see section \ref{chap:crc}) and consists of the following fields:\\
 \begin{description}
 	\item[\textbf{type}] \hfill\\
         This field pecifies the type of the sensor, which supplied the data. Currently implemented values are 0
-		for TSIC and 1 for HYT. In case the type field reads 0, the \emph{Humidity} field will have no relevant value hence
+		for TSIC and 1 for HYT. In case the type field reads 0, the \emph{Humidity} field will have no relevant value and hence
 		represents a padding field.
 	\item[c] \hfill\\
 This bit is set to 1, if the measurement was completed without a timeout. This is usually the case, when a
@@ -725,7 +726,7 @@ board, which provides sockets for I2C and power connections. The adapter also
 provides I2C pullup resistors and a LED for debugging.
 Hence, when using it,
 the optional pullup resistors on the collector boards can be switched off.\\
-The PCB schematic of the adaptor can be found in figure	\ref{fig:pcb_arduino}.
+The PCB schematic of the adapter can be found in figure	\ref{fig:pcb_arduino}.
 \subsection{Software}
 On the software side, the ethernet board has the following requirements:
 \begin{itemize}
