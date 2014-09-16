@@ -281,7 +281,6 @@ Libraries:
 We use the make build environment. The Makefiles in each software directory contain instructions on how to build and upload the software to the micro controller, using the following rules:
 \begin{description}
   \item[make clean] Clears the build directory.
-    %FIXME make makefile clever for use/create build folder
   \item[make] Compiles and links the source code to the elf and Intel hex binary format. Also a EEPROM image is generated in Intel hex binary format. The output directory for binary files will be \emph{./build/}.
   \item[make fuse] Configures the controller, to use the right system clock source, burnout detection and EEPROM persistency settings.
   \item[make eeprom] Uploads the EEPROM image to the controller.

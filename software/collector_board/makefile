@@ -90,7 +90,11 @@ PROJECT_OBJS_FIN=$(addprefix $(BUILD_DIR)/,$(PROJECT_OBJS))
 
 #--------------------------------------------------------------
 # rules:
-all: build size
+all: directory build size
+
+directory:
+	mkdir -p build
+
 build: elf hex
 
 # upload the program to the microcontroller flash:
@@ -123,7 +127,7 @@ $(TARGET)_eeprom.hex: $(TARGET).elf
 	$(OBJCOPY) -O $(FORMAT) -j .eeprom --no-change-warnings --change-section-lma .eeprom=0 $< $@
 
 clean:
-	rm -rv $(BUILD_DIR)/*
+	rm -rv $(BUILD_DIR)
 
 project: $(PROJECT_OBJS_FIN)
 
