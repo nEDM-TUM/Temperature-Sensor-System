@@ -74,4 +74,4 @@ Tips for developers
 - Be careful, when using the USART line or similar for generating debugging output. Transmitting debugging information takes relatively long time and might influence the system heavily, especially, when debugging timing critical code. LEDs or GPIO pins with an oscilloscope provide a faster but more complex way for debugging.
 
 ###For more details about our project, please read the report document. ###
-Its tex file and needed images can be found in the folder _report_.
+Its tex file and needed images can be found in the folder _report_. You can use _make_ to compile the document.
