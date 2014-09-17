@@ -566,8 +566,8 @@ interrupts. However, if we did not receive enough data, we reset the receive buf
 next transmission to begin.\\
 As the transmission of a humidity board is longer than that of a TSIC sensor, we later will be able to determine the
 type of the sensor, by looking at the leftmost bit in the receive buffer, where the first 0 bit of the humidity
-board should reside. If this bit is 0, we know, that the sample is from a humidity board, else it is from a TSIC
-temperature board.
+board should be. If this bit is 0, we know, that the sample is from a humidity board, else it is from a TSIC
+sensor.
 %\paragraph{Starting a measurement:} 
 \\[0.6cm]
 At the beginning of each measuring process, the following is executed:
@@ -678,23 +678,6 @@ received, the transmission is aborted. A new read request will again trigger the
 \subsection{Measurement packet format}\label{chap:packet}
 After data was received via the ZAC-Wire protocol, it is interpreted and converted to a convenient packet format, suitable for
 redirection via I2C. Figure \ref{fig:packet} shows the structure of a packet.
-\begin{figure}[Hh!]
-	\centering
-	\definecolor{lightgray}{gray}{0.8}
-	\begin{bytefield}[endianness=big, bitwidth=2.1em]{8}
-		\bitheader{0-7}\\
-		\begin{rightwordgroup}{Header}
-			\bitbox{2}{type} & \bitbox{3}{\color{lightgray}\rule{\width}{\height}} & \bitbox{1}{c} & \bitbox{2}{error}
-		\end{rightwordgroup}\\
-		\begin{rightwordgroup}{Payload}
-			\wordbox{2}{Temperature}\\
-			\wordbox{2}{Humidity}
-		\end{rightwordgroup}\\
-		\wordbox{1}{CRC-8}
-	\end{bytefield}
-  \caption{Packet format of a measurement. The whole packet is 6 bytes long}
-	\label{fig:packet}
-\end{figure}
 Each packet's integrity is protected by a CRC checksum (algorithm description see section \ref{chap:crc}) and consists of the following fields:\\
 \begin{description}
 	\item[\textbf{type}] \hfill\\
@@ -717,6 +700,23 @@ Checksum over the first 5 bytes of the packet\footnote{The Humidity field is alw
 \end{description}
 Packets can be received via I2C in the order, shown in
 figure \ref{fig:packetorder}.\\
+\begin{figure}[Hh!]
+	\centering
+	\definecolor{lightgray}{gray}{0.8}
+	\begin{bytefield}[endianness=big, bitwidth=2.1em]{8}
+		\bitheader{0-7}\\
+		\begin{rightwordgroup}{Header}
+			\bitbox{2}{type} & \bitbox{3}{\color{lightgray}\rule{\width}{\height}} & \bitbox{1}{c} & \bitbox{2}{error}
+		\end{rightwordgroup}\\
+		\begin{rightwordgroup}{Payload}
+			\wordbox{2}{Temperature}\\
+			\wordbox{2}{Humidity}
+		\end{rightwordgroup}\\
+		\wordbox{1}{CRC-8}
+	\end{bytefield}
+  \caption{Packet format of a measurement. The whole packet is 6 bytes long}
+	\label{fig:packet}
+\end{figure}
 \begin{figure}[Hh!]
 	\centering
 	\definecolor{lightgray}{gray}{0.8}
@@ -994,12 +994,6 @@ Ethernet board. One of the control stations is placed on the ceiling of the
 topmost floor and the other one is placed near the ground in the lowest floor. We tried
 to distribute the sensors evenly in the field cage. However, most
 of the sensors were placed on the walls and ceilings of the individual floors. 
-\begin{figure}
-	\centering
-	\includegraphics[width=\textwidth]{img/installPlan.pdf}
-  \caption{Approximate sensor distribution in the field cage.}
-	\label{fig:install}
-\end{figure}
 Figure
 \ref{fig:install} shows the approximate distribution of sensors and control stations.\\
 The two control stations feature sockets for 48 sensors, as we currently only use 44,
@@ -1295,6 +1289,12 @@ the sensor network:
 	\includegraphics[width=0.94\textwidth]{img/control_unit.jpg}
 	\caption{One of the two installed control units, consisting of three stacked collector boards and one Ethernet board. The lids of the casings are removed here. Every cable to a sensor is marked with an unique identifier.}
 	\label{fig:control_unit} 
+\end{figure}
+\begin{figure}[Hh!]
+	\centering
+	\includegraphics[width=\textwidth]{img/installPlan.pdf}
+  \caption{Approximate sensor distribution in the field cage.}
+	\label{fig:install}
 \end{figure}
 \end{appendices}
 
