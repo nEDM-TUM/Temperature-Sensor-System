@@ -435,11 +435,11 @@ But that does not mean, no error exists.
 It might happen, that the change of some bits accidentally leads to a zero remainder. However, the probability of such detectable error is very low.\\
 The polynomial, which we use, is the standard CRC-8 for 1-wire bus systems: 100110001(0x131).
 \subsubsection{Transmission structure}
-After having fetched a block of valid measurement values, which has zero in stale bit (introduced in \ref{sec:sensor_hyt281},
+After having fetched a block of valid measurement values, whose stale bit is zero (see section \ref{sec:sensor_hyt281}),
 the status bits will be removed.
 Then a CRC-8 checksum will be computed and attached after the data block.
-After that, the whole data will be encoded as ZACware signals and sent out.
-Figure \ref{fig:hyt_board_transmission} show the new transmission structure over the ZACware protocol.
+After that, the whole data will be encoded to ZACwire signals and sent out.
+Figure \ref{fig:hyt_board_transmission} shows the new transmission structure, of the ZACwire transmission.
 \begin{figure}[Hh!]
 	\centering
 	\definecolor{lightgray}{gray}{0.8}
@@ -452,7 +452,7 @@ Figure \ref{fig:hyt_board_transmission} show the new transmission structure over
     \wordbox[lrb]{1}{Temperature}\\
     \bitbox{8}{CRC-8}
 	\end{bytefield}
-  \caption{Transmission structure over the ZACware protocol, which is sent out from hymidity board. The two bits, marked with gray color, before the temperature value are not care.}
+  \caption{ZACwire Transmission structure of data, which is sent out from the hymidity board. The two bits, marked with gray color, before the temperature value are undefined. ST represents the start bit.}
 	\label{fig:hyt_board_transmission}
 \end{figure}\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
