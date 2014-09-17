@@ -133,6 +133,7 @@ For further information about the sensor, and data interpretation, please refer 
 	\label{fig:tsic_transmission}
 \end{figure}
 \subsection{HYT271}
+\label{sec:sensor_hyt281}
 For humidity measurement, we use the HYT271 sensor. At a price of about \EUR{20} per device it is significantly more expensive than the temperature sensors, however it delivers precise and temperature compensated humidity measurements. 
 The humidity value rH in percent can simply be calculated from the received value $\mathrm{rH}_{dig}$ using
 $$\mathrm{rH}\,[\%] = \frac{100}{2^{14}} \cdot  \mathrm{rH}_{dig}$$\\
@@ -167,7 +168,7 @@ Communication with the sensor is done via I2C. Thereby measurements can be initi
     \bitbox{2}{\color{lightgray}\rule{\width}{\height}} & \bitbox{6}{Temperature [13:8]}\\
     \bitbox{8}{Temperature  [7:0]}
 	\end{bytefield}
-  \caption{HYT271 transmission structure. The humidity value and temperature value each consist of 14 bits. The two bits, marked with gray color, before the temperature value are not used \cite{hyt2}.}
+  \caption{HYT271 transmission structure. The humidity value and temperature value each consist of 14 bits. The two bits, marked with gray color, before the temperature value are not care \cite{hyt2}.}
 	\label{fig:hyt_transmission}
 \end{figure}\\
 For further information about the sensor, and data interpretation, please refer to \cite{hyt}, \cite{hyt3} and \cite{hyt2}.
@@ -379,7 +380,7 @@ After that, the output compare register will be set to $\frac{T_{b}}{4}$ or $\fr
 After the last bit is sent, the output pin will stay high, which indicates a stop bit. 
 When a newly measured value is ready again, the whole procedure will be executed again.
 \\
-For detailed usage description of the microprocessor timer, please read the corresponding data sheet. For the microprocessor ATmega88P, which we used, see \cite{atmega88}. 
+For detailed usage description of the microprocessor timer, please read the corresponding data sheet. For the microprocessor ATmega88P, which we used, see \cite{atmega88}.\\
 \subsubsection{Cyclic redundancy check (CRC)}\label{chap:crc}
 In order to detect errors after a long distance transmission, 
 We attach an 8-bit CRC checksum for every block of measured values before sending the data out. \\
@@ -433,6 +434,27 @@ If the remainder is not equal zero, some error of the transfered data is detecte
 But that does not mean, no error exists.
 It might happen, that the change of some bits accidentally leads to a zero remainder. However, the probability of such detectable error is very low.\\
 The polynomial, which we use, is the standard CRC-8 for 1-wire bus systems: 100110001(0x131).
+\subsubsection{Transmission structure}
+After having fetched a block of valid measurement values, which has zero in stale bit (introduced in \ref{sec:sensor_hyt281},
+the status bits will be removed.
+Then a CRC-8 checksum will be computed and attached after the data block.
+After that, the whole data will be encoded as ZACware signals and sent out.
+Figure \ref{fig:hyt_board_transmission} show the new transmission structure over the ZACware protocol.
+\begin{figure}[Hh!]
+	\centering
+	\definecolor{lightgray}{gray}{0.8}
+	\begin{bytefield}[endianness=big, bitwidth=2.1em]{8}
+		\bitheader{0-7}\\
+    \bitbox[b]{7}{} & \bitbox{1}{ST}\\
+    \bitbox{2}{0} & \bitbox[lrt]{6}{}\\
+    \wordbox[lrb]{1}{Humidity}\\
+    \bitbox{2}{\color{lightgray}\rule{\width}{\height}} & \bitbox[lrt]{6}{}\\
+    \wordbox[lrb]{1}{Temperature}\\
+    \bitbox{8}{CRC-8}
+	\end{bytefield}
+  \caption{Transmission structure over the ZACware protocol, which is sent out from hymidity board. The two bits, marked with gray color, before the temperature value are not care.}
+	\label{fig:hyt_board_transmission}
+\end{figure}\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Collector board}
 The collector board decodes the ZAC protocol and provides an I2C interface
@@ -533,10 +555,10 @@ On a rising edge:
 \paragraph{Timer overflow Interrupt:} The timer is configured in a way, that an overflow will occur after
 the timer is running without a reset for $T_{ovf}$, with $T_{bit} < T_{ovf} < 100\,\mathrm{ms}$. Hence
 the interrupt will occur, after a completed transmission and before the start of the next transmission.\\
-%FIXME add reference to humidity packet structur image
 After a overflow occurs, we check, if we received a whole transmission.
 This is done, by filling the receive buffer with all ones prior to receiving. Then we use the fact, that
-the TSIC sensor, as well as the humidity board start the transmission with a 0 bit (see figure \ref{fig:tsic_transmission} and \ref{FIXME}). Hence, if we see a
+the TSIC sensor, as well as the humidity board start the transmission with a 0 bit (see figure \ref{fig:tsic_transmission} and \ref{fig:hyt_board_transmission}.
+Hence, if we see a
 0 on the expected position of a humidity readout or a TSIC readout after a timeout, we might have
 enough data and stop the sampling, as the transmission is most likely complete.\\
 Sampling is stopped by disabling the
