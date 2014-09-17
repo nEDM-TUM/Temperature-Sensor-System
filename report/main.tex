@@ -163,10 +163,10 @@ Communication with the sensor is done via I2C. Thereby measurements can be initi
 	\definecolor{lightgray}{gray}{0.8}
 	\begin{bytefield}[endianness=big, bitwidth=2.1em]{8}
 		\bitheader{0-7}\\
-    \bitbox{2}{Status} & \bitbox{6}{Humidity [13:8]}\\
-    \bitbox{8}{Humidity [7:0]}\\
-    \bitbox{2}{\color{lightgray}\rule{\width}{\height}} & \bitbox{6}{Temperature [13:8]}\\
-    \bitbox{8}{Temperature  [7:0]}
+    \bitbox{2}{Status} & \bitbox[lrt]{6}{}\\
+    \wordbox[lrb]{1}{Humidity}\\
+    \bitbox{2}{\color{lightgray}\rule{\width}{\height}} & \bitbox[lrt]{6}{}\\
+    \wordbox[lrb]{1}{Temperature}\\
 	\end{bytefield}
   \caption{HYT271 transmission structure. The humidity value and temperature value each consist of 14 bits. The two bits, marked with gray color, before the temperature value are not care \cite{hyt2}.}
 	\label{fig:hyt_transmission}
