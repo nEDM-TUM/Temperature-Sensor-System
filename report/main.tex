@@ -533,10 +533,19 @@ On a rising edge:
 \paragraph{Timer overflow Interrupt:} The timer is configured in a way, that an overflow will occur after
 the timer is running without a reset for $T_{ovf}$, with $T_{bit} < T_{ovf} < 100\,\mathrm{ms}$. Hence
 the interrupt will occur, after a completed transmission and before the start of the next transmission.\\
-%FIXME how to check, what is the criteria
-After a overflow occurs, we check, if we received a whole transmission. If this is the case, we disable
-interrupts and stop the current measurement. Otherwise we reset the receive buffer and wait for the
-next transmission to begin.
+%FIXME add reference to humidity packet structur image
+After a overflow occurs, we check, if we received a whole transmission.
+This is done, by filling the receive buffer with all ones prior to receiving. Then we use the fact, that
+the TSIC sensor, as well as the humidity board start the transmission with a 0 bit (see figure \ref{fig:tsic_transmission} and \ref{FIXME}). Hence, if we see a
+0 on the expected position of a humidity readout or a TSIC readout after a timeout, we might have
+enough data and stop the sampling, as the transmission is most likely complete.\\
+Sampling is stopped by disabling the
+interrupts. However, if we did not receive enough data, we reset the receive buffer and wait for the
+next transmission to begin.\\
+As the transmission of a humidity board is longer than that of a TSIC sensor, we later will be able to determine the
+type of the sensor, by looking at the leftmost bit in the receive buffer, where the first 0 bit of the humidity
+board should reside. If this bit is 0, we know, that the sample is from a humidity board, else it is from a TSIC
+temperature board.
 %\paragraph{Starting a measurement:} 
 \\[0.6cm]
 At the beginning of each measuring process, the following is executed:
